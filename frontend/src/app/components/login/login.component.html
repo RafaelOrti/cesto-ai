@@ -1,0 +1,151 @@
+<div class="login-container">
+  <div class="login-background">
+    <div class="login-form-wrapper">
+      <div class="login-form">
+        <div class="form-header">
+          <h1>Login</h1>
+        </div>
+
+        <form [formGroup]="isLoginMode ? loginForm : registerForm" (ngSubmit)="onSubmit()">
+          <!-- Login Form -->
+          <div *ngIf="isLoginMode">
+            <div class="form-group">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Username</mat-label>
+                <input matInput type="email" formControlName="email" placeholder="Enter your email">
+                <mat-icon matSuffix>person</mat-icon>
+                <mat-error *ngIf="getErrorMessage('email')">
+                  {{ getErrorMessage('email') }}
+                </mat-error>
+              </mat-form-field>
+            </div>
+
+            <div class="form-group">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Password</mat-label>
+                <input matInput type="password" formControlName="password" placeholder="Enter your password">
+                <mat-icon matSuffix>lock</mat-icon>
+                <mat-error *ngIf="getErrorMessage('password')">
+                  {{ getErrorMessage('password') }}
+                </mat-error>
+              </mat-form-field>
+            </div>
+
+            <div class="form-options">
+              <mat-checkbox>Remember me</mat-checkbox>
+              <a href="#" class="forgot-password">Forgot your password?</a>
+            </div>
+          </div>
+
+          <!-- Register Form -->
+          <div *ngIf="!isLoginMode">
+            <div class="form-group">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>First Name</mat-label>
+                <input matInput formControlName="firstName" placeholder="Enter your first name">
+                <mat-error *ngIf="getErrorMessage('firstName')">
+                  {{ getErrorMessage('firstName') }}
+                </mat-error>
+              </mat-form-field>
+            </div>
+
+            <div class="form-group">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Last Name</mat-label>
+                <input matInput formControlName="lastName" placeholder="Enter your last name">
+                <mat-error *ngIf="getErrorMessage('lastName')">
+                  {{ getErrorMessage('lastName') }}
+                </mat-error>
+              </mat-form-field>
+            </div>
+
+            <div class="form-group">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Email</mat-label>
+                <input matInput type="email" formControlName="email" placeholder="Enter your email">
+                <mat-icon matSuffix>email</mat-icon>
+                <mat-error *ngIf="getErrorMessage('email')">
+                  {{ getErrorMessage('email') }}
+                </mat-error>
+              </mat-form-field>
+            </div>
+
+            <div class="form-group">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Password</mat-label>
+                <input matInput type="password" formControlName="password" placeholder="Enter your password">
+                <mat-icon matSuffix>lock</mat-icon>
+                <mat-error *ngIf="getErrorMessage('password')">
+                  {{ getErrorMessage('password') }}
+                </mat-error>
+              </mat-form-field>
+            </div>
+
+            <div class="form-group">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Company Name</mat-label>
+                <input matInput formControlName="companyName" placeholder="Enter your company name">
+                <mat-error *ngIf="getErrorMessage('companyName')">
+                  {{ getErrorMessage('companyName') }}
+                </mat-error>
+              </mat-form-field>
+            </div>
+
+            <div class="form-group">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Role</mat-label>
+                <mat-select formControlName="role">
+                  <mat-option value="buyer">Buyer</mat-option>
+                  <mat-option value="supplier">Supplier</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+          </div>
+
+          <button 
+            mat-raised-button 
+            color="primary" 
+            type="submit" 
+            class="login-button"
+            [disabled]="isLoading || (isLoginMode ? loginForm.invalid : registerForm.invalid)">
+            <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
+            <span *ngIf="!isLoading">{{ isLoginMode ? 'LOGIN' : 'REGISTER' }}</span>
+          </button>
+        </form>
+
+        <div class="form-footer">
+          <button mat-button (click)="toggleMode()" class="toggle-mode-button">
+            {{ isLoginMode ? 'Need an account? Register' : 'Have an account? Login' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Buttons -->
+    <div class="nav-buttons">
+      <button mat-raised-button color="warn" class="nav-button">LOGIN</button>
+      <button mat-raised-button color="warn" class="nav-button">REGISTER</button>
+      <button mat-raised-button color="warn" class="nav-button">FORGOT PASSWORD</button>
+    </div>
+
+    <!-- Project Notes -->
+    <div class="project-notes">
+      <div class="note yellow-note">
+        <strong>EDI SOFTWARE INTEGRATION?</strong>
+      </div>
+      <div class="note yellow-note">
+        <strong>MVP OR FINAL APP?</strong>
+      </div>
+      <div class="note yellow-note">
+        <strong>LANGUAGES? WE WILL NEED PEOPLE TO TRANSLATE</strong><br>
+        english, spanish, french, italian
+      </div>
+      <div class="note yellow-note">
+        <strong>POCA INFORMACIÓN A LA HORA DE REGISTRAR, IR PIDIENDO MAS INFO POCO A POCO AL CLIENTE</strong>
+      </div>
+      <div class="note yellow-note">
+        <strong>APP DIVIDIDA EN 2 CLIENTE / SUPPLIER</strong>
+      </div>
+    </div>
+  </div>
+</div>

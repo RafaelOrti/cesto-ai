@@ -1,0 +1,54 @@
+<mat-toolbar class="header-toolbar">
+  <div class="header-content">
+    <!-- Left side - Search -->
+    <div class="header-left">
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Search</mat-label>
+        <input 
+          matInput 
+          [(ngModel)]="searchQuery" 
+          (keyup.enter)="onSearch()"
+          placeholder="Search products, suppliers...">
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+    </div>
+
+    <!-- Right side - User info and actions -->
+    <div class="header-right">
+      <!-- Notifications -->
+      <button mat-icon-button class="notification-button">
+        <mat-icon [matBadge]="3" matBadgeColor="warn" matBadgeSize="small">notifications</mat-icon>
+      </button>
+
+      <!-- User menu -->
+      <button mat-button [matMenuTriggerFor]="userMenu" class="user-menu-button">
+        <div class="user-info">
+          <span class="user-email">{{ userDisplayName }}</span>
+          <mat-icon>expand_more</mat-icon>
+        </div>
+      </button>
+
+      <!-- User dropdown menu -->
+      <mat-menu #userMenu="matMenu">
+        <button mat-menu-item>
+          <mat-icon>person</mat-icon>
+          <span>Profile</span>
+        </button>
+        <button mat-menu-item>
+          <mat-icon>settings</mat-icon>
+          <span>Settings</span>
+        </button>
+        <mat-divider></mat-divider>
+        <button mat-menu-item (click)="onLogout()">
+          <mat-icon>logout</mat-icon>
+          <span>Logout</span>
+        </button>
+      </mat-menu>
+
+      <!-- Language selector -->
+      <button mat-icon-button class="language-button">
+        <mat-icon>language</mat-icon>
+      </button>
+    </div>
+  </div>
+</mat-toolbar>

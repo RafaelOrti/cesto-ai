@@ -1,0 +1,16 @@
+export enum ProductCategory {
+  MEAT = 'meat',
+  DAIRY = 'dairy',
+  PRODUCE = 'produce',
+  FROZEN = 'frozen',
+  READY_MEALS = 'ready_meals',
+  FRUIT_VEGETABLES = 'fruit_vegetables',
+  ICE_CREAM = 'ice_cream',
+  SWEETS = 'sweets',
+  CUPBOARD = 'cupboard',
+  ALCOHOL = 'alcohol',
+  TOBACCO = 'tobacco',
+  BEVERAGES = 'beverages',
+  BAKERY = 'bakery',
+  SEAFOOD = 'seafood',
+}

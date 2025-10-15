@@ -1,0 +1,184 @@
+.header-toolbar {
+  background-color: #2E7D32;
+  color: white;
+  height: 64px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 0 20px;
+}
+
+.header-left {
+  flex: 1;
+  max-width: 400px;
+
+  .search-field {
+    width: 100%;
+
+    ::ng-deep {
+      .mat-form-field-appearance-outline .mat-form-field-outline {
+        color: rgba(255, 255, 255, 0.3);
+      }
+
+      .mat-form-field-appearance-outline.mat-focused .mat-form-field-outline-thick {
+        color: white;
+      }
+
+      .mat-form-field-label {
+        color: rgba(255, 255, 255, 0.7);
+      }
+
+      .mat-focused .mat-form-field-label {
+        color: white;
+      }
+
+      .mat-input-element {
+        color: white;
+
+        &::placeholder {
+          color: rgba(255, 255, 255, 0.5);
+        }
+      }
+
+      .mat-icon {
+        color: rgba(255, 255, 255, 0.7);
+      }
+    }
+  }
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.notification-button {
+  color: white;
+
+  ::ng-deep .mat-badge-content {
+    background-color: #F44336;
+    color: white;
+  }
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+}
+
+.user-menu-button {
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 20px;
+  transition: background-color 0.3s ease;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .user-email {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+  }
+}
+
+.language-button {
+  color: white;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+}
+
+// User menu styling
+::ng-deep .mat-menu-panel {
+  background-color: white;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+
+  .mat-menu-item {
+    color: #333;
+
+    &:hover {
+      background-color: rgba(46, 125, 50, 0.1);
+    }
+
+    mat-icon {
+      color: #666;
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .header-content {
+    padding: 0 15px;
+  }
+
+  .header-left {
+    max-width: 200px;
+
+    .search-field {
+      ::ng-deep {
+        .mat-form-field-label {
+          font-size: 12px;
+        }
+
+        .mat-input-element {
+          font-size: 14px;
+        }
+      }
+    }
+  }
+
+  .user-menu-button {
+    padding: 6px 10px;
+
+    .user-info {
+      .user-email {
+        font-size: 12px;
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .header-left {
+    display: none;
+  }
+
+  .header-right {
+    gap: 5px;
+  }
+
+  .user-menu-button {
+    .user-info {
+      .user-email {
+        display: none;
+      }
+    }
+  }
+}

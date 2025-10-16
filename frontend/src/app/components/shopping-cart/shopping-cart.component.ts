@@ -73,7 +73,7 @@ export interface CartSummary {
                 </button>
                 <input type="number" [(ngModel)]="item.quantity" 
                        [min]="item.moq" [step]="1" 
-                       (change)="updateQuantity(item.id, $event.target.value)"
+                       (change)="onQuantityChange(item.id, $event)"
                        class="qty-input">
                 <button class="qty-btn" (click)="increaseQuantity(item.id)">
                   <i class="fas fa-plus"></i>
@@ -281,6 +281,11 @@ export class ShoppingCartComponent implements OnInit, OnDestroy {
       item.totalPrice = item.quantity * item.unitPrice;
       this.calculateSummary();
     }
+  }
+
+  onQuantityChange(itemId: string, event: Event): void {
+    const target = event.target as HTMLInputElement;
+    this.updateQuantity(itemId, target.value);
   }
 
   removeItem(itemId: string): void {

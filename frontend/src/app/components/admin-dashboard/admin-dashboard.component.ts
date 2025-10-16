@@ -37,6 +37,7 @@ export class AdminDashboardComponent implements OnInit {
   selectedUser: User | null = null;
   userFormData: CreateUserRequest | UpdateUserRequest = {};
   isLoading = false;
+  currentAdminId = 'admin-1'; // TODO: Get from auth service
   
   // Pagination and sorting
   currentPage = 1;
@@ -197,7 +198,7 @@ export class AdminDashboardComponent implements OnInit {
       sortDirection: this.sortDirection
     };
     
-    this.userManagementService.getAllUsers(filters).subscribe({
+    this.userManagementService.getUsers(filters, this.currentPage, this.pageSize).subscribe({
       next: (response: any) => {
         // Handle both array response and paginated response
         if (Array.isArray(response)) {
@@ -209,7 +210,7 @@ export class AdminDashboardComponent implements OnInit {
         }
         this.isLoading = false;
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Error loading users:', error);
         this.isLoading = false;
         // Fallback to empty array on error
@@ -301,7 +302,7 @@ export class AdminDashboardComponent implements OnInit {
   confirmDeleteUser(): void {
     if (this.selectedUser) {
       this.isLoading = true;
-      this.userManagementService.deleteUser(this.selectedUser.id).subscribe({
+      this.userManagementService.deleteUser(this.selectedUser.id, this.currentAdminId).subscribe({
         next: () => {
           this.loadUsers(); // Reload users list
           this.showDeleteConfirmModal = false;
@@ -326,7 +327,7 @@ export class AdminDashboardComponent implements OnInit {
 
   private createNewUser(): void {
     this.isLoading = true;
-    this.userManagementService.createUser(this.userFormData as CreateUserRequest).subscribe({
+    this.userManagementService.createUser(this.userFormData as CreateUserRequest, this.currentAdminId).subscribe({
       next: () => {
         this.loadUsers(); // Reload users list
         this.showCreateUserModal = false;
@@ -343,7 +344,7 @@ export class AdminDashboardComponent implements OnInit {
   private updateExistingUser(): void {
     if (this.selectedUser) {
       this.isLoading = true;
-      this.userManagementService.updateUser(this.selectedUser.id, this.userFormData as UpdateUserRequest).subscribe({
+      this.userManagementService.updateUser(this.selectedUser.id, this.userFormData as UpdateUserRequest, this.currentAdminId).subscribe({
         next: () => {
           this.loadUsers(); // Reload users list
           this.showEditUserModal = false;
@@ -361,7 +362,7 @@ export class AdminDashboardComponent implements OnInit {
 
   toggleUserStatus(user: User): void {
     this.isLoading = true;
-    this.userManagementService.toggleUserStatus(user.id, !user.isActive).subscribe({
+    this.userManagementService.toggleUserStatus(user.id, this.currentAdminId).subscribe({
       next: () => {
         this.loadUsers(); // Reload users list
         this.isLoading = false;

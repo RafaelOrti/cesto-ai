@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { BaseApiService, ApiResponse, PaginatedResponse } from '../core/services/base-api.service';
-import { Supplier, PaginationParams } from '../core/interfaces/api.interface';
+import { BaseApiService } from '../core/services/base-api.service';
+import { ApiResponse, PaginatedResponse, Supplier, PaginationParams } from '../../shared/types/common.types';
+import { HttpClient } from '@angular/common/http';
 
 export interface SupplierInquiryRequest {
   supplierId: string;
@@ -34,7 +35,10 @@ export interface SupplierFilter {
 @Injectable({
   providedIn: 'root'
 })
-export class SupplierService extends BaseApiService {
+export class SupplierService extends BaseApiService<Supplier> {
+  constructor(http: HttpClient) {
+    super(http, 'http://localhost:3400/api', '/suppliers');
+  }
 
   /**
    * Get all suppliers with pagination and filtering
@@ -48,7 +52,7 @@ export class SupplierService extends BaseApiService {
       ...filters
     };
 
-    return this.getPaginated<Supplier>('/suppliers', pagination.page, pagination.limit, params);
+    return this.getAll(params);
   }
 
   /**
@@ -72,7 +76,7 @@ export class SupplierService extends BaseApiService {
       search: query
     };
 
-    return this.getPaginated<Supplier>('/suppliers/search', pagination.page, pagination.limit, params);
+    return this.getAll(params);
   }
 
   /**
@@ -82,11 +86,10 @@ export class SupplierService extends BaseApiService {
     category: string,
     pagination: PaginationParams
   ): Observable<PaginatedResponse<Supplier>> {
-    return this.getPaginated<Supplier>(
-      `/suppliers/category/${category}`,
-      pagination.page,
-      pagination.limit
-    );
+    return this.getAll({
+      ...pagination,
+      category
+    });
   }
 
   /**
@@ -153,7 +156,7 @@ export class SupplierService extends BaseApiService {
    * Remove supplier from favorites
    */
   removeFromFavorites(supplierId: string): Observable<ApiResponse<{ success: boolean }>> {
-    return this.delete<{ success: boolean }>(`/suppliers/${supplierId}/favorite`);
+    return this.deleteEndpoint<{ success: boolean }>(`/suppliers/${supplierId}/favorite`);
   }
 
   /**
@@ -279,5 +282,17 @@ export class SupplierService extends BaseApiService {
     campaigns: number;
   }>> {
     return this.get(`/suppliers/${supplierId}/analytics`);
+  }
+
+  // ============================================================================
+  // ABSTRACT METHODS IMPLEMENTATION
+  // ============================================================================
+
+  protected getEntityName(): string {
+    return 'Supplier';
+  }
+
+  protected validateEntity(data: Partial<Supplier>): boolean {
+    return !!(data.name && data.email);
   }
 }

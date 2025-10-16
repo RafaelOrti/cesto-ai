@@ -1,15 +1,16 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
-import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
-import { ProductsService, Product, ProductFilters, ProductSortOptions, PaginatedProducts, ProductCategory } from '../../../services/products.service';
+import { debounceTime, distinctUntilChanged, Subject, takeUntil } from 'rxjs';
+import { ProductsService, Product, ProductFiltersExtended, ProductSortOptionsExtended, ProductCategory } from '../../../services/products.service';
+import { PaginatedResponse } from '../../../shared/types/common.types';
+import { BaseComponent } from '../../../core/components/base-component';
 
 @Component({
   selector: 'app-products-list',
   templateUrl: './products-list.component.html',
   styleUrls: ['./products-list.component.scss']
 })
-export class ProductsListComponent implements OnInit, OnDestroy {
-  private destroy$ = new Subject<void>();
+export class ProductsListComponent extends BaseComponent implements OnInit, OnDestroy {
   private searchSubject = new Subject<string>();
 
   // Data
@@ -27,11 +28,10 @@ export class ProductsListComponent implements OnInit, OnDestroy {
   searchTerm = '';
   selectedCategory = '';
   selectedSubcategory = '';
-  selectedSort: ProductSortOptions = { field: 'name', direction: 'asc' };
-  selectedFilters: ProductFilters = {};
+  selectedSort: ProductSortOptionsExtended = { field: 'name', direction: 'asc' };
+  selectedFilters: ProductFiltersExtended = {};
   
   // UI State
-  loading = false;
   showFilters = false;
   viewMode: 'grid' | 'list' = 'grid';
   
@@ -69,6 +69,7 @@ export class ProductsListComponent implements OnInit, OnDestroy {
     private productsService: ProductsService,
     private fb: FormBuilder
   ) {
+    super();
     this.initializeForms();
     this.setupSearchDebounce();
   }
@@ -108,71 +109,69 @@ export class ProductsListComponent implements OnInit, OnDestroy {
   }
 
   private setupSearchDebounce(): void {
-    this.searchSubject
-      .pipe(
+    this.safeSubscribe(
+      this.searchSubject.pipe(
         debounceTime(300),
-        distinctUntilChanged(),
-        takeUntil(this.destroy$)
-      )
-      .subscribe(searchTerm => {
+        distinctUntilChanged()
+      ),
+      (searchTerm: string) => {
         this.searchTerm = searchTerm;
         this.currentPage = 1;
         this.loadProducts();
-      });
+      }
+    );
   }
 
   // Data loading methods
   loadProducts(): void {
-    this.loading = true;
+    this.setLoading(true);
+    this.clearErrors();
     
-    const filters: ProductFilters = {
+    const filters: ProductFiltersExtended = {
       ...this.selectedFilters,
       search: this.searchTerm,
       category: this.selectedCategory,
       subcategory: this.selectedSubcategory
     };
 
-    this.productsService.getProducts(filters, this.selectedSort, this.currentPage, this.pageSize)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response: PaginatedProducts) => {
-          this.products = response.products;
-          this.filteredProducts = response.products;
-          this.totalItems = response.total;
-          this.totalPages = response.totalPages;
-          this.loading = false;
-        },
-        error: (error) => {
-          console.error('Error loading products:', error);
-          this.loading = false;
-        }
-      });
+    this.safeSubscribe(
+      this.productsService.getProducts(filters, this.selectedSort, this.currentPage, this.pageSize),
+      (response: PaginatedResponse<Product>) => {
+        this.products = response.data;
+        this.filteredProducts = response.data;
+        this.totalItems = response.pagination.total;
+        this.totalPages = response.pagination.totalPages;
+        this.setLoading(false);
+      },
+      (error) => {
+        this.setError('Error al cargar los productos');
+        this.setLoading(false);
+      }
+    );
   }
 
   loadCategories(): void {
-    this.productsService.getCategories()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (categories) => {
-          this.categories = categories;
-        },
-        error: (error) => {
-          console.error('Error loading categories:', error);
-        }
-      });
+    this.safeSubscribe(
+      this.productsService.getCategories(),
+      (categories) => {
+        this.categories = categories;
+      },
+      (error) => {
+        this.setError('Error al cargar las categorías');
+      }
+    );
   }
 
   loadProductsStats(): void {
-    this.productsService.getProductStats()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (stats) => {
-          // Handle stats if needed
-        },
-        error: (error) => {
-          console.error('Error loading product stats:', error);
-        }
-      });
+    this.safeSubscribe(
+      this.productsService.getProductStats(),
+      (stats) => {
+        // Handle stats if needed
+      },
+      (error) => {
+        console.error('Error loading product stats:', error);
+      }
+    );
   }
 
   // Search and filter methods
@@ -195,7 +194,7 @@ export class ProductsListComponent implements OnInit, OnDestroy {
     this.loadProducts();
   }
 
-  onSortChange(sort: ProductSortOptions): void {
+  onSortChange(sort: ProductSortOptionsExtended): void {
     this.selectedSort = sort;
     this.currentPage = 1;
     this.loadProducts();

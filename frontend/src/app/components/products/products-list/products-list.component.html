@@ -87,7 +87,7 @@
           <label>Subcategoría</label>
           <select formControlName="subcategory" (change)="onSubcategoryChange(filterForm.get('subcategory')?.value)">
             <option value="">Todas las subcategorías</option>
-            <option *ngFor="let subcategory of categories.find(c => c.id === selectedCategory)?.subcategories" [value]="subcategory.id">
+            <option *ngFor="let subcategory of getSubcategories()" [value]="subcategory.id">
               {{ subcategory.name }}
             </option>
           </select>
@@ -169,7 +169,7 @@
           </span>
           <span *ngIf="searchTerm" class="filter-tag">
             Búsqueda: "{{ searchTerm }}"
-            <button (click)="searchForm.patchValue({search: ''}); onSearch({target: {value: ''}} as any)">×</button>
+            <button (click)="clearSearch()">×</button>
           </span>
         </div>
         <button class="btn btn-outline btn-sm" (click)="clearFilters()">

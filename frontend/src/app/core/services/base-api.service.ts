@@ -1,128 +1,521 @@
-import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { catchError, retry } from 'rxjs/operators';
-import { environment } from '../../../environments/environment';
+import { Injectable, Inject } from '@angular/core';
+import { HttpClient, HttpParams, HttpErrorResponse } from '@angular/common/http';
+import { Observable, throwError, BehaviorSubject } from 'rxjs';
+import { map, catchError, tap, finalize } from 'rxjs/operators';
+import { 
+  PaginatedResponse, 
+  ApiResponse, 
+  ApiError, 
+  PaginationParams,
+  BaseEntity 
+} from '../../../shared/types/common.types';
 
-export interface ApiResponse<T> {
-  success: boolean;
-  data?: T;
-  message?: string;
-  errorCode?: string;
-  timestamp: string;
-}
-
-export interface PaginatedResponse<T> extends ApiResponse<T[]> {
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-    hasNext: boolean;
-    hasPrev: boolean;
-  };
-}
-
+/**
+ * Base API service that provides common functionality for all API services
+ * Implements common patterns like pagination, error handling, caching, and loading states
+ */
 @Injectable({
   providedIn: 'root'
 })
-export class BaseApiService {
-  protected readonly baseUrl = environment.apiUrl;
+export abstract class BaseApiService<T extends BaseEntity> {
+  protected readonly baseUrl: string;
+  protected readonly cache = new Map<string, { data: any; timestamp: number; ttl: number }>();
+  protected readonly loadingStates = new Map<string, BehaviorSubject<boolean>>();
 
-  constructor(protected http: HttpClient) {}
+  constructor(
+    protected http: HttpClient,
+    @Inject('API_BASE_URL') apiBaseUrl: string,
+    protected endpoint: string
+  ) {
+    this.baseUrl = `${apiBaseUrl}${endpoint}`;
+  }
 
-  protected getHeaders(): HttpHeaders {
-    const token = localStorage.getItem('access_token');
-    return new HttpHeaders({
-      'Content-Type': 'application/json',
-      ...(token && { Authorization: `Bearer ${token}` })
+  // ============================================================================
+  // CRUD OPERATIONS
+  // ============================================================================
+
+  /**
+   * Get all entities with optional filtering and pagination
+   */
+  getAll(params?: PaginationParams & Record<string, any>): Observable<PaginatedResponse<T>> {
+    const httpParams = this.buildHttpParams(params);
+    const cacheKey = `getAll_${this.serializeParams(httpParams)}`;
+    
+    // Check cache first
+    const cached = this.getFromCache(cacheKey);
+    if (cached) {
+      return new Observable(observer => {
+        observer.next(cached);
+        observer.complete();
+      });
+    }
+
+    this.setLoading('getAll', true);
+    
+    return this.http.get<PaginatedResponse<T>>(this.baseUrl, { params: httpParams })
+      .pipe(
+        tap(data => this.setCache(cacheKey, data)),
+        catchError(error => this.handleError('getAll', error)),
+        finalize(() => this.setLoading('getAll', false))
+      );
+  }
+
+  /**
+   * Get entity by ID
+   */
+  getById(id: string): Observable<T> {
+    const cacheKey = `getById_${id}`;
+    
+    const cached = this.getFromCache(cacheKey);
+    if (cached) {
+      return new Observable(observer => {
+        observer.next(cached);
+        observer.complete();
+      });
+    }
+
+    this.setLoading(`getById_${id}`, true);
+    
+    return this.http.get<T>(`${this.baseUrl}/${id}`)
+      .pipe(
+        tap(data => this.setCache(cacheKey, data)),
+        catchError(error => this.handleError(`getById_${id}`, error)),
+        finalize(() => this.setLoading(`getById_${id}`, false))
+      );
+  }
+
+  /**
+   * Create new entity
+   */
+  create(data: Partial<T>): Observable<T> {
+    this.setLoading('create', true);
+    
+    return this.http.post<ApiResponse<T>>(this.baseUrl, data)
+      .pipe(
+        map(response => response.data),
+        tap(newEntity => {
+          this.invalidateCache();
+          this.notifyEntityChange('created', newEntity);
+        }),
+        catchError(error => this.handleError('create', error)),
+        finalize(() => this.setLoading('create', false))
+      );
+  }
+
+  /**
+   * Update existing entity
+   */
+  update(id: string, data: Partial<T>): Observable<T> {
+    this.setLoading(`update_${id}`, true);
+    
+    return this.http.put<ApiResponse<T>>(`${this.baseUrl}/${id}`, data)
+      .pipe(
+        map(response => response.data),
+        tap(updatedEntity => {
+          this.invalidateCache();
+          this.setCache(`getById_${id}`, updatedEntity);
+          this.notifyEntityChange('updated', updatedEntity);
+        }),
+        catchError(error => this.handleError(`update_${id}`, error)),
+        finalize(() => this.setLoading(`update_${id}`, false))
+      );
+  }
+
+  /**
+   * Delete entity
+   */
+  delete(id: string): Observable<void> {
+    this.setLoading(`delete_${id}`, true);
+    
+    return this.http.delete<ApiResponse<void>>(`${this.baseUrl}/${id}`)
+      .pipe(
+        map(() => void 0),
+        tap(() => {
+          this.invalidateCache();
+          this.removeFromCache(`getById_${id}`);
+          this.notifyEntityChange('deleted', { id } as T);
+        }),
+        catchError(error => this.handleError(`delete_${id}`, error)),
+        finalize(() => this.setLoading(`delete_${id}`, false))
+      );
+  }
+
+  // ============================================================================
+  // SEARCH & FILTERING
+  // ============================================================================
+
+  /**
+   * Search entities
+   */
+  search(query: string, filters?: Record<string, any>): Observable<PaginatedResponse<T>> {
+    const params = { ...filters, search: query };
+    return this.getAll(params);
+  }
+
+  /**
+   * Get entities by category
+   */
+  getByCategory(categoryId: string, params?: PaginationParams): Observable<PaginatedResponse<T>> {
+    return this.getAll({ ...params, category: categoryId });
+  }
+
+  /**
+   * Get entities by supplier
+   */
+  getBySupplier(supplierId: string, params?: PaginationParams): Observable<PaginatedResponse<T>> {
+    return this.getAll({ ...params, supplierId });
+  }
+
+  // ============================================================================
+  // BULK OPERATIONS
+  // ============================================================================
+
+  /**
+   * Create multiple entities
+   */
+  createMany(data: Partial<T>[]): Observable<T[]> {
+    this.setLoading('createMany', true);
+    
+    return this.http.post<ApiResponse<T[]>>(`${this.baseUrl}/bulk`, { items: data })
+      .pipe(
+        map(response => response.data),
+        tap(newEntities => {
+          this.invalidateCache();
+          newEntities.forEach(entity => this.notifyEntityChange('created', entity));
+        }),
+        catchError(error => this.handleError('createMany', error)),
+        finalize(() => this.setLoading('createMany', false))
+      );
+  }
+
+  /**
+   * Update multiple entities
+   */
+  updateMany(updates: { id: string; data: Partial<T> }[]): Observable<T[]> {
+    this.setLoading('updateMany', true);
+    
+    return this.http.put<ApiResponse<T[]>>(`${this.baseUrl}/bulk`, { updates })
+      .pipe(
+        map(response => response.data),
+        tap(updatedEntities => {
+          this.invalidateCache();
+          updatedEntities.forEach(entity => {
+            this.setCache(`getById_${entity.id}`, entity);
+            this.notifyEntityChange('updated', entity);
+          });
+        }),
+        catchError(error => this.handleError('updateMany', error)),
+        finalize(() => this.setLoading('updateMany', false))
+      );
+  }
+
+  /**
+   * Delete multiple entities
+   */
+  deleteMany(ids: string[]): Observable<void> {
+    this.setLoading('deleteMany', true);
+    
+    return this.http.delete<ApiResponse<void>>(`${this.baseUrl}/bulk`, { body: { ids } })
+      .pipe(
+        map(() => void 0),
+        tap(() => {
+          this.invalidateCache();
+          ids.forEach(id => {
+            this.removeFromCache(`getById_${id}`);
+            this.notifyEntityChange('deleted', { id } as T);
+          });
+        }),
+        catchError(error => this.handleError('deleteMany', error)),
+        finalize(() => this.setLoading('deleteMany', false))
+      );
+  }
+
+  // ============================================================================
+  // EXPORT/IMPORT
+  // ============================================================================
+
+  /**
+   * Export entities
+   */
+  export(format: 'csv' | 'xlsx' | 'json', filters?: Record<string, any>): Observable<Blob> {
+    const params = this.buildHttpParams({ ...filters, format });
+    
+    return this.http.get(`${this.baseUrl}/export`, { 
+      params, 
+      responseType: 'blob' 
+    }).pipe(
+      catchError(error => this.handleError('export', error))
+    );
+  }
+
+  /**
+   * Import entities from file
+   */
+  import(file: File): Observable<{ imported: number; errors: string[] }> {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    this.setLoading('import', true);
+    
+    return this.http.post<ApiResponse<{ imported: number; errors: string[] }>>(
+      `${this.baseUrl}/import`, 
+      formData
+    ).pipe(
+      map(response => response.data),
+      tap(() => this.invalidateCache()),
+      catchError(error => this.handleError('import', error)),
+      finalize(() => this.setLoading('import', false))
+    );
+  }
+
+  // ============================================================================
+  // CACHE MANAGEMENT
+  // ============================================================================
+
+  /**
+   * Get data from cache
+   */
+  protected getFromCache(key: string): any {
+    const cached = this.cache.get(key);
+    if (!cached) return null;
+    
+    const now = Date.now();
+    if (now - cached.timestamp > cached.ttl) {
+      this.cache.delete(key);
+      return null;
+    }
+    
+    return cached.data;
+  }
+
+  /**
+   * Set data in cache
+   */
+  protected setCache(key: string, data: any, ttl: number = 300000): void {
+    this.cache.set(key, {
+      data,
+      timestamp: Date.now(),
+      ttl
     });
   }
 
-  protected handleError(error: HttpErrorResponse): Observable<never> {
-    let errorMessage = 'An unknown error occurred';
+  /**
+   * Remove data from cache
+   */
+  protected removeFromCache(key: string): void {
+    this.cache.delete(key);
+  }
+
+  /**
+   * Clear all cache
+   */
+  protected invalidateCache(): void {
+    this.cache.clear();
+  }
+
+  /**
+   * Clear cache by pattern
+   */
+  protected clearCacheByPattern(pattern: string): void {
+    for (const key of this.cache.keys()) {
+      if (key.includes(pattern)) {
+        this.cache.delete(key);
+      }
+    }
+  }
+
+  // ============================================================================
+  // LOADING STATES
+  // ============================================================================
+
+  /**
+   * Set loading state
+   */
+  protected setLoading(key: string, loading: boolean): void {
+    if (!this.loadingStates.has(key)) {
+      this.loadingStates.set(key, new BehaviorSubject(false));
+    }
+    this.loadingStates.get(key)!.next(loading);
+  }
+
+  /**
+   * Get loading state
+   */
+  isLoading(key: string): Observable<boolean> {
+    if (!this.loadingStates.has(key)) {
+      this.loadingStates.set(key, new BehaviorSubject(false));
+    }
+    return this.loadingStates.get(key)!.asObservable();
+  }
+
+  /**
+   * Check if any operation is loading
+   */
+  get isAnyLoading(): Observable<boolean> {
+    const loadingStates = Array.from(this.loadingStates.values());
+    if (loadingStates.length === 0) {
+      return new Observable(observer => {
+        observer.next(false);
+        observer.complete();
+      });
+    }
+
+    // Combine all loading states
+    return new Observable(observer => {
+      const subscriptions = loadingStates.map(state => 
+        state.subscribe(loading => {
+          const anyLoading = loadingStates.some(s => s.value);
+          observer.next(anyLoading);
+        })
+      );
+
+      return () => subscriptions.forEach(sub => sub.unsubscribe());
+    });
+  }
+
+  // ============================================================================
+  // ERROR HANDLING
+  // ============================================================================
+
+  /**
+   * Handle HTTP errors
+   */
+  protected handleError(operation: string, error: HttpErrorResponse): Observable<never> {
+    let errorMessage = 'An error occurred';
+    let errorCode = 'UNKNOWN_ERROR';
     
     if (error.error instanceof ErrorEvent) {
       // Client-side error
       errorMessage = error.error.message;
+      errorCode = 'CLIENT_ERROR';
     } else {
       // Server-side error
-      errorMessage = error.error?.message || error.message || `Error Code: ${error.status}`;
+      errorCode = error.error?.code || error.status.toString();
+      errorMessage = error.error?.message || error.message;
     }
 
-    console.error('API Error:', error);
-    return throwError(() => new Error(errorMessage));
-  }
-
-  // GET request
-  protected get<T>(endpoint: string, options?: any): Observable<ApiResponse<T>> {
-    return this.http.get<ApiResponse<T>>(`${this.baseUrl}${endpoint}`, {
-      headers: this.getHeaders(),
-      ...options
-    } as any).pipe(
-      retry(2),
-      catchError(this.handleError)
-    );
-  }
-
-  // POST request
-  protected post<T>(endpoint: string, data: any, options?: any): Observable<ApiResponse<T>> {
-    return this.http.post<ApiResponse<T>>(`${this.baseUrl}${endpoint}`, data, {
-      headers: this.getHeaders(),
-      ...options
-    } as any).pipe(
-      catchError(this.handleError)
-    );
-  }
-
-  // PUT request
-  protected put<T>(endpoint: string, data: any, options?: any): Observable<ApiResponse<T>> {
-    return this.http.put<ApiResponse<T>>(`${this.baseUrl}${endpoint}`, data, {
-      headers: this.getHeaders(),
-      ...options
-    } as any).pipe(
-      catchError(this.handleError)
-    );
-  }
-
-  // DELETE request
-  protected delete<T>(endpoint: string, options?: any): Observable<ApiResponse<T>> {
-    return this.http.delete<ApiResponse<T>>(`${this.baseUrl}${endpoint}`, {
-      headers: this.getHeaders(),
-      ...options
-    } as any).pipe(
-      catchError(this.handleError)
-    );
-  }
-
-  // PATCH request
-  protected patch<T>(endpoint: string, data: any, options?: any): Observable<ApiResponse<T>> {
-    return this.http.patch<ApiResponse<T>>(`${this.baseUrl}${endpoint}`, data, {
-      headers: this.getHeaders(),
-      ...options
-    } as any).pipe(
-      catchError(this.handleError)
-    );
-  }
-
-  // Paginated GET request
-  protected getPaginated<T>(
-    endpoint: string, 
-    page: number = 1, 
-    limit: number = 10,
-    filters?: any
-  ): Observable<PaginatedResponse<T>> {
-    const params = new URLSearchParams({
-      page: page.toString(),
-      limit: limit.toString(),
-      ...filters
+    console.error(`${this.constructor.name} - ${operation} failed:`, {
+      error,
+      operation,
+      endpoint: this.endpoint,
+      timestamp: new Date().toISOString()
     });
 
-    return this.http.get<PaginatedResponse<T>>(`${this.baseUrl}${endpoint}?${params}`, {
-      headers: this.getHeaders()
-    }).pipe(
-      retry(2),
-      catchError(this.handleError)
-    );
+    const apiError: ApiError = {
+      code: errorCode,
+      message: errorMessage,
+      details: error.error?.details,
+      timestamp: new Date().toISOString(),
+      path: error.url,
+      method: error.error?.method
+    };
+
+    return throwError(() => apiError);
   }
+
+  // ============================================================================
+  // UTILITY METHODS
+  // ============================================================================
+
+  /**
+   * Build HTTP parameters from object
+   */
+  protected buildHttpParams(params: Record<string, any> = {}): HttpParams {
+    let httpParams = new HttpParams();
+    
+    Object.keys(params).forEach(key => {
+      const value = params[key];
+      if (value !== null && value !== undefined && value !== '') {
+        if (Array.isArray(value)) {
+          value.forEach(item => httpParams = httpParams.append(key, item.toString()));
+        } else {
+          httpParams = httpParams.set(key, value.toString());
+        }
+      }
+    });
+    
+    return httpParams;
+  }
+
+  /**
+   * Serialize parameters for cache key
+   */
+  protected serializeParams(params: HttpParams): string {
+    return params.toString();
+  }
+
+  /**
+   * Notify about entity changes (can be overridden by subclasses)
+   */
+  protected notifyEntityChange(action: 'created' | 'updated' | 'deleted', entity: T): void {
+    // Override in subclasses to handle entity changes
+    console.log(`Entity ${action}:`, entity);
+  }
+
+  // ============================================================================
+  // SIMPLE HTTP METHODS (for direct API calls)
+  // ============================================================================
+
+  /**
+   * Simple GET request
+   */
+  protected get<T>(endpoint: string): Observable<ApiResponse<T>> {
+    return this.http.get<ApiResponse<T>>(`${this.baseUrl}${endpoint}`);
+  }
+
+  /**
+   * Simple POST request
+   */
+  protected post<T>(endpoint: string, data: any): Observable<ApiResponse<T>> {
+    return this.http.post<ApiResponse<T>>(`${this.baseUrl}${endpoint}`, data);
+  }
+
+  /**
+   * Simple PUT request
+   */
+  protected put<T>(endpoint: string, data: any): Observable<ApiResponse<T>> {
+    return this.http.put<ApiResponse<T>>(`${this.baseUrl}${endpoint}`, data);
+  }
+
+  /**
+   * Simple DELETE request
+   */
+  protected deleteEndpoint<T>(endpoint: string): Observable<ApiResponse<T>> {
+    return this.http.delete<ApiResponse<T>>(`${this.baseUrl}${endpoint}`);
+  }
+
+  /**
+   * Simple PATCH request
+   */
+  protected patch<T>(endpoint: string, data: any): Observable<ApiResponse<T>> {
+    return this.http.patch<ApiResponse<T>>(`${this.baseUrl}${endpoint}`, data);
+  }
+
+  /**
+   * Get paginated data
+   */
+  protected getPaginated<T>(endpoint: string, page: number, limit: number, params?: any): Observable<PaginatedResponse<T>> {
+    const queryParams = {
+      page,
+      limit,
+      ...params
+    };
+    const httpParams = this.buildHttpParams(queryParams);
+    return this.http.get<ApiResponse<PaginatedResponse<T>>>(`${this.baseUrl}${endpoint}`, { params: httpParams })
+      .pipe(map(response => response.data));
+  }
+
+  // ============================================================================
+  // ABSTRACT METHODS (to be implemented by subclasses)
+  // ============================================================================
+
+  /**
+   * Get entity display name (for logging and error messages)
+   */
+  protected abstract getEntityName(): string;
+
+  /**
+   * Validate entity data before sending to API
+   */
+  protected abstract validateEntity(data: Partial<T>): boolean;
 }

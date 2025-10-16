@@ -1,134 +1,99 @@
-import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { Injectable, Inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
+import { BaseApiService } from '../core/services/base-api.service';
+import { 
+  Product, 
+  ProductFilters, 
+  ProductSortOptions, 
+  PaginatedResponse,
+  ProductCategory,
+  ApiResponse,
+  PaginatedProducts
+} from '../../shared/types/common.types';
 
-export interface Product {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  originalPrice?: number;
-  discount?: number;
-  category: string;
-  subcategory?: string;
+// Product-specific interfaces (extending base types)
+export interface ProductWithSupplier extends Product {
   supplier: {
     id: string;
     name: string;
     logo?: string;
   };
-  images: string[];
-  tags: string[];
-  isOnSale: boolean;
-  isAvailable: boolean;
-  stock: number;
-  minOrderQuantity: number;
-  unit: string;
-  weight?: number;
-  dimensions?: {
-    length: number;
-    width: number;
-    height: number;
-  };
-  nutritionalInfo?: {
-    calories: number;
-    protein: number;
-    carbs: number;
-    fat: number;
-  };
-  ingredients?: string[];
-  allergens?: string[];
-  certifications?: string[];
-  rating: number;
-  reviewCount: number;
-  createdAt: Date;
-  updatedAt: Date;
 }
 
-export interface ProductFilters {
-  category?: string;
-  subcategory?: string;
+export interface ProductFiltersExtended extends ProductFilters {
   minPrice?: number;
   maxPrice?: number;
-  isOnSale?: boolean;
-  search?: string;
   tags?: string[];
   supplierIds?: string[];
+  search?: string;
+  isOnSale?: boolean;
   inStock?: boolean;
   rating?: number;
 }
 
-export interface ProductSortOptions {
+// Re-export base types for convenience
+export { Product, ProductFilters, ProductSortOptions, ProductCategory, PaginatedResponse, ApiResponse, PaginatedProducts } from '../../shared/types/common.types';
+
+export interface ProductSortOptionsExtended extends ProductSortOptions {
   field: 'name' | 'price' | 'rating' | 'createdAt' | 'discount';
   direction: 'asc' | 'desc';
-}
-
-export interface PaginatedProducts {
-  products: Product[];
-  total: number;
-  page: number;
-  pageSize: number;
-  totalPages: number;
-  filters: ProductFilters;
-  sort: ProductSortOptions;
-}
-
-export interface ProductCategory {
-  id: string;
-  name: string;
-  icon: string;
-  subcategories: {
-    id: string;
-    name: string;
-  }[];
 }
 
 @Injectable({
   providedIn: 'root'
 })
-export class ProductsService {
-  private readonly API_URL = 'http://localhost:3000/api';
+export class ProductsService extends BaseApiService<Product> {
   private productsSubject = new BehaviorSubject<Product[]>([]);
   public products$ = this.productsSubject.asObservable();
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    http: HttpClient,
+    @Inject('API_BASE_URL') apiBaseUrl: string
+  ) {
+    super(http, apiBaseUrl, '/products');
+  }
+
+  // ============================================================================
+  // ABSTRACT METHODS IMPLEMENTATION
+  // ============================================================================
+
+  protected getEntityName(): string {
+    return 'Product';
+  }
+
+  protected validateEntity(data: Partial<Product>): boolean {
+    if (!data.name || data.name.trim().length < 2) {
+      throw new Error('Product name must be at least 2 characters long');
+    }
+    if (!data.price || data.price <= 0) {
+      throw new Error('Product price must be greater than 0');
+    }
+    if (!data.category) {
+      throw new Error('Product category is required');
+    }
+    return true;
+  }
 
   /**
    * Get all products with optional filtering and sorting
    */
   getProducts(
-    filters?: ProductFilters,
-    sort?: ProductSortOptions,
+    filters?: ProductFiltersExtended,
+    sort?: ProductSortOptionsExtended,
     page = 1,
     pageSize = 12
-  ): Observable<PaginatedProducts> {
-    let params = new HttpParams()
-      .set('page', page.toString())
-      .set('pageSize', pageSize.toString());
+  ): Observable<PaginatedResponse<Product>> {
+    const params = {
+      sortBy: sort?.field,
+      sortDirection: sort?.direction,
+      ...filters
+    };
 
-    if (filters) {
-      if (filters.category) params = params.set('category', filters.category);
-      if (filters.subcategory) params = params.set('subcategory', filters.subcategory);
-      if (filters.minPrice) params = params.set('minPrice', filters.minPrice.toString());
-      if (filters.maxPrice) params = params.set('maxPrice', filters.maxPrice.toString());
-      if (filters.isOnSale) params = params.set('isOnSale', filters.isOnSale.toString());
-      if (filters.search) params = params.set('search', filters.search);
-      if (filters.inStock) params = params.set('inStock', filters.inStock.toString());
-      if (filters.rating) params = params.set('rating', filters.rating.toString());
-      if (filters.tags && filters.tags.length > 0) {
-        filters.tags.forEach(tag => params = params.append('tags', tag));
-      }
-      if (filters.supplierIds && filters.supplierIds.length > 0) {
-        filters.supplierIds.forEach(id => params = params.append('supplierIds', id));
-      }
-    }
-
-    if (sort) {
-      params = params.set('sortBy', sort.field);
-      params = params.set('sortDirection', sort.direction);
-    }
-
-    return this.http.get<PaginatedProducts>(`${this.API_URL}/products`, { params });
+    return this.getPaginated<Product>('/products', page, pageSize, params).pipe(
+      tap(response => this.productsSubject.next(response.data))
+    );
   }
 
   /**
@@ -138,17 +103,22 @@ export class ProductsService {
     limit = 12,
     category?: string
   ): Observable<Product[]> {
-    let params = new HttpParams().set('limit', limit.toString());
-    if (category) params = params.set('category', category);
+    const filters = {
+      isOnSale: true,
+      ...(category && { category })
+    };
 
-    return this.http.get<Product[]>(`${this.API_URL}/products/on-sale`, { params });
+    return this.getPaginated<Product>('/products', 1, limit, filters).pipe(
+      map(response => response.data),
+      tap(products => this.productsSubject.next(products))
+    );
   }
 
   /**
    * Get product by ID
    */
   getProductById(productId: string): Observable<Product> {
-    return this.http.get<Product>(`${this.API_URL}/products/${productId}`);
+    return this.getById(productId);
   }
 
   /**
@@ -159,15 +129,17 @@ export class ProductsService {
     subcategory?: string,
     page = 1,
     pageSize = 12
-  ): Observable<PaginatedProducts> {
-    let params = new HttpParams()
-      .set('category', category)
-      .set('page', page.toString())
-      .set('pageSize', pageSize.toString());
-    
-    if (subcategory) params = params.set('subcategory', subcategory);
+  ): Observable<PaginatedResponse<Product>> {
+    const filters = {
+      category,
+      ...(subcategory && { subcategory }),
+      page,
+      limit: pageSize
+    };
 
-    return this.http.get<PaginatedProducts>(`${this.API_URL}/products/category/${category}`, { params });
+    return this.getAll(filters).pipe(
+      tap(response => this.productsSubject.next(response.data))
+    );
   }
 
   /**
@@ -175,22 +147,18 @@ export class ProductsService {
    */
   getProductsBySupplier(
     supplierId: string,
-    filters?: Partial<ProductFilters>,
+    filters?: Partial<ProductFiltersExtended>,
     page = 1,
     pageSize = 12
-  ): Observable<PaginatedProducts> {
-    let params = new HttpParams()
-      .set('page', page.toString())
-      .set('pageSize', pageSize.toString());
+  ): Observable<PaginatedResponse<Product>> {
+    const params = {
+      supplierId,
+      ...filters
+    };
 
-    if (filters) {
-      if (filters.category) params = params.set('category', filters.category);
-      if (filters.minPrice) params = params.set('minPrice', filters.minPrice.toString());
-      if (filters.maxPrice) params = params.set('maxPrice', filters.maxPrice.toString());
-      if (filters.search) params = params.set('search', filters.search);
-    }
-
-    return this.http.get<PaginatedProducts>(`${this.API_URL}/products/supplier/${supplierId}`, { params });
+    return this.getPaginated<Product>(`/suppliers/${supplierId}/products`, page, pageSize, params).pipe(
+      tap(response => this.productsSubject.next(response.data))
+    );
   }
 
   /**
@@ -198,97 +166,92 @@ export class ProductsService {
    */
   searchProducts(
     query: string,
-    filters?: Partial<ProductFilters>,
+    filters?: Partial<ProductFiltersExtended>,
     page = 1,
     pageSize = 12
-  ): Observable<PaginatedProducts> {
-    let params = new HttpParams()
-      .set('q', query)
-      .set('page', page.toString())
-      .set('pageSize', pageSize.toString());
-
-    if (filters) {
-      if (filters.category) params = params.set('category', filters.category);
-      if (filters.minPrice) params = params.set('minPrice', filters.minPrice.toString());
-      if (filters.maxPrice) params = params.set('maxPrice', filters.maxPrice.toString());
-      if (filters.isOnSale) params = params.set('isOnSale', filters.isOnSale.toString());
-    }
-
-    return this.http.get<PaginatedProducts>(`${this.API_URL}/products/search`, { params });
+  ): Observable<PaginatedResponse<Product>> {
+    return this.search(query, { ...filters, page, limit: pageSize }).pipe(
+      tap(response => this.productsSubject.next(response.data))
+    );
   }
+
+  // ============================================================================
+  // SPECIALIZED METHODS
+  // ============================================================================
 
   /**
    * Get product categories
    */
   getCategories(): Observable<ProductCategory[]> {
-    return this.http.get<ProductCategory[]>(`${this.API_URL}/products/categories`);
+    return this.http.get<ApiResponse<ProductCategory[]>>(`${this.baseUrl}/categories`)
+      .pipe(map(response => response.data));
   }
 
   /**
    * Get featured products
    */
   getFeaturedProducts(limit = 8): Observable<Product[]> {
-    return this.http.get<Product[]>(`${this.API_URL}/products/featured`, {
-      params: { limit: limit.toString() }
-    });
+    return this.getAll({ page: 1, limit: limit, featured: true })
+      .pipe(map(response => response.data));
   }
 
   /**
    * Get recently added products
    */
   getRecentlyAddedProducts(limit = 8): Observable<Product[]> {
-    return this.http.get<Product[]>(`${this.API_URL}/products/recent`, {
-      params: { limit: limit.toString() }
-    });
+    return this.getAll({ page: 1, limit: limit, sortBy: 'createdAt', sortDirection: 'desc' })
+      .pipe(map(response => response.data));
   }
 
   /**
    * Get best selling products
    */
   getBestSellingProducts(limit = 8): Observable<Product[]> {
-    return this.http.get<Product[]>(`${this.API_URL}/products/best-selling`, {
-      params: { limit: limit.toString() }
-    });
+    return this.getAll({ page: 1, limit: limit, sortBy: 'salesCount', sortDirection: 'desc' })
+      .pipe(map(response => response.data));
   }
 
   /**
    * Get related products
    */
   getRelatedProducts(productId: string, limit = 4): Observable<Product[]> {
-    return this.http.get<Product[]>(`${this.API_URL}/products/${productId}/related`, {
+    return this.http.get<ApiResponse<Product[]>>(`${this.baseUrl}/${productId}/related`, {
       params: { limit: limit.toString() }
-    });
+    }).pipe(map(response => response.data));
   }
 
   /**
    * Add product to wishlist
    */
   addToWishlist(productId: string): Observable<{ message: string }> {
-    return this.http.post<{ message: string }>(`${this.API_URL}/products/${productId}/wishlist`, {});
+    return this.http.post<ApiResponse<{ message: string }>>(`${this.baseUrl}/${productId}/wishlist`, {})
+      .pipe(map(response => response.data));
   }
 
   /**
    * Remove product from wishlist
    */
   removeFromWishlist(productId: string): Observable<{ message: string }> {
-    return this.http.delete<{ message: string }>(`${this.API_URL}/products/${productId}/wishlist`);
+    return this.http.delete<ApiResponse<{ message: string }>>(`${this.baseUrl}/${productId}/wishlist`)
+      .pipe(map(response => response.data));
   }
 
   /**
    * Get wishlist products
    */
   getWishlistProducts(): Observable<Product[]> {
-    return this.http.get<Product[]>(`${this.API_URL}/products/wishlist`);
+    return this.http.get<ApiResponse<Product[]>>(`${this.baseUrl}/wishlist`)
+      .pipe(map(response => response.data));
   }
 
   /**
    * Rate a product
    */
   rateProduct(productId: string, rating: number, review?: string): Observable<{ message: string }> {
-    return this.http.post<{ message: string }>(`${this.API_URL}/products/${productId}/rate`, {
+    return this.http.post<ApiResponse<{ message: string }>>(`${this.baseUrl}/${productId}/rate`, {
       rating,
       review
-    });
+    }).pipe(map(response => response.data));
   }
 
   /**
@@ -299,9 +262,9 @@ export class ProductsService {
     total: number;
     averageRating: number;
   }> {
-    return this.http.get<any>(`${this.API_URL}/products/${productId}/reviews`, {
+    return this.http.get<ApiResponse<any>>(`${this.baseUrl}/${productId}/reviews`, {
       params: { page: page.toString(), pageSize: pageSize.toString() }
-    });
+    }).pipe(map(response => response.data));
   }
 
   /**
@@ -314,8 +277,13 @@ export class ProductsService {
     categoriesCount: number;
     topCategories: { category: string; count: number }[];
   }> {
-    return this.http.get<any>(`${this.API_URL}/products/stats`);
+    return this.http.get<ApiResponse<any>>(`${this.baseUrl}/stats`)
+      .pipe(map(response => response.data));
   }
+
+  // ============================================================================
+  // CACHE MANAGEMENT
+  // ============================================================================
 
   /**
    * Update local products cache
@@ -352,8 +320,12 @@ export class ProductsService {
     this.productsSubject.next(currentProducts.filter(p => p.id !== productId));
   }
 
+  // ============================================================================
+  // UTILITY METHODS
+  // ============================================================================
+
   /**
-   * Utility methods
+   * Format price in EUR currency
    */
   formatPrice(price: number): string {
     return new Intl.NumberFormat('es-ES', {
@@ -362,10 +334,17 @@ export class ProductsService {
     }).format(price);
   }
 
+  /**
+   * Calculate discount percentage
+   */
   calculateDiscount(originalPrice: number, currentPrice: number): number {
+    if (originalPrice <= currentPrice) return 0;
     return Math.round(((originalPrice - currentPrice) / originalPrice) * 100);
   }
 
+  /**
+   * Get product rating text
+   */
   getProductRatingText(rating: number): string {
     if (rating >= 4.5) return 'Excelente';
     if (rating >= 4.0) return 'Muy bueno';
@@ -374,45 +353,41 @@ export class ProductsService {
     return 'Malo';
   }
 
+  /**
+   * Get product status text
+   */
   getProductStatusText(product: Product): string {
     if (!product.isAvailable) return 'No disponible';
-    if (product.stock === 0) return 'Sin stock';
-    if (product.stock < 10) return 'Últimas unidades';
+    if (product.stockQuantity === 0) return 'Sin stock';
+    if (product.stockQuantity < 10) return 'Últimas unidades';
     return 'Disponible';
   }
 
+  /**
+   * Get product status CSS class
+   */
   getProductStatusClass(product: Product): string {
     if (!product.isAvailable) return 'status-unavailable';
-    if (product.stock === 0) return 'status-out-of-stock';
-    if (product.stock < 10) return 'status-low-stock';
+    if (product.stockQuantity === 0) return 'status-out-of-stock';
+    if (product.stockQuantity < 10) return 'status-low-stock';
     return 'status-available';
   }
 
-  /**
-   * Validation helpers
-   */
-  validateProductData(productData: Partial<Product>): { valid: boolean; errors: string[] } {
-    const errors: string[] = [];
+  // ============================================================================
+  // ENTITY CHANGE NOTIFICATIONS
+  // ============================================================================
 
-    if (!productData.name || productData.name.trim().length < 2) {
-      errors.push('Nombre del producto debe tener al menos 2 caracteres');
+  protected notifyEntityChange(action: 'created' | 'updated' | 'deleted', entity: Product): void {
+    switch (action) {
+      case 'created':
+        this.addProductToCache(entity);
+        break;
+      case 'updated':
+        this.updateProductInCache(entity);
+        break;
+      case 'deleted':
+        this.removeProductFromCache(entity.id);
+        break;
     }
-
-    if (!productData.price || productData.price <= 0) {
-      errors.push('Precio debe ser mayor a 0');
-    }
-
-    if (!productData.category || productData.category.trim().length < 2) {
-      errors.push('Categoría es requerida');
-    }
-
-    if (productData.originalPrice && productData.originalPrice <= productData.price) {
-      errors.push('Precio original debe ser mayor al precio actual');
-    }
-
-    return {
-      valid: errors.length === 0,
-      errors
-    };
   }
 }

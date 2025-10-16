@@ -21,8 +21,8 @@ export interface Supplier {
   website?: string;
   isVerified?: boolean;
   rating?: number;
-  createdAt?: Date;
-  updatedAt?: Date;
+  createdAt: string;
+  updatedAt: string;
   // Additional properties for the suppliers component
   category?: string;
   onSale?: boolean;

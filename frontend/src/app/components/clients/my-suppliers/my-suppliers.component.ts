@@ -528,4 +528,9 @@ export class MySuppliersComponent implements OnInit, OnDestroy {
 
   // Math utility for template
   Math = Math;
+
+  // Get current year for form validation
+  getCurrentYear(): number {
+    return new Date().getFullYear();
+  }
 }

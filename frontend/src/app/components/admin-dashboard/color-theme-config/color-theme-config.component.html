@@ -69,7 +69,7 @@
                       type="color" 
                       [formControlName]="'color_config.' + category.key + '.' + prop.key"
                       class="color-picker"
-                      (change)="onColorChange(category.key, prop.key, $event.target.value)">
+                      (change)="onColorChangeEvent(category.key, prop.key, $event)">
                     <input 
                       type="text" 
                       [formControlName]="'color_config.' + category.key + '.' + prop.key"
@@ -201,7 +201,7 @@
                         type="color" 
                         [formControlName]="'color_config.' + category.key + '.' + prop.key"
                         class="color-picker"
-                        (change)="onColorChange(category.key, prop.key, $event.target.value)">
+                        (change)="onColorChangeEvent(category.key, prop.key, $event)">
                       <input 
                         type="text" 
                         [formControlName]="'color_config.' + category.key + '.' + prop.key"

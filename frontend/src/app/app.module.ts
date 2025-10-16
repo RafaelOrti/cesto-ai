@@ -56,10 +56,14 @@ import { ColorThemeService } from './services/color-theme.service';
 import { UserManagementService } from './services/user-management.service';
 import { ProductsService } from './services/products.service';
 import { ThemeInitializerService } from './core/services/theme-initializer.service';
+import { UtilsService } from './core/services/utils.service';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
+import { ErrorInterceptor } from './core/interceptors/error.interceptor';
 import { LayoutComponent } from './components/layout/layout.component';
 import { SidebarComponent } from './components/layout/sidebar/sidebar.component';
 import { HeaderComponent } from './components/layout/header/header.component';
+import { ProviderOrdersComponent } from './components/provider/orders/orders.component';
+import { ProductCatalogComponent } from './components/ecommerce/product-catalog/product-catalog.component';
 
 @NgModule({
   declarations: [
@@ -84,6 +88,8 @@ import { HeaderComponent } from './components/layout/header/header.component';
     ColorThemeConfigComponent,
     ProductsListComponent,
     ProductsOnSaleComponent,
+    ProviderOrdersComponent,
+    ProductCatalogComponent,
   ],
   imports: [
     BrowserModule,
@@ -125,9 +131,19 @@ import { HeaderComponent } from './components/layout/header/header.component';
     UserManagementService,
     ProductsService,
     ThemeInitializerService,
+    UtilsService,
+    {
+      provide: 'API_BASE_URL',
+      useValue: 'http://localhost:3400/api/v1'
+    },
     {
       provide: HTTP_INTERCEPTORS,
       useClass: AuthInterceptor,
+      multi: true,
+    },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: ErrorInterceptor,
       multi: true,
     },
   ],

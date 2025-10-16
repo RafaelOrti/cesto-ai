@@ -351,6 +351,11 @@ export class ColorThemeConfigComponent implements OnInit, OnDestroy {
     }
   }
 
+  onColorChangeEvent(category: string, property: string, event: Event): void {
+    const target = event.target as HTMLInputElement;
+    this.onColorChange(category, property, target.value);
+  }
+
   resetToDefault(): void {
     this.colorThemeService.resetToDefault();
     this.success = 'Reset to default theme!';

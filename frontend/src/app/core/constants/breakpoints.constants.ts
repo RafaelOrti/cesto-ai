@@ -191,20 +191,12 @@ export const BREAKPOINTS = {
   MENU_TABLET: '768px',
   MENU_DESKTOP: '1024px',
 
-  // Sidebar breakpoints
-  SIDEBAR_MOBILE: '320px',
-  SIDEBAR_TABLET: '768px',
-  SIDEBAR_DESKTOP: '1024px',
 
   // Header breakpoints
   HEADER_MOBILE: '320px',
   HEADER_TABLET: '768px',
   HEADER_DESKTOP: '1024px',
 
-  // Footer breakpoints
-  FOOTER_MOBILE: '320px',
-  FOOTER_TABLET: '768px',
-  FOOTER_DESKTOP: '1024px',
 
   // Content breakpoints
   CONTENT_MOBILE: '320px',
@@ -256,18 +248,4 @@ export const BREAKPOINTS = {
   MAIN_TABLET: '768px',
   MAIN_DESKTOP: '1024px',
 
-  // Nav breakpoints
-  NAV_MOBILE: '320px',
-  NAV_TABLET: '768px',
-  NAV_DESKTOP: '1024px',
-
-  // Header breakpoints
-  HEADER_MOBILE: '320px',
-  HEADER_TABLET: '768px',
-  HEADER_DESKTOP: '1024px',
-
-  // Footer breakpoints
-  FOOTER_MOBILE: '320px',
-  FOOTER_TABLET: '768px',
-  FOOTER_DESKTOP: '1024px'
 };

@@ -140,7 +140,7 @@ export class ProductsOnSaleComponent implements OnInit, OnDestroy {
   getSubcategoryName(categoryId: string, subcategoryId: string): string {
     const category = this.categories.find(c => c.id === categoryId);
     if (category) {
-      const subcategory = category.subcategories.find(s => s.id === subcategoryId);
+      const subcategory = category.children?.find(s => s.id === subcategoryId);
       return subcategory ? subcategory.name : subcategoryId;
     }
     return subcategoryId;

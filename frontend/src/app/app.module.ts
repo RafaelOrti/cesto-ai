@@ -49,6 +49,8 @@ import { AdminDashboardComponent } from './components/admin-dashboard/admin-dash
 import { ColorThemeConfigComponent } from './components/admin-dashboard/color-theme-config/color-theme-config.component';
 import { ProductsListComponent } from './components/products/products-list/products-list.component';
 import { ProductsOnSaleComponent } from './components/products/products-on-sale/products-on-sale.component';
+import { LoadingComponent } from './core/components/loading/loading.component';
+import { NotificationsComponent } from './core/components/notifications/notifications.component';
 
 import { AuthService } from './services/auth.service';
 import { SupplierService } from './services/supplier.service';
@@ -57,8 +59,14 @@ import { UserManagementService } from './services/user-management.service';
 import { ProductsService } from './services/products.service';
 import { ThemeInitializerService } from './core/services/theme-initializer.service';
 import { UtilsService } from './core/services/utils.service';
+import { StateService } from './core/services/state.service';
+import { CacheService } from './core/services/cache.service';
+import { NotificationService } from './core/services/notification.service';
+import { ValidationService } from './core/services/validation.service';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
 import { ErrorInterceptor } from './core/interceptors/error.interceptor';
+import { CacheInterceptor } from './core/interceptors/cache.interceptor';
+import { LoadingInterceptor } from './core/interceptors/loading.interceptor';
 import { LayoutComponent } from './components/layout/layout.component';
 import { SidebarComponent } from './components/layout/sidebar/sidebar.component';
 import { HeaderComponent } from './components/layout/header/header.component';
@@ -88,6 +96,8 @@ import { ProductCatalogComponent } from './components/ecommerce/product-catalog/
     ColorThemeConfigComponent,
     ProductsListComponent,
     ProductsOnSaleComponent,
+    LoadingComponent,
+    NotificationsComponent,
     ProviderOrdersComponent,
     ProductCatalogComponent,
   ],
@@ -132,6 +142,10 @@ import { ProductCatalogComponent } from './components/ecommerce/product-catalog/
     ProductsService,
     ThemeInitializerService,
     UtilsService,
+    StateService,
+    CacheService,
+    NotificationService,
+    ValidationService,
     {
       provide: 'API_BASE_URL',
       useValue: 'http://localhost:3400/api/v1'
@@ -144,6 +158,16 @@ import { ProductCatalogComponent } from './components/ecommerce/product-catalog/
     {
       provide: HTTP_INTERCEPTORS,
       useClass: ErrorInterceptor,
+      multi: true,
+    },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: CacheInterceptor,
+      multi: true,
+    },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: LoadingInterceptor,
       multi: true,
     },
   ],

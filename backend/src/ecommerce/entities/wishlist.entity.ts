@@ -3,6 +3,7 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
+  UpdateDateColumn,
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
@@ -22,6 +23,9 @@ export class Wishlist {
 
   @CreateDateColumn()
   addedAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 
   // Relations
   @ManyToOne(() => Buyer, (buyer) => buyer.id)

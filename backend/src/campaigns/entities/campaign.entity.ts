@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { Supplier } from '../../suppliers/entities/supplier.entity';
 import { CampaignProduct } from './campaign-product.entity';
 
@@ -34,6 +34,12 @@ export class Campaign {
 
   @OneToMany(() => CampaignProduct, campaignProduct => campaignProduct.campaign)
   products: CampaignProduct[];
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 }
 
 

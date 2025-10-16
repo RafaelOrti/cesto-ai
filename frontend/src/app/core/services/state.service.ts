@@ -501,7 +501,7 @@ export class StateService {
       }
 
       // In stock
-      if (filters.inStock && product.stock <= 0) {
+      if (filters.inStock && product.stockQuantity <= 0) {
         return false;
       }
 

@@ -58,8 +58,8 @@ export class SupplierService extends BaseApiService<Supplier> {
   /**
    * Get supplier by ID
    */
-  getSupplierById(id: string): Observable<ApiResponse<Supplier>> {
-    return this.get<Supplier>(`/suppliers/${id}`);
+  getSupplierById(id: string): Observable<Supplier> {
+    return this.getById(id);
   }
 
   /**
@@ -99,11 +99,10 @@ export class SupplierService extends BaseApiService<Supplier> {
     type: 'recently_added' | 'popular' | 'trending',
     pagination: PaginationParams
   ): Observable<PaginatedResponse<Supplier>> {
-    return this.getPaginated<Supplier>(
-      `/suppliers/recommended/${type}`,
-      pagination.page,
-      pagination.limit
-    );
+    return this.getAll({
+      ...pagination,
+      type
+    });
   }
 
   /**
@@ -120,7 +119,7 @@ export class SupplierService extends BaseApiService<Supplier> {
       }
     };
 
-    return this.post<SupplierInquiryResponse>(`/suppliers/${supplierId}/inquiry`, payload).pipe(
+    return this.http.post<ApiResponse<SupplierInquiryResponse>>(`${this.baseUrl}/${supplierId}/inquiry`, payload).pipe(
       map(response => response.data!)
     );
   }
@@ -128,42 +127,49 @@ export class SupplierService extends BaseApiService<Supplier> {
   /**
    * Get supplier categories
    */
-  getSupplierCategories(): Observable<ApiResponse<string[]>> {
-    return this.get<string[]>('/suppliers/categories');
+  getSupplierCategories(): Observable<string[]> {
+    return this.http.get<ApiResponse<string[]>>(`${this.baseUrl}/categories`)
+      .pipe(map(response => response.data));
   }
 
   /**
    * Get supplier statistics
    */
-  getSupplierStats(): Observable<ApiResponse<{
+  getSupplierStats(): Observable<{
     total: number;
     byCategory: Record<string, number>;
     onSale: number;
     freeDelivery: number;
     coDelivery: number;
-  }>> {
-    return this.get('/suppliers/stats');
+  }> {
+    return this.http.get<ApiResponse<any>>(`${this.baseUrl}/stats`)
+      .pipe(map(response => response.data));
   }
 
   /**
    * Add supplier to favorites
    */
-  addToFavorites(supplierId: string): Observable<ApiResponse<{ success: boolean }>> {
-    return this.post<{ success: boolean }>(`/suppliers/${supplierId}/favorite`, {});
+  addToFavorites(supplierId: string): Observable<{ success: boolean }> {
+    return this.http.post<ApiResponse<{ success: boolean }>>(`${this.baseUrl}/${supplierId}/favorite`, {})
+      .pipe(map(response => response.data));
   }
 
   /**
    * Remove supplier from favorites
    */
-  removeFromFavorites(supplierId: string): Observable<ApiResponse<{ success: boolean }>> {
-    return this.deleteEndpoint<{ success: boolean }>(`/suppliers/${supplierId}/favorite`);
+  removeFromFavorites(supplierId: string): Observable<{ success: boolean }> {
+    return this.http.delete<ApiResponse<{ success: boolean }>>(`${this.baseUrl}/${supplierId}/favorite`)
+      .pipe(map(response => response.data));
   }
 
   /**
    * Get favorite suppliers
    */
   getFavoriteSuppliers(pagination: PaginationParams): Observable<PaginatedResponse<Supplier>> {
-    return this.getPaginated<Supplier>('/suppliers/favorites', pagination.page, pagination.limit);
+    return this.getAll({
+      ...pagination,
+      favorites: true
+    });
   }
 
   /**
@@ -183,24 +189,28 @@ export class SupplierService extends BaseApiService<Supplier> {
       ...filters
     };
 
-    return this.getPaginated<any>(`/suppliers/${supplierId}/products`, pagination.page, pagination.limit, params);
+    return this.getAll({
+      ...params,
+      supplierId
+    });
   }
 
   /**
    * Get supplier campaigns
    */
-  getSupplierCampaigns(supplierId: string): Observable<ApiResponse<any[]>> {
-    return this.get<any[]>(`/suppliers/${supplierId}/campaigns`);
+  getSupplierCampaigns(supplierId: string): Observable<any[]> {
+    return this.http.get<ApiResponse<any[]>>(`${this.baseUrl}/${supplierId}/campaigns`)
+      .pipe(map(response => response.data));
   }
 
   /**
    * Rate supplier
    */
-  rateSupplier(supplierId: string, rating: number, review?: string): Observable<ApiResponse<{ success: boolean }>> {
-    return this.post<{ success: boolean }>(`/suppliers/${supplierId}/rate`, {
+  rateSupplier(supplierId: string, rating: number, review?: string): Observable<{ success: boolean }> {
+    return this.http.post<ApiResponse<{ success: boolean }>>(`${this.baseUrl}/${supplierId}/rate`, {
       rating,
       review
-    });
+    }).pipe(map(response => response.data));
   }
 
   /**
@@ -210,69 +220,76 @@ export class SupplierService extends BaseApiService<Supplier> {
     supplierId: string,
     pagination: PaginationParams
   ): Observable<PaginatedResponse<any>> {
-    return this.getPaginated<any>(`/suppliers/${supplierId}/reviews`, pagination.page, pagination.limit);
+    return this.getAll({
+      ...pagination,
+      supplierId,
+      reviews: true
+    });
   }
 
   /**
    * Report supplier
    */
-  reportSupplier(supplierId: string, reason: string, description?: string): Observable<ApiResponse<{ success: boolean }>> {
-    return this.post<{ success: boolean }>(`/suppliers/${supplierId}/report`, {
+  reportSupplier(supplierId: string, reason: string, description?: string): Observable<{ success: boolean }> {
+    return this.http.post<ApiResponse<{ success: boolean }>>(`${this.baseUrl}/${supplierId}/report`, {
       reason,
       description
-    });
+    }).pipe(map(response => response.data));
   }
 
   /**
    * Get supplier delivery options
    */
-  getSupplierDeliveryOptions(supplierId: string): Observable<ApiResponse<{
+  getSupplierDeliveryOptions(supplierId: string): Observable<{
     freeDelivery: boolean;
     coDelivery: boolean;
     deliveryAreas: string[];
     deliveryTime: string;
     minimumOrder: number;
-  }>> {
-    return this.get(`/suppliers/${supplierId}/delivery-options`);
+  }> {
+    return this.http.get<ApiResponse<any>>(`${this.baseUrl}/${supplierId}/delivery-options`)
+      .pipe(map(response => response.data));
   }
 
   /**
    * Check supplier availability
    */
-  checkSupplierAvailability(supplierId: string): Observable<ApiResponse<{
+  checkSupplierAvailability(supplierId: string): Observable<{
     isAvailable: boolean;
     message?: string;
     nextAvailable?: string;
-  }>> {
-    return this.get(`/suppliers/${supplierId}/availability`);
+  }> {
+    return this.http.get<ApiResponse<any>>(`${this.baseUrl}/${supplierId}/availability`)
+      .pipe(map(response => response.data));
   }
 
   /**
    * Get supplier contact information
    */
-  getSupplierContact(supplierId: string): Observable<ApiResponse<{
+  getSupplierContact(supplierId: string): Observable<{
     email: string;
     phone?: string;
     website?: string;
     address?: string;
     contactPerson?: string;
-  }>> {
-    return this.get(`/suppliers/${supplierId}/contact`);
+  }> {
+    return this.http.get<ApiResponse<any>>(`${this.baseUrl}/${supplierId}/contact`)
+      .pipe(map(response => response.data));
   }
 
   /**
    * Request supplier information
    */
-  requestSupplierInfo(supplierId: string, infoType: string): Observable<ApiResponse<{ success: boolean }>> {
-    return this.post<{ success: boolean }>(`/suppliers/${supplierId}/request-info`, {
+  requestSupplierInfo(supplierId: string, infoType: string): Observable<{ success: boolean }> {
+    return this.http.post<ApiResponse<{ success: boolean }>>(`${this.baseUrl}/${supplierId}/request-info`, {
       infoType
-    });
+    }).pipe(map(response => response.data));
   }
 
   /**
    * Get supplier analytics
    */
-  getSupplierAnalytics(supplierId: string): Observable<ApiResponse<{
+  getSupplierAnalytics(supplierId: string): Observable<{
     views: number;
     inquiries: number;
     favorites: number;
@@ -280,8 +297,9 @@ export class SupplierService extends BaseApiService<Supplier> {
     reviews: number;
     products: number;
     campaigns: number;
-  }>> {
-    return this.get(`/suppliers/${supplierId}/analytics`);
+  }> {
+    return this.http.get<ApiResponse<any>>(`${this.baseUrl}/${supplierId}/analytics`)
+      .pipe(map(response => response.data));
   }
 
   // ============================================================================

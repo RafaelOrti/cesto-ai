@@ -1,61 +1,12 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 import { FormControl, FormGroup } from '@angular/forms';
+import { Product, ProductCategory } from '../../../../shared/types/common.types';
 
-interface Product {
-  id: string;
-  name: string;
-  description: string;
-  shortDescription: string;
-  category: string;
-  subcategory: string;
-  price: number;
-  originalPrice?: number;
-  unit: string;
-  sku: string;
-  imageUrl: string;
-  imageUrls: string[];
-  weight?: number;
-  dimensions?: string;
-  stockQuantity: number;
-  leadTimeDays: number;
-  isFeatured: boolean;
-  isOnSale: boolean;
-  saleStartDate?: string;
-  saleEndDate?: string;
-  tags: string[];
-  specifications?: any;
-  nutritionalInfo?: any;
-  allergens: string[];
-  originCountry?: string;
-  brand?: string;
-  model?: string;
-  warrantyPeriod?: number;
-  rating: number;
-  reviewCount: number;
-  viewCount: number;
-  salesCount: number;
-  supplier: {
-    id: string;
-    companyName: string;
-    logoUrl?: string;
-  };
-  reviews?: any[];
-}
 
-interface Category {
-  id: string;
-  name: string;
-  nameSwedish: string;
-  nameSpanish: string;
-  nameEnglish: string;
-  description: string;
-  icon: string;
-  isActive: boolean;
-}
 
 interface FilterOptions {
-  categories: Category[];
+  categories: ProductCategory[];
   priceRange: { min: number; max: number };
   brands: string[];
   suppliers: string[];
@@ -269,8 +220,7 @@ interface FilterOptions {
               <!-- Product Info -->
               <div class="product-info">
                 <div class="supplier-info">
-                  <img *ngIf="product.supplier.logoUrl" [src]="product.supplier.logoUrl" [alt]="product.supplier.companyName" class="supplier-logo">
-                  <span class="supplier-name">{{ product.supplier.companyName }}</span>
+                  <span class="supplier-name">{{ product.supplierName }}</span>
                 </div>
                 
                 <h3 class="product-name">{{ product.name }}</h3>
@@ -285,7 +235,7 @@ interface FilterOptions {
 
                 <div class="product-price">
                   <span class="current-price">€{{ product.price }}</span>
-                  <span *ngIf="product.originalPrice" class="original-price">€{{ product.originalPrice }}</span>
+                  <span *ngIf="product.originalPrice && product.originalPrice > product.price" class="original-price">€{{ product.originalPrice }}</span>
                   <span class="unit">/ {{ product.unit }}</span>
                 </div>
 
@@ -372,7 +322,7 @@ export class ProductCatalogComponent implements OnInit, OnDestroy {
   products: Product[] = [];
   filteredProducts: Product[] = [];
   paginatedProducts: Product[] = [];
-  categories: Category[] = [];
+  categories: ProductCategory[] = [];
   filterOptions: FilterOptions = {
     categories: [],
     priceRange: { min: 0, max: 1000 },
@@ -454,12 +404,9 @@ export class ProductCatalogComponent implements OnInit, OnDestroy {
         subcategory: 'milk',
         price: 4.99,
         originalPrice: 5.99,
-        unit: 'gallon',
-        sku: 'DARY-001',
         imageUrl: '/assets/images/products/milk.jpg',
         imageUrls: ['/assets/images/products/milk.jpg'],
         stockQuantity: 150,
-        leadTimeDays: 1,
         isFeatured: true,
         isOnSale: true,
         tags: ['organic', 'dairy', 'milk'],
@@ -468,11 +415,12 @@ export class ProductCatalogComponent implements OnInit, OnDestroy {
         reviewCount: 23,
         viewCount: 156,
         salesCount: 89,
-        supplier: {
-          id: '1',
-          companyName: 'Fresh Dairy Co',
-          logoUrl: '/assets/images/suppliers/dairy-logo.png'
-        }
+        isAvailable: true,
+        supplierId: '1',
+        supplierName: 'Fresh Dairy Co',
+        minOrderQuantity: 1,
+        createdAt: '2024-01-15T10:30:00Z',
+        updatedAt: '2024-01-15T10:30:00Z'
       },
       {
         id: '2',
@@ -482,12 +430,9 @@ export class ProductCatalogComponent implements OnInit, OnDestroy {
         category: 'meat',
         subcategory: 'beef',
         price: 8.99,
-        unit: 'pound',
-        sku: 'MEAT-001',
         imageUrl: '/assets/images/products/beef.jpg',
         imageUrls: ['/assets/images/products/beef.jpg'],
         stockQuantity: 75,
-        leadTimeDays: 1,
         isFeatured: false,
         isOnSale: false,
         tags: ['meat', 'beef', 'premium'],
@@ -496,11 +441,12 @@ export class ProductCatalogComponent implements OnInit, OnDestroy {
         reviewCount: 15,
         viewCount: 98,
         salesCount: 45,
-        supplier: {
-          id: '2',
-          companyName: 'Premium Meats Ltd',
-          logoUrl: '/assets/images/suppliers/meat-logo.png'
-        }
+        isAvailable: true,
+        supplierId: '2',
+        supplierName: 'Premium Meats Ltd',
+        minOrderQuantity: 1,
+        createdAt: '2024-01-20T14:15:00Z',
+        updatedAt: '2024-01-20T14:15:00Z'
       }
     ];
 
@@ -521,7 +467,8 @@ export class ProductCatalogComponent implements OnInit, OnDestroy {
         nameEnglish: 'Dairy & Eggs',
         description: 'Milk, cheese, yogurt, and eggs',
         icon: 'local_drink',
-        isActive: true
+        isActive: true,
+        sortOrder: 1
       },
       {
         id: '2',
@@ -531,7 +478,8 @@ export class ProductCatalogComponent implements OnInit, OnDestroy {
         nameEnglish: 'Meat & Poultry',
         description: 'Fresh meat and poultry products',
         icon: 'restaurant',
-        isActive: true
+        isActive: true,
+        sortOrder: 2
       }
     ];
 
@@ -540,7 +488,7 @@ export class ProductCatalogComponent implements OnInit, OnDestroy {
 
   private updateFilterOptions(): void {
     const brands = [...new Set(this.products.map(p => p.brand).filter(Boolean))];
-    const suppliers = [...new Set(this.products.map(p => p.supplier.companyName))];
+    const suppliers = [...new Set(this.products.map(p => p.supplierName))];
     const prices = this.products.map(p => p.price);
     
     this.filterOptions = {
@@ -603,7 +551,7 @@ export class ProductCatalogComponent implements OnInit, OnDestroy {
       filtered = filtered.filter(product =>
         product.name.toLowerCase().includes(searchTerm) ||
         product.description.toLowerCase().includes(searchTerm) ||
-        product.supplier.companyName.toLowerCase().includes(searchTerm) ||
+        (product.supplierName || '').toLowerCase().includes(searchTerm) ||
         product.tags.some(tag => tag.toLowerCase().includes(searchTerm))
       );
     }
@@ -625,7 +573,7 @@ export class ProductCatalogComponent implements OnInit, OnDestroy {
     // Supplier filter
     if (this.selectedSuppliers.length > 0) {
       filtered = filtered.filter(product =>
-        this.selectedSuppliers.includes(product.supplier.companyName)
+        this.selectedSuppliers.includes(product.supplierName || '')
       );
     }
 
@@ -684,7 +632,11 @@ export class ProductCatalogComponent implements OnInit, OnDestroy {
       case 'name':
         return sorted.sort((a, b) => a.name.localeCompare(b.name));
       default:
-        return sorted.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        return sorted.sort((a, b) => {
+          const dateA = new Date(a.createdAt || 0);
+          const dateB = new Date(b.createdAt || 0);
+          return dateB.getTime() - dateA.getTime();
+        });
     }
   }
 

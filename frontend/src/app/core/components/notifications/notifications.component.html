@@ -1,0 +1,64 @@
+<div class="notifications-container">
+  <!-- Notification Bell Icon -->
+  <div class="notification-bell" (click)="toggleNotifications()">
+    <mat-icon>notifications</mat-icon>
+    <span class="notification-badge" *ngIf="unreadCount$ | async as count">{{ count }}</span>
+  </div>
+
+  <!-- Notifications Dropdown -->
+  <div class="notifications-dropdown" [class.show]="showDropdown">
+    <div class="notifications-header">
+      <h3>Notificaciones</h3>
+      <div class="header-actions">
+        <button mat-icon-button (click)="markAllAsRead()" *ngIf="(unreadCount$ | async) > 0">
+          <mat-icon>done_all</mat-icon>
+        </button>
+        <button mat-icon-button (click)="clearAll()">
+          <mat-icon>clear_all</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <div class="notifications-list">
+      <div *ngIf="(notifications$ | async)?.length === 0" class="no-notifications">
+        <mat-icon>notifications_none</mat-icon>
+        <p>No hay notificaciones</p>
+      </div>
+
+      <div *ngFor="let notification of notifications$ | async" 
+           class="notification-item"
+           [class.unread]="!notification.isRead"
+           [class]="getNotificationClass(notification.type)">
+        <div class="notification-icon">
+          <mat-icon>{{ getNotificationIcon(notification.type) }}</mat-icon>
+        </div>
+        
+        <div class="notification-content">
+          <div class="notification-title">{{ notification.title }}</div>
+          <div class="notification-message">{{ notification.message }}</div>
+          <div class="notification-time">{{ notification.createdAt | date:'short' }}</div>
+        </div>
+        
+        <div class="notification-actions">
+          <button mat-icon-button 
+                  (click)="markAsRead(notification.id)" 
+                  *ngIf="!notification.isRead"
+                  matTooltip="Marcar como leída">
+            <mat-icon>done</mat-icon>
+          </button>
+          <button mat-icon-button 
+                  (click)="removeNotification(notification.id)"
+                  matTooltip="Eliminar">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="notifications-footer" *ngIf="(notifications$ | async)?.length > 0">
+      <button mat-button (click)="viewAllNotifications()">
+        Ver todas las notificaciones
+      </button>
+    </div>
+  </div>
+</div>

@@ -2,8 +2,9 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, Subject, takeUntil } from 'rxjs';
 import { ProductsService, Product, ProductFiltersExtended, ProductSortOptionsExtended, ProductCategory } from '../../../services/products.service';
-import { PaginatedResponse } from '../../../shared/types/common.types';
+import { PaginatedResponse } from 'src/shared/types/common.types';
 import { BaseComponent } from '../../../core/components/base-component';
+import { UtilsService } from '../../../core/services/utils.service';
 
 @Component({
   selector: 'app-products-list',
@@ -67,9 +68,10 @@ export class ProductsListComponent extends BaseComponent implements OnInit, OnDe
 
   constructor(
     private productsService: ProductsService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    protected utils: UtilsService
   ) {
-    super();
+    super(utils);
     this.initializeForms();
     this.setupSearchDebounce();
   }
@@ -139,8 +141,8 @@ export class ProductsListComponent extends BaseComponent implements OnInit, OnDe
       (response: PaginatedResponse<Product>) => {
         this.products = response.data;
         this.filteredProducts = response.data;
-        this.totalItems = response.pagination.total;
-        this.totalPages = response.pagination.totalPages;
+        this.totalItems = response.total;
+        this.totalPages = response.totalPages;
         this.setLoading(false);
       },
       (error) => {
@@ -154,7 +156,7 @@ export class ProductsListComponent extends BaseComponent implements OnInit, OnDe
     this.safeSubscribe(
       this.productsService.getCategories(),
       (categories) => {
-        this.categories = categories;
+        this.categories = Array.isArray(categories) ? categories : [];
       },
       (error) => {
         this.setError('Error al cargar las categorías');
@@ -324,7 +326,7 @@ export class ProductsListComponent extends BaseComponent implements OnInit, OnDe
   getSubcategoryName(categoryId: string, subcategoryId: string): string {
     const category = this.categories.find(c => c.id === categoryId);
     if (category) {
-      const subcategory = category.subcategories.find(s => s.id === subcategoryId);
+      const subcategory = category.children?.find(s => s.id === subcategoryId);
       return subcategory ? subcategory.name : subcategoryId;
     }
     return subcategoryId;

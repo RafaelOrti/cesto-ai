@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { Campaign } from './campaign.entity';
 import { Product } from '../../products/entities/product.entity';
 
@@ -26,6 +26,12 @@ export class CampaignProduct {
 
   @Column({ default: 0 })
   discountPercentage: number;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 }
 
 

@@ -148,8 +148,8 @@ export abstract class BaseApiService<T extends BaseEntity> {
    * Search entities
    */
   search(query: string, filters?: Record<string, any>): Observable<PaginatedResponse<T>> {
-    const params = { ...filters, search: query };
-    return this.getAll(params);
+    const params = { page: 1, limit: 10, ...filters, search: query };
+    return this.getAll({ page: 1, limit: 10, ...params });
   }
 
   /**

@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
-import { AbstractControl, FormControl, FormGroup, ValidationErrors, ValidatorFn } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { ValidationError } from '../../../shared/types/common.types';
+import { Observable, of } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 /**
  * Advanced validation service with custom validators and error handling

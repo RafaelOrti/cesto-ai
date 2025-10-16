@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { Buyer } from '../../buyers/entities/buyer.entity';
 import { Product } from '../../products/entities/product.entity';
 
@@ -35,6 +35,12 @@ export class Inventory {
 
   @Column({ default: 0 })
   maximumStock: number;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 }
 
 

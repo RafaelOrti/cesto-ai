@@ -86,6 +86,8 @@ export class ProductsService extends BaseApiService<Product> {
     pageSize = 12
   ): Observable<PaginatedResponse<Product>> {
     const params = {
+      page,
+      limit: pageSize,
       sortBy: sort?.field,
       sortDirection: sort?.direction,
       ...filters
@@ -108,7 +110,7 @@ export class ProductsService extends BaseApiService<Product> {
       ...(category && { category })
     };
 
-    return this.getPaginated<Product>('/products', 1, limit, filters).pipe(
+    return this.getPaginated<Product>('/products', 1, limit, { ...filters, page: 1, limit }).pipe(
       map(response => response.data),
       tap(products => this.productsSubject.next(products))
     );
@@ -132,12 +134,10 @@ export class ProductsService extends BaseApiService<Product> {
   ): Observable<PaginatedResponse<Product>> {
     const filters = {
       category,
-      ...(subcategory && { subcategory }),
-      page,
-      limit: pageSize
+      ...(subcategory && { subcategory })
     };
 
-    return this.getAll(filters).pipe(
+    return this.getPaginated<Product>('/products', page, pageSize, { ...filters, page, limit: pageSize }).pipe(
       tap(response => this.productsSubject.next(response.data))
     );
   }
@@ -153,6 +153,8 @@ export class ProductsService extends BaseApiService<Product> {
   ): Observable<PaginatedResponse<Product>> {
     const params = {
       supplierId,
+      page,
+      limit: pageSize,
       ...filters
     };
 
@@ -191,7 +193,7 @@ export class ProductsService extends BaseApiService<Product> {
    * Get featured products
    */
   getFeaturedProducts(limit = 8): Observable<Product[]> {
-    return this.getAll({ page: 1, limit: limit, featured: true })
+    return this.getPaginated<Product>('/products', 1, limit, { page: 1, limit, featured: true })
       .pipe(map(response => response.data));
   }
 
@@ -199,7 +201,7 @@ export class ProductsService extends BaseApiService<Product> {
    * Get recently added products
    */
   getRecentlyAddedProducts(limit = 8): Observable<Product[]> {
-    return this.getAll({ page: 1, limit: limit, sortBy: 'createdAt', sortDirection: 'desc' })
+    return this.getPaginated<Product>('/products', 1, limit, { page: 1, limit, sortBy: 'createdAt', sortDirection: 'desc' })
       .pipe(map(response => response.data));
   }
 
@@ -207,7 +209,7 @@ export class ProductsService extends BaseApiService<Product> {
    * Get best selling products
    */
   getBestSellingProducts(limit = 8): Observable<Product[]> {
-    return this.getAll({ page: 1, limit: limit, sortBy: 'salesCount', sortDirection: 'desc' })
+    return this.getPaginated<Product>('/products', 1, limit, { page: 1, limit, sortBy: 'salesCount', sortDirection: 'desc' })
       .pipe(map(response => response.data));
   }
 
@@ -357,7 +359,7 @@ export class ProductsService extends BaseApiService<Product> {
    * Get product status text
    */
   getProductStatusText(product: Product): string {
-    if (!product.isAvailable) return 'No disponible';
+    if (product.stockQuantity === 0) return 'No disponible';
     if (product.stockQuantity === 0) return 'Sin stock';
     if (product.stockQuantity < 10) return 'Últimas unidades';
     return 'Disponible';
@@ -367,7 +369,7 @@ export class ProductsService extends BaseApiService<Product> {
    * Get product status CSS class
    */
   getProductStatusClass(product: Product): string {
-    if (!product.isAvailable) return 'status-unavailable';
+    if (product.stockQuantity === 0) return 'status-unavailable';
     if (product.stockQuantity === 0) return 'status-out-of-stock';
     if (product.stockQuantity < 10) return 'status-low-stock';
     return 'status-available';

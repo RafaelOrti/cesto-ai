@@ -72,6 +72,7 @@ export interface ProductCategory {
   isActive: boolean;
   sortOrder: number;
   children?: ProductCategory[];
+  subcategories?: ProductCategory[]; // Alias for children
   parent?: ProductCategory;
 }
 
@@ -231,4 +232,41 @@ export interface ProductReview {
   isApproved: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+// Notification types
+export interface Notification {
+  id: string;
+  userId: string;
+  title: string;
+  message: string;
+  type: 'info' | 'success' | 'warning' | 'error';
+  isRead: boolean;
+  createdAt: string;
+  actionUrl?: string;
+}
+
+// Category type (alias for ProductCategory)
+export type Category = ProductCategory;
+
+// Search filters
+export interface SearchFilters {
+  query?: string;
+  category?: string;
+  subcategory?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  tags?: string[];
+  supplierIds?: string[];
+  isOnSale?: boolean;
+  inStock?: boolean;
+  rating?: number;
+  featured?: boolean;
+}
+
+// Validation error
+export interface ValidationError {
+  field: string;
+  message: string;
+  code: string;
 }

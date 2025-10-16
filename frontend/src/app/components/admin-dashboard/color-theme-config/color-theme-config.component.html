@@ -1,0 +1,241 @@
+<div class="color-theme-config">
+  <div class="page-header">
+    <h1>Color Theme Configuration</h1>
+    <div class="header-actions">
+      <button 
+        class="btn btn-primary" 
+        (click)="toggleNewThemeForm()"
+        [disabled]="loading">
+        <i class="fas fa-plus"></i> New Theme
+      </button>
+      <button 
+        class="btn btn-secondary" 
+        (click)="resetToDefault()"
+        [disabled]="loading">
+        <i class="fas fa-undo"></i> Reset to Default
+      </button>
+    </div>
+  </div>
+
+  <!-- Success/Error Messages -->
+  <div class="alert alert-success" *ngIf="success" (click)="success = null">
+    <i class="fas fa-check-circle"></i> {{ success }}
+  </div>
+  <div class="alert alert-error" *ngIf="error" (click)="error = null">
+    <i class="fas fa-exclamation-circle"></i> {{ error }}
+  </div>
+
+  <!-- New Theme Form -->
+  <div class="card" *ngIf="showNewThemeForm">
+    <div class="card-header">
+      <h2>Create New Theme</h2>
+    </div>
+    <div class="card-body">
+      <form [formGroup]="newThemeForm" (ngSubmit)="createNewTheme()">
+        <div class="form-group">
+          <label for="theme_name">Theme Name</label>
+          <input 
+            type="text" 
+            id="theme_name"
+            formControlName="theme_name"
+            class="form-control"
+            placeholder="Enter theme name">
+          <div class="form-error" *ngIf="getFieldError(newThemeForm, 'theme_name')">
+            {{ getFieldError(newThemeForm, 'theme_name') }}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="description">Description</label>
+          <textarea 
+            id="description"
+            formControlName="description"
+            class="form-control"
+            placeholder="Enter theme description (optional)"
+            rows="3"></textarea>
+        </div>
+
+        <div class="color-config-section">
+          <h3>Color Configuration</h3>
+          <div class="color-categories">
+            <div class="color-category" *ngFor="let category of colorCategories">
+              <h4>{{ category.label }}</h4>
+              <p class="category-description">{{ category.description }}</p>
+              <div class="color-inputs">
+                <div class="color-input-group" *ngFor="let prop of getColorProperties(category.key)">
+                  <label>{{ prop.label }}</label>
+                  <div class="color-picker-container">
+                    <input 
+                      type="color" 
+                      [formControlName]="'color_config.' + category.key + '.' + prop.key"
+                      class="color-picker"
+                      (change)="onColorChange(category.key, prop.key, $event.target.value)">
+                    <input 
+                      type="text" 
+                      [formControlName]="'color_config.' + category.key + '.' + prop.key"
+                      class="color-text-input"
+                      placeholder="#000000">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button 
+            type="submit" 
+            class="btn btn-primary"
+            [disabled]="!isFormValid(newThemeForm) || loading">
+            <i class="fas fa-save"></i> Create Theme
+          </button>
+          <button 
+            type="button" 
+            class="btn btn-secondary"
+            (click)="toggleNewThemeForm()">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Themes List -->
+  <div class="themes-section">
+    <h2>Available Themes</h2>
+    <div class="themes-grid">
+      <div class="theme-card" *ngFor="let theme of themes" [class.active]="activeTheme?.id === theme.id">
+        <div class="theme-preview">
+          <div class="color-strip">
+            <div 
+              class="color-block" 
+              *ngFor="let color of getThemeColors(theme)"
+              [style.background-color]="color">
+            </div>
+          </div>
+        </div>
+        
+        <div class="theme-info">
+          <h3>{{ theme.theme_name }}</h3>
+          <p *ngIf="theme.description">{{ theme.description }}</p>
+          <div class="theme-meta">
+            <span class="badge" [class.badge-success]="theme.is_active" [class.badge-secondary]="!theme.is_active">
+              {{ theme.is_active ? 'Active' : 'Inactive' }}
+            </span>
+            <span class="badge badge-info" *ngIf="theme.is_default">Default</span>
+          </div>
+        </div>
+
+        <div class="theme-actions">
+          <button 
+            class="btn btn-sm btn-primary"
+            (click)="setActiveTheme(theme)"
+            [disabled]="theme.is_active || loading">
+            <i class="fas fa-check"></i> Activate
+          </button>
+          <button 
+            class="btn btn-sm btn-secondary"
+            (click)="editTheme(theme)"
+            [disabled]="loading">
+            <i class="fas fa-edit"></i> Edit
+          </button>
+          <button 
+            class="btn btn-sm btn-accent"
+            (click)="duplicateTheme(theme)"
+            [disabled]="loading">
+            <i class="fas fa-copy"></i> Duplicate
+          </button>
+          <button 
+            class="btn btn-sm btn-danger"
+            (click)="deleteTheme(theme)"
+            [disabled]="theme.is_default || loading">
+            <i class="fas fa-trash"></i> Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Theme Modal -->
+  <div class="modal-overlay" *ngIf="showEditForm" (click)="cancelEdit()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Edit Theme: {{ editingTheme?.theme_name }}</h2>
+        <button class="modal-close" (click)="cancelEdit()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form [formGroup]="editThemeForm" (ngSubmit)="updateTheme()">
+          <div class="form-group">
+            <label for="edit_theme_name">Theme Name</label>
+            <input 
+              type="text" 
+              id="edit_theme_name"
+              formControlName="theme_name"
+              class="form-control">
+            <div class="form-error" *ngIf="getFieldError(editThemeForm, 'theme_name')">
+              {{ getFieldError(editThemeForm, 'theme_name') }}
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="edit_description">Description</label>
+            <textarea 
+              id="edit_description"
+              formControlName="description"
+              class="form-control"
+              rows="3"></textarea>
+          </div>
+
+          <div class="color-config-section">
+            <h3>Color Configuration</h3>
+            <div class="color-categories">
+              <div class="color-category" *ngFor="let category of colorCategories">
+                <h4>{{ category.label }}</h4>
+                <div class="color-inputs">
+                  <div class="color-input-group" *ngFor="let prop of getColorProperties(category.key)">
+                    <label>{{ prop.label }}</label>
+                    <div class="color-picker-container">
+                      <input 
+                        type="color" 
+                        [formControlName]="'color_config.' + category.key + '.' + prop.key"
+                        class="color-picker"
+                        (change)="onColorChange(category.key, prop.key, $event.target.value)">
+                      <input 
+                        type="text" 
+                        [formControlName]="'color_config.' + category.key + '.' + prop.key"
+                        class="color-text-input"
+                        placeholder="#000000">
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button 
+              type="submit" 
+              class="btn btn-primary"
+              [disabled]="!isFormValid(editThemeForm) || loading">
+              <i class="fas fa-save"></i> Update Theme
+            </button>
+            <button 
+              type="button" 
+              class="btn btn-secondary"
+              (click)="cancelEdit()">
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" *ngIf="loading">
+    <div class="spinner"></div>
+  </div>
+</div>
+

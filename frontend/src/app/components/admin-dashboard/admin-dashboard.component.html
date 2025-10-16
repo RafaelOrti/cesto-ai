@@ -1,0 +1,628 @@
+<div class="admin-dashboard">
+  <!-- Header -->
+  <div class="dashboard-header">
+    <h1>Admin Dashboard</h1>
+    <div class="header-actions">
+      <button class="btn-secondary" (click)="navigateToBuyerDashboard()">Buyer View</button>
+      <button class="btn-secondary" (click)="navigateToSupplierDashboard()">Supplier View</button>
+      <div class="user-info">
+        <span>admin&#64;cesto.com</span>
+        <button class="logout-btn">Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation Sidebar -->
+  <div class="sidebar">
+    <div class="nav-item" [class.active]="currentView === 'dashboard'" (click)="navigateToView('dashboard')">
+      DASHBOARD
+    </div>
+    <div class="nav-item" [class.active]="currentView === 'suppliers'" (click)="navigateToView('suppliers')">
+      SUPPLIERS
+    </div>
+    <div class="nav-item" [class.active]="currentView === 'products'" (click)="navigateToView('products')">
+      PRODUCTS
+    </div>
+    <div class="nav-item" [class.active]="currentView === 'orders'" (click)="navigateToView('orders')">
+      ORDERS
+    </div>
+    <div class="nav-item" [class.active]="currentView === 'shopping-list'" (click)="navigateToView('shopping-list')">
+      SHOPPING LIST
+    </div>
+    <div class="nav-item" [class.active]="currentView === 'inventory'" (click)="navigateToView('inventory')">
+      INVENTORY
+    </div>
+    <div class="nav-item" [class.active]="currentView === 'analysis'" (click)="navigateToView('analysis')">
+      ANALYSIS
+    </div>
+    <div class="nav-item" [class.active]="currentView === 'team'" (click)="navigateToView('team')">
+      TEAM
+    </div>
+    <div class="nav-item" [class.active]="currentView === 'invoices'" (click)="navigateToView('invoices')">
+      INVOICES
+    </div>
+    <div class="nav-item" [class.active]="currentView === 'ean-code'" (click)="navigateToView('ean-code')">
+      EAN CODE
+    </div>
+    <div class="nav-item" [class.active]="currentView === 'users'" (click)="navigateToView('users')">
+      USERS
+    </div>
+    <div class="nav-item" [class.active]="currentView === 'color-themes'" (click)="navigateToView('color-themes')">
+      COLOR THEMES
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Global Dashboard View -->
+    <div *ngIf="currentView === 'dashboard'" class="dashboard-content">
+      <h2>Global Insights</h2>
+      
+      <!-- Global Stats Cards -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <h3>{{ globalStats.totalUsers | number }}</h3>
+          <p>Total Users</p>
+          <div class="stat-trend positive">+{{ globalAnalytics.users.trend }}</div>
+        </div>
+        <div class="stat-card">
+          <h3>{{ globalStats.totalSuppliers | number }}</h3>
+          <p>Total Suppliers</p>
+          <div class="stat-trend stable">Active</div>
+        </div>
+        <div class="stat-card">
+          <h3>{{ globalStats.totalBuyers | number }}</h3>
+          <p>Total Buyers</p>
+          <div class="stat-trend positive">Growing</div>
+        </div>
+        <div class="stat-card">
+          <h3>{{ globalStats.totalProducts | number }}</h3>
+          <p>Total Products</p>
+          <div class="stat-trend positive">+{{ globalAnalytics.sales.trend }}</div>
+        </div>
+        <div class="stat-card">
+          <h3>${{ globalStats.revenueStats.totalRevenue | number }}</h3>
+          <p>Total Revenue</p>
+          <div class="stat-trend positive">+{{ globalStats.revenueStats.revenueGrowth }}%</div>
+        </div>
+        <div class="stat-card">
+          <h3>{{ globalStats.recentOrders | number }}</h3>
+          <p>Recent Orders</p>
+          <div class="stat-trend stable">{{ globalAnalytics.orders.trend }}</div>
+        </div>
+      </div>
+
+      <!-- Global Analytics Chart (Buyer Insights for all users) -->
+      <div class="analytics-section">
+        <div class="analytics-header">
+          <h3>Global Sales Analytics</h3>
+          <div class="analytics-filters">
+            <select>
+              <option>Sales</option>
+              <option>Orders</option>
+              <option>Users</option>
+              <option>Delivery</option>
+            </select>
+            <input type="date" value="2022-02-01">
+            <input type="date" value="2023-01-31">
+            <button class="btn-primary">Generate</button>
+          </div>
+        </div>
+
+        <!-- Line Graph -->
+        <div class="chart-container">
+          <div class="line-chart">
+            <div class="chart-area">
+              <!-- Mock chart - in real app would use Chart.js or similar -->
+              <div class="chart-line" [style.height]="'200px'">
+                <div class="chart-point" *ngFor="let point of globalAnalytics.sales.monthlyData; let i = index"
+                     [style.left]="(i * 8.33) + '%'"
+                     [style.bottom]="(point.value / 2800000 * 100) + '%'">
+                </div>
+              </div>
+              <div class="chart-labels">
+                <span *ngFor="let point of globalAnalytics.sales.monthlyData">{{ point.month }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Global Customer Data Table -->
+        <div class="customer-table-section">
+          <h4>Global Customer Performance</h4>
+          <table class="customer-table">
+            <thead>
+              <tr>
+                <th>Customer</th>
+                <th>Sales</th>
+                <th>Orders</th>
+                <th>Average Order</th>
+                <th>Frequency</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Restaurant Chain A</td>
+                <td>4,003,061</td>
+                <td>245</td>
+                <td>16,338</td>
+                <td>8</td>
+              </tr>
+              <tr>
+                <td>Grocery Store B</td>
+                <td>3,250,890</td>
+                <td>189</td>
+                <td>17,200</td>
+                <td>6</td>
+              </tr>
+              <tr>
+                <td>Cafe Network C</td>
+                <td>2,890,450</td>
+                <td>167</td>
+                <td>17,311</td>
+                <td>5</td>
+              </tr>
+              <tr>
+                <td>Wholesale D</td>
+                <td>2,500,200</td>
+                <td>145</td>
+                <td>17,243</td>
+                <td>4</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td><strong>Amount of stores: 1,247</strong></td>
+                <td><strong>Total: 16,677,110</strong></td>
+                <td><strong>917</strong></td>
+                <td><strong>8,777</strong></td>
+                <td><strong>21</strong></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+      <!-- System Health -->
+      <div class="system-health">
+        <h3>System Health</h3>
+        <div class="health-grid">
+          <div class="health-item">
+            <span class="health-label">Database</span>
+            <span class="health-status healthy">{{ globalStats.systemHealth.database }}</span>
+          </div>
+          <div class="health-item">
+            <span class="health-label">API</span>
+            <span class="health-status healthy">{{ globalStats.systemHealth.api }}</span>
+          </div>
+          <div class="health-item">
+            <span class="health-label">AI Services</span>
+            <span class="health-status healthy">{{ globalStats.systemHealth.aiServices }}</span>
+          </div>
+          <div class="health-item">
+            <span class="health-label">Uptime</span>
+            <span class="health-status healthy">{{ globalStats.systemHealth.uptime }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Users Management View -->
+    <div *ngIf="currentView === 'users'" class="users-content">
+      <div class="content-header">
+        <h2>User Administration</h2>
+        <button class="btn-primary" (click)="createUser()">Create User</button>
+      </div>
+
+      <!-- User Filters -->
+      <div class="filters-section">
+        <div class="filter-group">
+          <label>Role:</label>
+          <select [(ngModel)]="userFilters.role">
+            <option value="">All Roles</option>
+            <option value="admin">Admin</option>
+            <option value="buyer">Buyer</option>
+            <option value="supplier">Supplier</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Status:</label>
+          <select [(ngModel)]="userFilters.status">
+            <option value="">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Search:</label>
+          <input type="text" [(ngModel)]="userFilters.search" placeholder="Search users...">
+        </div>
+        <div class="filter-actions">
+          <button class="btn-secondary" (click)="applyFilters()">Apply Filters</button>
+          <button class="btn-secondary" (click)="clearFilters()">Clear</button>
+        </div>
+      </div>
+
+      <!-- Users Table -->
+      <div class="users-table">
+        <div *ngIf="isLoading" class="loading-indicator">
+          <div class="spinner"></div>
+          <span>Loading users...</span>
+        </div>
+        
+        <table *ngIf="!isLoading">
+          <thead>
+            <tr>
+              <th (click)="onSort('email')" class="sortable">
+                Email {{ getSortIcon('email') }}
+              </th>
+              <th (click)="onSort('firstName')" class="sortable">
+                Name {{ getSortIcon('firstName') }}
+              </th>
+              <th (click)="onSort('role')" class="sortable">
+                Role {{ getSortIcon('role') }}
+              </th>
+              <th (click)="onSort('isActive')" class="sortable">
+                Status {{ getSortIcon('isActive') }}
+              </th>
+              <th (click)="onSort('companyName')" class="sortable">
+                Company {{ getSortIcon('companyName') }}
+              </th>
+              <th (click)="onSort('createdAt')" class="sortable">
+                Created {{ getSortIcon('createdAt') }}
+              </th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let user of users">
+              <td>{{ user.email }}</td>
+              <td>{{ user.firstName }} {{ user.lastName }}</td>
+              <td>
+                <span class="role-badge" [class]="'role-' + user.role">
+                  {{ user.role | uppercase }}
+                </span>
+              </td>
+              <td>
+                <span class="status-badge" [class.active]="user.isActive">
+                  {{ user.isActive ? 'Active' : 'Inactive' }}
+                </span>
+              </td>
+              <td>{{ user.companyName || '-' }}</td>
+              <td>{{ user.createdAt | date:'short' }}</td>
+              <td class="actions-cell">
+                <button class="btn-secondary btn-sm" (click)="editUser(user)">Edit</button>
+                <button class="btn-warning btn-sm" (click)="toggleUserStatus(user)">
+                  {{ user.isActive ? 'Deactivate' : 'Activate' }}
+                </button>
+                <button class="btn-danger btn-sm" (click)="deleteUser(user)">Delete</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        
+        <div *ngIf="!isLoading && users.length === 0" class="no-data">
+          <p>No users found matching your criteria.</p>
+        </div>
+      </div>
+
+      <!-- Pagination Controls -->
+      <div *ngIf="!isLoading && users.length > 0" class="pagination-controls">
+        <div class="pagination-info">
+          <span>{{ paginationInfo }}</span>
+          <div class="page-size-selector">
+            <label>Show:</label>
+            <select [(ngModel)]="pageSize" (change)="onPageSizeChange(+$event.target.value)">
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+            <span>per page</span>
+          </div>
+        </div>
+        
+        <div class="pagination-buttons">
+          <button 
+            class="btn-secondary btn-sm" 
+            [disabled]="currentPage === 1"
+            (click)="onPageChange(1)">
+            First
+          </button>
+          <button 
+            class="btn-secondary btn-sm" 
+            [disabled]="currentPage === 1"
+            (click)="onPageChange(currentPage - 1)">
+            Previous
+          </button>
+          
+          <div class="page-numbers">
+            <button 
+              *ngFor="let page of pageNumbers" 
+              class="btn-sm"
+              [class.btn-primary]="page === currentPage"
+              [class.btn-secondary]="page !== currentPage"
+              (click)="onPageChange(page)">
+              {{ page }}
+            </button>
+          </div>
+          
+          <button 
+            class="btn-secondary btn-sm" 
+            [disabled]="currentPage === totalPages"
+            (click)="onPageChange(currentPage + 1)">
+            Next
+          </button>
+          <button 
+            class="btn-secondary btn-sm" 
+            [disabled]="currentPage === totalPages"
+            (click)="onPageChange(totalPages)">
+            Last
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- System Configuration View -->
+    <div *ngIf="currentView === 'team'" class="system-config-content">
+      <h2>System Configuration</h2>
+      
+      <div class="config-list">
+        <div class="config-item" *ngFor="let config of systemConfig">
+          <div class="config-info">
+            <h4>{{ config.key }}</h4>
+            <p>{{ config.description }}</p>
+            <span class="config-category">{{ config.category }}</span>
+          </div>
+          <div class="config-value">
+            <input type="text" [value]="config.value" (change)="updateSystemConfig(config)">
+          </div>
+        </div>
+      </div>
+
+      <!-- Data Export/Import -->
+      <div class="data-management">
+        <h3>Data Management</h3>
+        <div class="data-actions">
+          <div class="export-section">
+            <h4>Export Data</h4>
+            <button class="btn-secondary" (click)="exportData('users')">Export Users</button>
+            <button class="btn-secondary" (click)="exportData('suppliers')">Export Suppliers</button>
+            <button class="btn-secondary" (click)="exportData('buyers')">Export Buyers</button>
+            <button class="btn-secondary" (click)="exportData('products')">Export Products</button>
+          </div>
+          
+          <div class="import-section">
+            <h4>Import Data</h4>
+            <button class="btn-secondary" (click)="importData('users')">Import Users</button>
+            <button class="btn-secondary" (click)="importData('suppliers')">Import Suppliers</button>
+            <button class="btn-secondary" (click)="importData('buyers')">Import Buyers</button>
+            <button class="btn-secondary" (click)="importData('products')">Import Products</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Other Views (Suppliers, Products, Orders, etc.) -->
+    <div *ngIf="currentView === 'suppliers'" class="global-view">
+      <h2>Global Suppliers View</h2>
+      <p>This view shows all suppliers with admin controls and global analytics.</p>
+      <!-- Implement global suppliers view -->
+    </div>
+
+    <div *ngIf="currentView === 'products'" class="global-view">
+      <h2>Global Products View</h2>
+      <p>This view shows all products across all suppliers with admin controls.</p>
+      <!-- Implement global products view -->
+    </div>
+
+    <div *ngIf="currentView === 'orders'" class="global-view">
+      <h2>Global Orders View</h2>
+      <p>This view shows all orders across all buyers and suppliers.</p>
+      <!-- Implement global orders view -->
+    </div>
+
+    <div *ngIf="currentView === 'analysis'" class="global-view">
+      <h2>Global Analysis</h2>
+      <p>This view provides comprehensive analytics across all users and entities.</p>
+      <!-- Implement global analysis view -->
+    </div>
+
+    <div *ngIf="currentView === 'invoices'" class="global-view">
+      <h2>Global Invoices</h2>
+      <p>This view shows all invoices across all buyers and suppliers.</p>
+      <!-- Implement global invoices view -->
+    </div>
+
+    <!-- Color Theme Configuration View -->
+    <div *ngIf="currentView === 'color-themes'" class="color-themes-view">
+      <app-color-theme-config></app-color-theme-config>
+    </div>
+  </div>
+</div>
+
+<!-- User Management Modals -->
+
+<!-- Create User Modal -->
+<div *ngIf="showCreateUserModal" class="modal-overlay" (click)="closeModals()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Create New User</h3>
+      <button class="close-btn" (click)="closeModals()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form (ngSubmit)="saveUser()">
+        <div class="form-group">
+          <label for="email">Email *</label>
+          <input type="email" id="email" [(ngModel)]="userFormData.email" name="email" required>
+        </div>
+        
+        <div class="form-group" *ngIf="showCreateUserModal">
+          <label for="password">Password *</label>
+          <input type="password" id="password" [(ngModel)]="userFormData.password" name="password" required>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="firstName">First Name *</label>
+            <input type="text" id="firstName" [(ngModel)]="userFormData.firstName" name="firstName" required>
+          </div>
+          <div class="form-group">
+            <label for="lastName">Last Name *</label>
+            <input type="text" id="lastName" [(ngModel)]="userFormData.lastName" name="lastName" required>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="role">Role *</label>
+          <select id="role" [(ngModel)]="userFormData.role" name="role" required>
+            <option value="buyer">Buyer</option>
+            <option value="supplier">Supplier</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="companyName">Company Name</label>
+          <input type="text" id="companyName" [(ngModel)]="userFormData.companyName" name="companyName">
+        </div>
+        
+        <div class="form-group">
+          <label for="phone">Phone</label>
+          <input type="tel" id="phone" [(ngModel)]="userFormData.phone" name="phone">
+        </div>
+        
+        <div class="form-group">
+          <label for="address">Address</label>
+          <textarea id="address" [(ngModel)]="userFormData.address" name="address" rows="3"></textarea>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="city">City</label>
+            <input type="text" id="city" [(ngModel)]="userFormData.city" name="city">
+          </div>
+          <div class="form-group">
+            <label for="country">Country</label>
+            <input type="text" id="country" [(ngModel)]="userFormData.country" name="country">
+          </div>
+          <div class="form-group">
+            <label for="postalCode">Postal Code</label>
+            <input type="text" id="postalCode" [(ngModel)]="userFormData.postalCode" name="postalCode">
+          </div>
+        </div>
+        
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" (click)="closeModals()">Cancel</button>
+          <button type="submit" class="btn-primary" [disabled]="isLoading">
+            {{ isLoading ? 'Creating...' : 'Create User' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Edit User Modal -->
+<div *ngIf="showEditUserModal" class="modal-overlay" (click)="closeModals()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Edit User</h3>
+      <button class="close-btn" (click)="closeModals()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form (ngSubmit)="saveUser()">
+        <div class="form-group">
+          <label for="edit-email">Email *</label>
+          <input type="email" id="edit-email" [(ngModel)]="userFormData.email" name="email" required>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="edit-firstName">First Name *</label>
+            <input type="text" id="edit-firstName" [(ngModel)]="userFormData.firstName" name="firstName" required>
+          </div>
+          <div class="form-group">
+            <label for="edit-lastName">Last Name *</label>
+            <input type="text" id="edit-lastName" [(ngModel)]="userFormData.lastName" name="lastName" required>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="edit-role">Role *</label>
+          <select id="edit-role" [(ngModel)]="userFormData.role" name="role" required>
+            <option value="buyer">Buyer</option>
+            <option value="supplier">Supplier</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label>
+            <input type="checkbox" [(ngModel)]="userFormData.isActive" name="isActive">
+            Active User
+          </label>
+        </div>
+        
+        <div class="form-group">
+          <label for="edit-companyName">Company Name</label>
+          <input type="text" id="edit-companyName" [(ngModel)]="userFormData.companyName" name="companyName">
+        </div>
+        
+        <div class="form-group">
+          <label for="edit-phone">Phone</label>
+          <input type="tel" id="edit-phone" [(ngModel)]="userFormData.phone" name="phone">
+        </div>
+        
+        <div class="form-group">
+          <label for="edit-address">Address</label>
+          <textarea id="edit-address" [(ngModel)]="userFormData.address" name="address" rows="3"></textarea>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="edit-city">City</label>
+            <input type="text" id="edit-city" [(ngModel)]="userFormData.city" name="city">
+          </div>
+          <div class="form-group">
+            <label for="edit-country">Country</label>
+            <input type="text" id="edit-country" [(ngModel)]="userFormData.country" name="country">
+          </div>
+          <div class="form-group">
+            <label for="edit-postalCode">Postal Code</label>
+            <input type="text" id="edit-postalCode" [(ngModel)]="userFormData.postalCode" name="postalCode">
+          </div>
+        </div>
+        
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" (click)="closeModals()">Cancel</button>
+          <button type="submit" class="btn-primary" [disabled]="isLoading">
+            {{ isLoading ? 'Updating...' : 'Update User' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div *ngIf="showDeleteConfirmModal" class="modal-overlay" (click)="closeModals()">
+  <div class="modal modal-small" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Confirm Delete</h3>
+      <button class="close-btn" (click)="closeModals()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p>Are you sure you want to delete user <strong>{{ selectedUser?.firstName }} {{ selectedUser?.lastName }}</strong>?</p>
+      <p class="warning-text">This action cannot be undone.</p>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" (click)="closeModals()">Cancel</button>
+      <button type="button" class="btn-danger" (click)="confirmDeleteUser()" [disabled]="isLoading">
+        {{ isLoading ? 'Deleting...' : 'Delete User' }}
+      </button>
+    </div>
+  </div>
+</div>
+

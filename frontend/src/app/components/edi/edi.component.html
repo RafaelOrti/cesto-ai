@@ -1,0 +1,249 @@
+<div class="edi-container">
+  <!-- Header -->
+  <div class="edi-header">
+    <h1>EDI Management</h1>
+    <div class="status-indicator">
+      <span class="status-dot" [class.active]="ediStatus.operational"></span>
+      <span>{{ ediStatus.operational ? 'Operational' : 'Offline' }}</span>
+    </div>
+  </div>
+
+  <!-- EDI Features Overview -->
+  <div class="features-section">
+    <h2>AI-Driven EDI Features</h2>
+    <div class="features-grid">
+      <div class="feature-card" [class.enabled]="ediStatus.features.automated_po_generation">
+        <div class="feature-icon">🤖</div>
+        <h3>Automated PO Generation</h3>
+        <p>Automatic generation of purchase orders when buyers select items</p>
+        <button class="feature-btn" (click)="generatePurchaseOrder()">Generate PO</button>
+      </div>
+
+      <div class="feature-card" [class.enabled]="ediStatus.features.document_validation">
+        <div class="feature-icon">✅</div>
+        <h3>Document Validation</h3>
+        <p>Compare documents with actual orders to prevent errors</p>
+        <button class="feature-btn" (click)="validateDocument('1')">Validate</button>
+      </div>
+
+      <div class="feature-card" [class.enabled]="ediStatus.features.error_prevention">
+        <div class="feature-icon">🛡️</div>
+        <h3>Error Prevention</h3>
+        <p>Scan and compare all documents to ensure accuracy</p>
+        <button class="feature-btn">Prevent Errors</button>
+      </div>
+
+      <div class="feature-card" [class.enabled]="ediStatus.features.inventory_notifications">
+        <div class="feature-icon">📦</div>
+        <h3>Inventory Notifications</h3>
+        <p>Automated notifications for low stock and inventory updates</p>
+        <button class="feature-btn">View Notifications</button>
+      </div>
+
+      <div class="feature-card" [class.enabled]="ediStatus.features.document_scanning">
+        <div class="feature-icon">📄</div>
+        <h3>Document Scanning</h3>
+        <p>Automated document scanning without manual intervention</p>
+        <button class="feature-btn">Scan Documents</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Document Processing -->
+  <div class="processing-section">
+    <h2>Document Processing</h2>
+    
+    <div class="processing-tabs">
+      <button class="tab-btn active">Upload Document</button>
+      <button class="tab-btn">Import System</button>
+      <button class="tab-btn">Generate Document</button>
+    </div>
+
+    <div class="processing-content">
+      <!-- Upload Document -->
+      <div class="upload-section">
+        <div class="upload-area">
+          <div class="upload-icon">📁</div>
+          <h3>Upload EDI Document</h3>
+          <p>Drag and drop your EDI document or click to browse</p>
+          <input type="file" id="edi-file" accept=".xml,.json,.csv,.edi" hidden>
+          <label for="edi-file" class="upload-btn">Choose File</label>
+        </div>
+
+        <div class="document-form">
+          <div class="form-group">
+            <label>Document Type:</label>
+            <select>
+              <option>Purchase Order</option>
+              <option>Invoice</option>
+              <option>Product Catalog</option>
+              <option>Price Catalog</option>
+              <option>Inventory Update</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Format:</label>
+            <select>
+              <option>EDIFACT</option>
+              <option>X12</option>
+              <option>XML</option>
+              <option>JSON</option>
+              <option>CSV</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Sender ID:</label>
+            <input type="text" placeholder="Enter sender ID">
+          </div>
+
+          <div class="form-group">
+            <label>Receiver ID:</label>
+            <input type="text" placeholder="Enter receiver ID">
+          </div>
+
+          <button class="process-btn" (click)="processDocument()">Process Document</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Import Existing System -->
+  <div class="import-section">
+    <h2>Import Existing EDI System</h2>
+    <div class="import-card">
+      <div class="import-info">
+        <h3>Connect Your EDI System</h3>
+        <p>Import data from your existing EDI software to seamlessly integrate with Cesto AI</p>
+        
+        <div class="supported-systems">
+          <h4>Supported Systems:</h4>
+          <ul>
+            <li>SAP EDI</li>
+            <li>Oracle EDI</li>
+            <li>Microsoft Dynamics</li>
+            <li>Custom EDI Solutions</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="import-form">
+        <div class="form-group">
+          <label>System Type:</label>
+          <select>
+            <option>SAP EDI</option>
+            <option>Oracle EDI</option>
+            <option>Microsoft Dynamics</option>
+            <option>Custom</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Connection String:</label>
+          <input type="text" placeholder="Enter connection details">
+        </div>
+
+        <div class="form-group">
+          <label>API Key:</label>
+          <input type="password" placeholder="Enter API key">
+        </div>
+
+        <div class="form-group">
+          <label>Supplier ID:</label>
+          <input type="text" placeholder="Enter your supplier ID">
+        </div>
+
+        <button class="import-btn" (click)="importExistingSystem()">Import System</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Document History -->
+  <div class="history-section">
+    <h2>EDI Document History</h2>
+    
+    <div class="filters">
+      <select>
+        <option>All Status</option>
+        <option>Processed</option>
+        <option>Pending</option>
+        <option>Error</option>
+      </select>
+      
+      <select>
+        <option>All Types</option>
+        <option>Purchase Order</option>
+        <option>Invoice</option>
+        <option>Product Catalog</option>
+      </select>
+      
+      <input type="date" placeholder="From Date">
+      <input type="date" placeholder="To Date">
+    </div>
+
+    <div class="documents-table">
+      <table>
+        <thead>
+          <tr>
+            <th>Document Number</th>
+            <th>Type</th>
+            <th>Status</th>
+            <th>Sender</th>
+            <th>Receiver</th>
+            <th>Created</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let doc of ediDocuments">
+            <td>{{ doc.document_number }}</td>
+            <td>{{ doc.type }}</td>
+            <td>
+              <span class="status-badge" [class.processed]="doc.status === 'Processed'">
+                {{ doc.status }}
+              </span>
+            </td>
+            <td>{{ doc.sender }}</td>
+            <td>{{ doc.receiver }}</td>
+            <td>{{ doc.created_at }}</td>
+            <td>
+              <button class="action-btn">View</button>
+              <button class="action-btn">Download</button>
+              <button class="action-btn" (click)="validateDocument(doc.id)">Validate</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Development Notes -->
+  <div class="notes-section">
+    <h2>Development Notes</h2>
+    <div class="notes-grid">
+      <div class="note-card mvp">
+        <h3>MVP Features</h3>
+        <ul>
+          <li>Basic document upload and processing</li>
+          <li>Simple validation rules</li>
+          <li>Document history tracking</li>
+          <li>Basic error reporting</li>
+        </ul>
+      </div>
+
+      <div class="note-card future">
+        <h3>Future Development</h3>
+        <ul>
+          <li>Advanced AI document parsing</li>
+          <li>Real-time collaboration features</li>
+          <li>Advanced analytics and reporting</li>
+          <li>Machine learning optimization</li>
+          <li>Integration with more EDI systems</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+

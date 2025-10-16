@@ -18,6 +18,7 @@ class DemandForecastResponse(BaseModel):
     predictions: List[PredictionData]
     confidence_score: float
     model_used: str
+    ai_insights: Optional[str] = None
 
 class InventoryOptimizationRequest(BaseModel):
     buyer_id: str

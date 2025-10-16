@@ -9,8 +9,8 @@ if ! docker info > /dev/null 2>&1; then
 fi
 
 # Check if Docker Compose is available
-if ! command -v docker-compose &> /dev/null; then
-    echo "❌ Docker Compose is not installed. Please install Docker Compose first."
+if ! docker compose version &> /dev/null; then
+    echo "❌ Docker Compose is not available. Please install Docker Compose first."
     exit 1
 fi
 
@@ -23,7 +23,7 @@ fi
 
 # Start services
 echo "🐳 Starting services with Docker Compose..."
-docker-compose up -d
+docker compose up -d
 
 # Wait for services to be ready
 echo "⏳ Waiting for services to be ready..."
@@ -33,14 +33,14 @@ sleep 10
 echo "🏥 Checking service health..."
 
 # Check PostgreSQL
-if docker-compose exec -T postgres pg_isready -U cesto_user -d cesto_ai > /dev/null 2>&1; then
+if docker compose exec -T postgres pg_isready -U cesto_user -d cesto_ai > /dev/null 2>&1; then
     echo "✅ PostgreSQL is ready"
 else
     echo "❌ PostgreSQL is not ready"
 fi
 
 # Check Redis
-if docker-compose exec -T redis redis-cli ping > /dev/null 2>&1; then
+if docker compose exec -T redis redis-cli ping > /dev/null 2>&1; then
     echo "✅ Redis is ready"
 else
     echo "❌ Redis is not ready"
@@ -73,7 +73,7 @@ echo "📚 Documentation:"
 echo "   Backend API Docs: http://localhost:3400/api/docs"
 echo "   AI Services Docs: http://localhost:8001/docs"
 echo ""
-echo "🔧 To stop the services: docker-compose down"
-echo "📊 To view logs: docker-compose logs -f"
+echo "🔧 To stop the services: docker compose down"
+echo "📊 To view logs: docker compose logs -f"
 echo ""
 echo "Happy coding! 🚀"

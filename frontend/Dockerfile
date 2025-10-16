@@ -3,11 +3,11 @@ FROM node:18-alpine
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm ci
+RUN npm install
 
 COPY . .
 RUN npm run build
 
-EXPOSE 4200
+EXPOSE 4400
 
 CMD ["npm", "start"]

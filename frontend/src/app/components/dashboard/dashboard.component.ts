@@ -1,16 +1,31 @@
 import { Component, OnInit } from '@angular/core';
 import { AuthService } from '../../services/auth.service';
 
-interface DashboardCard {
-  title: string;
-  value: string | number;
-  icon: string;
+interface ChartDataPoint {
+  month: string;
+  value: number;
+}
+
+interface CustomerData {
+  name: string;
   color: string;
-  route: string;
-  trend?: {
-    value: number;
-    isPositive: boolean;
-  };
+  sales: number;
+  orders: number;
+  averageOrder: number;
+  frequency: number;
+}
+
+interface SummaryTotals {
+  totalStores: number;
+  totalSales: number;
+  totalOrders: number;
+  averageOrder: number;
+  averageFrequency: number;
+}
+
+interface LegendItem {
+  color: string;
+  value: number;
 }
 
 @Component({
@@ -23,10 +38,97 @@ export class DashboardComponent implements OnInit {
   isBuyer = false;
   isSupplier = false;
 
-  dashboardCards: DashboardCard[] = [];
-  recentOrders: any[] = [];
-  lowStockItems: any[] = [];
-  upcomingDeliveries: any[] = [];
+  selectedFilter = 'Sales';
+  filters = ['Sales', 'Orders', 'Delivere', 'Delivery date'];
+
+  dateRange = {
+    from: '2022-02-01',
+    to: '2023-01-31'
+  };
+
+  analyticsData: { sales: ChartDataPoint[] } = {
+    sales: [
+      { month: 'Feb', value: 1800000 },
+      { month: 'Mar', value: 2200000 },
+      { month: 'Apr', value: 1900000 },
+      { month: 'May', value: 2100000 },
+      { month: 'Jun', value: 2000000 },
+      { month: 'Jul', value: 2300000 },
+      { month: 'Aug', value: 2400000 },
+      { month: 'Sep', value: 2200000 },
+      { month: 'Oct', value: 2100000 },
+      { month: 'Nov', value: 2000000 },
+      { month: 'Dec', value: 1900000 },
+      { month: 'Jan', value: 1800000 }
+    ]
+  };
+
+  customerData: CustomerData[] = [
+    {
+      name: 'Butik Nära Hällevadshellm',
+      color: 'red',
+      sales: 4003061,
+      orders: 45,
+      averageOrder: 88957,
+      frequency: 5
+    },
+    {
+      name: 'Butik Närs Hällevadshelm',
+      color: 'orange',
+      sales: 2987558,
+      orders: 27,
+      averageOrder: 110650,
+      frequency: 8
+    },
+    {
+      name: 'Coop Forum Hököpinge',
+      color: 'yellow',
+      sales: 1926981,
+      orders: 28,
+      averageOrder: 68821,
+      frequency: 5
+    },
+    {
+      name: 'Coop Forum Järna',
+      color: 'green',
+      sales: 901860,
+      orders: 7,
+      averageOrder: 141694,
+      frequency: 36
+    },
+    {
+      name: 'City Nära Stavsnäs',
+      color: 'blue',
+      sales: 457475,
+      orders: 30,
+      averageOrder: 15249,
+      frequency: 5
+    }
+  ];
+
+  summaryTotals: SummaryTotals = {
+    totalStores: 245,
+    totalSales: 16677110,
+    totalOrders: 917,
+    averageOrder: 8777,
+    averageFrequency: 21
+  };
+
+  legendData: LegendItem[] = [
+    { color: 'red', value: 78 },
+    { color: 'orange', value: 40 },
+    { color: 'yellow', value: 31 },
+    { color: 'green', value: 0 },
+    { color: 'blue', value: 0 },
+    { color: 'purple', value: 90 },
+    { color: 'pink', value: 6 }
+  ];
+
+  yAxisLabels = ['2.00M', '1.50M', '1.00M', '0.50M', '0.00M'];
+
+  private readonly CHART_WIDTH = 800;
+  private readonly CHART_HEIGHT = 200;
+  private readonly MAX_VALUE = 2500000;
 
   constructor(private authService: AuthService) {}
 
@@ -36,153 +138,49 @@ export class DashboardComponent implements OnInit {
       if (user) {
         this.isBuyer = user.role === 'buyer';
         this.isSupplier = user.role === 'supplier';
-        this.setupDashboard();
-        this.loadDashboardData();
       }
     });
   }
 
-  private setupDashboard() {
-    if (this.isBuyer) {
-      this.dashboardCards = [
-        {
-          title: 'Active Suppliers',
-          value: 12,
-          icon: 'store',
-          color: '#2E7D32',
-          route: '/suppliers',
-          trend: { value: 8.5, isPositive: true }
-        },
-        {
-          title: 'Total Orders',
-          value: 156,
-          icon: 'shopping_cart',
-          color: '#1976D2',
-          route: '/orders',
-          trend: { value: 12.3, isPositive: true }
-        },
-        {
-          title: 'Products in Inventory',
-          value: 2847,
-          icon: 'warehouse',
-          color: '#FF9800',
-          route: '/inventory',
-          trend: { value: 2.1, isPositive: true }
-        },
-        {
-          title: 'Shopping List Items',
-          value: 23,
-          icon: 'shopping_list',
-          color: '#9C27B0',
-          route: '/shopping-list',
-          trend: { value: 5.2, isPositive: false }
-        }
-      ];
-    } else if (this.isSupplier) {
-      this.dashboardCards = [
-        {
-          title: 'Active Buyers',
-          value: 45,
-          icon: 'group',
-          color: '#2E7D32',
-          route: '/buyers',
-          trend: { value: 15.2, isPositive: true }
-        },
-        {
-          title: 'Products Listed',
-          value: 156,
-          icon: 'inventory',
-          color: '#1976D2',
-          route: '/products',
-          trend: { value: 8.7, isPositive: true }
-        },
-        {
-          title: 'Pending Orders',
-          value: 12,
-          icon: 'shopping_cart',
-          color: '#FF9800',
-          route: '/orders',
-          trend: { value: 3.1, isPositive: false }
-        },
-        {
-          title: 'Revenue This Month',
-          value: '€24,580',
-          icon: 'euro',
-          color: '#4CAF50',
-          route: '/analytics',
-          trend: { value: 18.5, isPositive: true }
-        }
-      ];
-    }
+  onFilterChange(filter: string): void {
+    this.selectedFilter = filter;
+    this.loadAnalyticsData();
   }
 
-  private loadDashboardData() {
-    // Mock data - in real app, this would come from API
-    this.recentOrders = [
-      {
-        id: 'ORD-001',
-        supplier: 'Luntgårdens Mejeri',
-        total: '€450.00',
-        status: 'delivered',
-        date: '2024-01-15'
-      },
-      {
-        id: 'ORD-002',
-        supplier: 'Fresh Produce Co.',
-        total: '€320.50',
-        status: 'in_transit',
-        date: '2024-01-14'
-      },
-      {
-        id: 'ORD-003',
-        supplier: 'Meat Suppliers Ltd',
-        total: '€680.75',
-        status: 'processing',
-        date: '2024-01-13'
-      }
-    ];
-
-    this.lowStockItems = [
-      { name: 'Organic Milk 1L', currentStock: 8, minStock: 10, category: 'Dairy' },
-      { name: 'Fresh Tomatoes', currentStock: 5, minStock: 15, category: 'Produce' },
-      { name: 'Chicken Breast', currentStock: 3, minStock: 8, category: 'Meat' }
-    ];
-
-    this.upcomingDeliveries = [
-      {
-        supplier: 'Luntgårdens Mejeri',
-        date: '2024-01-18',
-        items: 12,
-        status: 'confirmed'
-      },
-      {
-        supplier: 'Fresh Produce Co.',
-        date: '2024-01-19',
-        items: 8,
-        status: 'pending'
-      }
-    ];
+  onDateRangeChange(): void {
+    this.loadAnalyticsData();
   }
 
-  getStatusColor(status: string): string {
-    switch (status) {
-      case 'delivered': return '#4CAF50';
-      case 'in_transit': return '#2196F3';
-      case 'processing': return '#FF9800';
-      case 'pending': return '#9E9E9E';
-      case 'confirmed': return '#4CAF50';
-      default: return '#9E9E9E';
-    }
+  generateReport(): void {
+    // Implementation for report generation
+    console.log('Generating report...');
   }
 
-  getStatusIcon(status: string): string {
-    switch (status) {
-      case 'delivered': return 'check_circle';
-      case 'in_transit': return 'local_shipping';
-      case 'processing': return 'schedule';
-      case 'pending': return 'pending';
-      case 'confirmed': return 'verified';
-      default: return 'help';
-    }
+  addComparison(): void {
+    // Implementation for adding comparison
+    console.log('Adding comparison...');
+  }
+
+  getChartPoints(): string {
+    return this.analyticsData.sales
+      .map((data, index) => this.calculateChartPoint(data, index))
+      .map(point => `${point.x},${point.y}`)
+      .join(' ');
+  }
+
+  getChartPointsArray(): { x: number; y: number }[] {
+    return this.analyticsData.sales
+      .map((data, index) => this.calculateChartPoint(data, index));
+  }
+
+  private loadAnalyticsData(): void {
+    // Load client insights data from API
+    console.log('Loading analytics data...');
+  }
+
+  private calculateChartPoint(data: ChartDataPoint, index: number): { x: number; y: number } {
+    const x = (index / (this.analyticsData.sales.length - 1)) * this.CHART_WIDTH;
+    const y = this.CHART_HEIGHT - ((data.value / this.MAX_VALUE) * this.CHART_HEIGHT);
+    return { x, y };
   }
 }

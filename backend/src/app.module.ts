@@ -3,49 +3,41 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { AuthModule } from './auth/auth.module';
-import { UsersModule } from './users/users.module';
+import { EdiModule } from './edi/edi.module';
 import { SuppliersModule } from './suppliers/suppliers.module';
-import { BuyersModule } from './buyers/buyers.module';
-import { ProductsModule } from './products/products.module';
-import { OrdersModule } from './orders/orders.module';
-import { InventoryModule } from './inventory/inventory.module';
-import { ShoppingListsModule } from './shopping-lists/shopping-lists.module';
-import { MessagesModule } from './messages/messages.module';
-import { NotificationsModule } from './notifications/notifications.module';
-import { CampaignsModule } from './campaigns/campaigns.module';
-import { InvoicesModule } from './invoices/invoices.module';
-import { AnalyticsModule } from './analytics/analytics.module';
+import { AdminModule } from './admin/admin.module';
+import { UsersModule } from './users/users.module';
+import { SharedModule } from './shared/shared.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { DatabaseConfig } from './config/database.config';
-import { RedisConfig } from './config/redis.config';
+import databaseConfig from './config/database.config';
+import appConfig from './config/app.config';
+import redisConfig from './config/redis.config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '.env',
+      envFilePath: ['.env.local', '.env'],
+      load: [appConfig, databaseConfig, redisConfig],
+      expandVariables: true,
     }),
     TypeOrmModule.forRootAsync({
-      useClass: DatabaseConfig,
+      useFactory: () => databaseConfig(),
+      inject: [],
     }),
-    ThrottlerModule.forRoot([{
-      ttl: 60000,
-      limit: 10,
-    }]),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000, // 1 minute
+        limit: 100, // 100 requests per minute
+      },
+    ]),
+    SharedModule,
     AuthModule,
-    UsersModule,
+    EdiModule,
     SuppliersModule,
-    BuyersModule,
-    ProductsModule,
-    OrdersModule,
-    InventoryModule,
-    ShoppingListsModule,
-    MessagesModule,
-    NotificationsModule,
-    CampaignsModule,
-    InvoicesModule,
-    AnalyticsModule,
+    AdminModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

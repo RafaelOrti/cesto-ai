@@ -1,0 +1,166 @@
+<div class="explore-suppliers">
+  <div class="page-header">
+    <h1>Explore Suppliers</h1>
+    <div class="header-actions">
+      <div class="search-bar">
+        <input 
+          type="text" 
+          [(ngModel)]="searchQuery" 
+          (input)="onSearch()"
+          placeholder="Search suppliers..."
+          class="search-input"
+        >
+        <button class="search-btn">
+          <i class="icon-search"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="recommended-section">
+    <h2>Recommended for You</h2>
+    <p class="section-description">Suppliers that match your buying patterns and preferences</p>
+    
+    <div class="recommended-grid">
+      <div class="supplier-card recommended" *ngFor="let supplier of recommendedSuppliersList">
+        <div class="supplier-header">
+          <div class="supplier-logo">
+            <img [src]="supplier.logo" [alt]="supplier.name" class="logo-image">
+          </div>
+          <div class="supplier-info">
+            <h3>{{ supplier.name }}</h3>
+            <p>{{ supplier.description }}</p>
+            <div class="supplier-rating">
+              <span class="rating">⭐ {{ supplier.rating }}</span>
+            </div>
+          </div>
+          <div class="supplier-actions">
+            <button class="add-btn" (click)="addSupplier(supplier)">
+              <i class="icon-plus"></i> Add Supplier
+            </button>
+          </div>
+        </div>
+        <div class="supplier-tags">
+          <span class="tag recommended-tag" *ngIf="supplier.isRecommended">Recommended</span>
+          <span class="tag new-tag" *ngIf="supplier.isNew">New</span>
+          <span class="tag offer-tag" *ngIf="supplier.hasSpecialOffer">Special Offer</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="category-section">
+    <h3>Filter by Category</h3>
+    <div class="category-grid">
+      <div 
+        class="category-item" 
+        *ngFor="let category of categories"
+        [class.selected]="selectedCategory === category.id"
+        (click)="onCategorySelect(category.id)"
+      >
+        <div class="category-icon">{{ category.icon }}</div>
+        <span class="category-name">{{ category.name }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="filters-section">
+    <h3>Additional Filters</h3>
+    <div class="filters-grid">
+      <label class="filter-item">
+        <input 
+          type="checkbox" 
+          [ngModel]="selectedFilters.freeDelivery"
+          (ngModelChange)="onFilterChange('freeDelivery')"
+        >
+        <span class="filter-label">Free Delivery</span>
+      </label>
+      <label class="filter-item">
+        <input 
+          type="checkbox" 
+          [ngModel]="selectedFilters.coDelivery"
+          (ngModelChange)="onFilterChange('coDelivery')"
+        >
+        <span class="filter-label">Co-Delivery</span>
+      </label>
+      <label class="filter-item">
+        <input 
+          type="checkbox" 
+          [ngModel]="selectedFilters.onSale"
+          (ngModelChange)="onFilterChange('onSale')"
+        >
+        <span class="filter-label">On Sale</span>
+      </label>
+      <label class="filter-item">
+        <input 
+          type="checkbox" 
+          [ngModel]="selectedFilters.newProducts"
+          (ngModelChange)="onFilterChange('newProducts')"
+        >
+        <span class="filter-label">New Products</span>
+      </label>
+    </div>
+  </div>
+
+  <div class="all-suppliers-section">
+    <h2>All Suppliers</h2>
+    <p class="section-description">Browse all available suppliers in your area</p>
+    
+    <div class="suppliers-grid">
+      <div 
+        class="supplier-card" 
+        *ngFor="let supplier of filteredSuppliers"
+        [class]="getStatusClass(supplier)"
+      >
+        <div class="supplier-header">
+          <div class="supplier-logo">
+            <img [src]="supplier.logo" [alt]="supplier.name" class="logo-image">
+          </div>
+          <div class="supplier-info">
+            <h3>{{ supplier.name }}</h3>
+            <p>{{ supplier.description }}</p>
+            <div class="supplier-rating">
+              <span class="rating">⭐ {{ supplier.rating }}</span>
+            </div>
+          </div>
+          <div class="supplier-actions">
+            <button class="view-btn" (click)="viewSupplier(supplier)">
+              <i class="icon-eye"></i> View
+            </button>
+            <button class="add-btn" (click)="addSupplier(supplier)">
+              <i class="icon-plus"></i> Add
+            </button>
+          </div>
+        </div>
+        
+        <div class="supplier-tags">
+          <span class="tag" [class]="getStatusClass(supplier) + '-tag'">
+            {{ getSupplierStatus(supplier) }}
+          </span>
+          <span class="tag delivery-tag" *ngFor="let option of supplier.deliveryOptions">
+            {{ option === 'free-delivery' ? 'Free Delivery' : 'Co-Delivery' }}
+          </span>
+        </div>
+
+        <div class="supplier-categories">
+          <span class="category-tag" *ngFor="let categoryId of supplier.categories">
+            {{ getCategoryName(categoryId) }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="help-section">
+    <div class="help-card">
+      <h3>Need Help Finding Suppliers?</h3>
+      <p>Our AI-powered recommendation system analyzes your buying patterns to suggest the best suppliers for your business needs.</p>
+      <div class="help-features">
+        <div class="feature" *ngFor="let feature of ['AI Recommendations', 'Delivery Options', 'Quality Assurance']">
+          <i [class]="getFeatureIcon(feature)"></i>
+          <span>{{ feature }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

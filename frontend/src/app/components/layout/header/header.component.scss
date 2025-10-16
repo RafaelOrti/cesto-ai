@@ -1,183 +1,226 @@
+// Import global styles
+@import '../../../styles/variables';
+@import '../../../styles/mixins';
+
 .header-toolbar {
-  background-color: #2E7D32;
-  color: white;
-  height: 64px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  background: var(--color-surface-primary);
+  border-bottom: 1px solid var(--color-border-primary);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
   position: sticky;
   top: 0;
-  z-index: 1000;
-}
+  z-index: $z-10;
 
-.header-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  height: 100%;
-  padding: 0 20px;
-}
-
-.header-left {
-  flex: 1;
-  max-width: 400px;
-
-  .search-field {
-    width: 100%;
-
-    ::ng-deep {
-      .mat-form-field-appearance-outline .mat-form-field-outline {
-        color: rgba(255, 255, 255, 0.3);
-      }
-
-      .mat-form-field-appearance-outline.mat-focused .mat-form-field-outline-thick {
-        color: white;
-      }
-
-      .mat-form-field-label {
-        color: rgba(255, 255, 255, 0.7);
-      }
-
-      .mat-focused .mat-form-field-label {
-        color: white;
-      }
-
-      .mat-input-element {
-        color: white;
-
-        &::placeholder {
-          color: rgba(255, 255, 255, 0.5);
-        }
-      }
-
-      .mat-icon {
-        color: rgba(255, 255, 255, 0.7);
-      }
-    }
-  }
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.notification-button {
-  color: white;
-
-  ::ng-deep .mat-badge-content {
-    background-color: #F44336;
-    color: white;
-  }
-
-  &:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-  }
-}
-
-.user-menu-button {
-  color: white;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  border-radius: 20px;
-  transition: background-color 0.3s ease;
-
-  &:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-  }
-
-  .user-info {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-
-    .user-email {
-      font-size: 14px;
-      font-weight: 500;
-    }
-
-    mat-icon {
-      font-size: 18px;
-      width: 18px;
-      height: 18px;
-    }
-  }
-}
-
-.language-button {
-  color: white;
-
-  &:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-  }
-}
-
-// User menu styling
-::ng-deep .mat-menu-panel {
-  background-color: white;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-
-  .mat-menu-item {
-    color: #333;
-
-    &:hover {
-      background-color: rgba(46, 125, 50, 0.1);
-    }
-
-    mat-icon {
-      color: #666;
-    }
-  }
-}
-
-// Responsive design
-@media (max-width: 768px) {
   .header-content {
-    padding: 0 15px;
-  }
+    @include flex-between;
+    align-items: center;
+    padding: $spacing-4 $spacing-6;
+    max-width: 100%;
 
-  .header-left {
-    max-width: 200px;
+    .header-left {
+      @include flex-center;
+      gap: $spacing-6;
 
-    .search-field {
-      ::ng-deep {
-        .mat-form-field-label {
-          font-size: 12px;
+      .logo {
+        .logo-text {
+          font-size: $font-size-lg;
+          font-weight: $font-weight-bold;
+          color: var(--color-primary-main);
+          text-decoration: none;
+        }
+      }
+
+      .search-container {
+        @include flex-center;
+        position: relative;
+        background: var(--color-background-secondary);
+        border: 1px solid var(--color-border-primary);
+        border-radius: $border-radius-lg;
+        padding: $spacing-2 $spacing-3;
+
+        .search-icon {
+          font-size: $font-size-base;
+          color: var(--color-text-hint);
+          margin-right: $spacing-2;
         }
 
-        .mat-input-element {
-          font-size: 14px;
+        .search-input {
+          border: none;
+          background: transparent;
+          outline: none;
+          font-size: $font-size-sm;
+          color: var(--color-text-primary);
+          width: 200px;
+
+          &::placeholder {
+            color: var(--color-text-hint);
+          }
         }
       }
     }
-  }
 
-  .user-menu-button {
-    padding: 6px 10px;
+    .header-right {
+      @include flex-center;
+      gap: $spacing-4;
 
-    .user-info {
-      .user-email {
-        font-size: 12px;
+      .user-menu {
+        position: relative;
+
+        .user-menu-button {
+          @include flex-center;
+          gap: $spacing-2;
+          background: transparent;
+          border: none;
+          cursor: pointer;
+          padding: $spacing-2;
+          border-radius: $border-radius-md;
+          transition: $transition-all;
+
+          &:hover {
+            background: var(--color-background-secondary);
+          }
+
+          .user-email {
+            font-size: $font-size-sm;
+            color: var(--color-text-primary);
+            font-weight: $font-weight-medium;
+          }
+
+          .dropdown-icon {
+            font-size: $font-size-xs;
+            color: var(--color-text-secondary);
+          }
+        }
+
+        .profile-label {
+          font-size: $font-size-xs;
+          color: var(--color-text-hint);
+          margin-left: $spacing-2;
+        }
+
+        .user-dropdown {
+          position: absolute;
+          top: 100%;
+          right: 0;
+          background: var(--color-surface-primary);
+          border: 1px solid var(--color-border-primary);
+          border-radius: $border-radius-lg;
+          box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+          min-width: 180px;
+          z-index: $z-20;
+          opacity: 0;
+          visibility: hidden;
+          transform: translateY(-10px);
+          transition: $transition-all;
+
+          &.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+          }
+
+          .dropdown-item {
+            @include flex-center;
+            gap: $spacing-2;
+            width: 100%;
+            padding: $spacing-3 $spacing-4;
+            border: none;
+            background: transparent;
+            text-align: left;
+            cursor: pointer;
+            transition: $transition-all;
+            font-size: $font-size-sm;
+            color: var(--color-text-primary);
+
+            &:hover {
+              background: var(--color-background-secondary);
+            }
+
+            .item-icon {
+              font-size: $font-size-base;
+            }
+          }
+
+          .dropdown-divider {
+            height: 1px;
+            background: var(--color-border-primary);
+            margin: $spacing-1 0;
+          }
+        }
+      }
+
+      .language-button {
+        @include flex-center;
+        gap: $spacing-2;
+        background: transparent;
+        border: 1px solid var(--color-border-primary);
+        border-radius: $border-radius-md;
+        padding: $spacing-2 $spacing-3;
+        cursor: pointer;
+        transition: $transition-all;
+
+        &:hover {
+          background: $color-background-secondary;
+        }
+
+        .language-label {
+          font-size: $font-size-sm;
+          color: var(--color-text-primary);
+          font-weight: $font-weight-medium;
+        }
+
+        .language-icon {
+          font-size: $font-size-base;
+        }
       }
     }
   }
 }
 
-@media (max-width: 480px) {
-  .header-left {
-    display: none;
-  }
+// Responsive Design
+@include mobile-only {
+  .header-toolbar {
+    .header-content {
+      padding: $spacing-3 $spacing-4;
+      flex-direction: column;
+      gap: $spacing-4;
 
-  .header-right {
-    gap: 5px;
-  }
+      .header-left {
+        width: 100%;
+        justify-content: space-between;
 
-  .user-menu-button {
-    .user-info {
-      .user-email {
-        display: none;
+        .search-container {
+          flex: 1;
+          max-width: 200px;
+
+          .search-input {
+            width: 100%;
+          }
+        }
+      }
+
+      .header-right {
+        width: 100%;
+        justify-content: space-between;
+
+        .user-menu {
+          .profile-label {
+            display: none;
+          }
+        }
+      }
+    }
+  }
+}
+
+@include tablet-up {
+  .header-toolbar {
+    .header-content {
+      .header-left {
+        .search-container {
+          .search-input {
+            width: 250px;
+          }
+        }
       }
     }
   }

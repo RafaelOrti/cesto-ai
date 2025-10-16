@@ -42,6 +42,9 @@ export class Buyer {
   @Column({ type: 'uuid', array: true, default: [] })
   preferredSuppliers: string[];
 
+  @Column({ default: true })
+  isActive: boolean;
+
   @CreateDateColumn()
   createdAt: Date;
 

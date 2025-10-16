@@ -1,19 +1,48 @@
-import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { FormBuilder, FormGroup, Validators, AbstractControl } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { trigger, state, style, transition, animate } from '@angular/animations';
+import { Subject } from 'rxjs';
+import { takeUntil, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
-  styleUrls: ['./login.component.scss']
+  styleUrls: ['./login.component.scss'],
+  animations: [
+    trigger('slideIn', [
+      transition(':enter', [
+        style({ transform: 'translateY(30px)', opacity: 0 }),
+        animate('0.6s ease-out', style({ transform: 'translateY(0)', opacity: 1 }))
+      ])
+    ]),
+    trigger('fadeInOut', [
+      transition(':enter', [
+        style({ opacity: 0 }),
+        animate('0.3s ease-in', style({ opacity: 1 }))
+      ]),
+      transition(':leave', [
+        animate('0.3s ease-out', style({ opacity: 0 }))
+      ])
+    ])
+  ]
 })
-export class LoginComponent implements OnInit {
-  loginForm: FormGroup;
-  registerForm: FormGroup;
+export class LoginComponent implements OnInit, OnDestroy {
+  loginForm!: FormGroup;
+  registerForm!: FormGroup;
   isLoginMode = true;
   isLoading = false;
+  showPassword = false;
+  showConfirmPassword = false;
+  passwordStrength = 0;
+  passwordStrengthLabel = '';
+  private destroy$ = new Subject<void>();
+  private loginAttempts = 0;
+  private maxLoginAttempts = 5;
+  private lockoutTime = 15 * 60 * 1000; // 15 minutes
+  private lockoutUntil: Date | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -21,29 +50,116 @@ export class LoginComponent implements OnInit {
     private router: Router,
     private snackBar: MatSnackBar
   ) {
+    this.initializeForms();
+    this.checkLockoutStatus();
+  }
+
+  ngOnInit(): void {
+    this.setupPasswordStrengthMonitoring();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private initializeForms(): void {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]]
+      password: ['', [Validators.required, Validators.minLength(8)]],
+      rememberMe: [false]
     });
 
     this.registerForm = this.fb.group({
-      firstName: ['', Validators.required],
-      lastName: ['', Validators.required],
+      firstName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50), this.nameValidator]],
+      lastName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50), this.nameValidator]],
       email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]],
-      companyName: ['', Validators.required],
-      role: ['buyer', Validators.required]
+      password: ['', [Validators.required, Validators.minLength(8), this.passwordStrengthValidator]],
+      confirmPassword: ['', [Validators.required]],
+      companyName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
+      role: ['buyer', Validators.required],
+      termsAccepted: [false, Validators.requiredTrue]
+    }, { validators: this.passwordMatchValidator });
+  }
+
+  private setupPasswordStrengthMonitoring(): void {
+    this.registerForm.get('password')?.valueChanges
+      .pipe(takeUntil(this.destroy$), debounceTime(300), distinctUntilChanged())
+      .subscribe(password => this.calculatePasswordStrength(password));
+  }
+
+  private checkLockoutStatus(): void {
+    const lockoutData = localStorage.getItem('login_lockout');
+    if (lockoutData) {
+      const { attempts, until } = JSON.parse(lockoutData);
+      this.loginAttempts = attempts;
+      this.lockoutUntil = new Date(until);
+      
+      if (this.lockoutUntil && new Date() < this.lockoutUntil) {
+        this.setLockoutStatus();
+      } else {
+        this.clearLockoutStatus();
+      }
+    }
+  }
+
+  private setLockoutStatus(): void {
+    this.lockoutUntil = new Date(Date.now() + this.lockoutTime);
+    localStorage.setItem('login_lockout', JSON.stringify({
+      attempts: this.loginAttempts,
+      until: this.lockoutUntil.toISOString()
+    }));
+  }
+
+  private clearLockoutStatus(): void {
+    this.lockoutUntil = null;
+    this.loginAttempts = 0;
+    localStorage.removeItem('login_lockout');
+  }
+
+  isLockedOut(): boolean {
+    return this.lockoutUntil !== null && new Date() < this.lockoutUntil;
+  }
+
+  private getRemainingLockoutTime(): string {
+    if (!this.lockoutUntil) return '';
+    const remaining = Math.ceil((this.lockoutUntil.getTime() - Date.now()) / 1000 / 60);
+    return `${remaining} minutes`;
+  }
+
+  toggleMode(): void {
+    this.isLoginMode = !this.isLoginMode;
+    this.clearFormErrors();
+  }
+
+  setLoginMode(): void {
+    this.isLoginMode = true;
+    this.clearFormErrors();
+  }
+
+  setRegisterMode(): void {
+    this.isLoginMode = false;
+    this.clearFormErrors();
+  }
+
+  setForgotPasswordMode(): void {
+    // TODO: Implement forgot password functionality
+    this.snackBar.open('Forgot password functionality coming soon', 'Close', {
+      duration: 3000,
+      panelClass: ['info-snackbar']
     });
   }
 
-  ngOnInit(): void {}
-
-  toggleMode() {
-    this.isLoginMode = !this.isLoginMode;
+  togglePasswordVisibility(): void {
+    this.showPassword = !this.showPassword;
   }
 
-  async onSubmit() {
-    if (this.isLoading) return;
+  toggleConfirmPasswordVisibility(): void {
+    this.showConfirmPassword = !this.showConfirmPassword;
+  }
+
+  async onSubmit(): Promise<void> {
+    if (this.isLoading || this.isLockedOut()) return;
 
     if (this.isLoginMode) {
       await this.login();
@@ -52,53 +168,250 @@ export class LoginComponent implements OnInit {
     }
   }
 
-  private async login() {
-    if (this.loginForm.invalid) return;
+  private async login(): Promise<void> {
+    if (this.loginForm.invalid) {
+      this.markFormGroupTouched(this.loginForm);
+      return;
+    }
 
     this.isLoading = true;
     try {
-      await this.authService.login(this.loginForm.value);
+      const credentials = {
+        email: this.loginForm.get('email')?.value?.toLowerCase().trim(),
+        password: this.loginForm.get('password')?.value
+      };
+
+      await this.authService.login(credentials).toPromise();
+      
+      // Reset login attempts on successful login
+      this.clearLockoutStatus();
+      
+      this.snackBar.open('Welcome back!', 'Close', {
+        duration: 3000,
+        panelClass: ['success-snackbar']
+      });
+      
       this.router.navigate(['/dashboard']);
     } catch (error: any) {
-      this.snackBar.open(error.message || 'Login failed', 'Close', {
-        duration: 5000,
-        panelClass: ['error-snackbar']
-      });
+      this.handleLoginError(error);
     } finally {
       this.isLoading = false;
     }
   }
 
-  private async register() {
-    if (this.registerForm.invalid) return;
+  private async register(): Promise<void> {
+    if (this.registerForm.invalid) {
+      this.markFormGroupTouched(this.registerForm);
+      return;
+    }
 
     this.isLoading = true;
     try {
-      await this.authService.register(this.registerForm.value);
+      const userData = {
+        ...this.registerForm.value,
+        email: this.registerForm.get('email')?.value?.toLowerCase().trim()
+      };
+      
+      // Remove confirmPassword from the data sent to backend
+      delete userData.confirmPassword;
+
+      await this.authService.register(userData).toPromise();
+      
+      this.snackBar.open('Account created successfully! Welcome to CESTO!', 'Close', {
+        duration: 5000,
+        panelClass: ['success-snackbar']
+      });
+      
       this.router.navigate(['/dashboard']);
     } catch (error: any) {
-      this.snackBar.open(error.message || 'Registration failed', 'Close', {
-        duration: 5000,
-        panelClass: ['error-snackbar']
-      });
+      this.handleRegistrationError(error);
     } finally {
       this.isLoading = false;
     }
   }
 
-  getErrorMessage(field: string) {
+  private handleLoginError(error: any): void {
+    this.loginAttempts++;
+    
+    let errorMessage = 'Login failed. Please check your credentials.';
+    
+    if (error.status === 401) {
+      errorMessage = 'Invalid email or password.';
+    } else if (error.status === 429) {
+      errorMessage = 'Too many login attempts. Please try again later.';
+    } else if (error.status === 0) {
+      errorMessage = 'Unable to connect to server. Please check your internet connection.';
+    }
+
+    if (this.loginAttempts >= this.maxLoginAttempts) {
+      this.setLockoutStatus();
+      errorMessage = `Account temporarily locked due to multiple failed attempts. Please try again in ${this.getRemainingLockoutTime()}.`;
+    }
+
+    this.snackBar.open(errorMessage, 'Close', {
+      duration: 5000,
+      panelClass: ['error-snackbar']
+    });
+  }
+
+  private handleRegistrationError(error: any): void {
+    let errorMessage = 'Registration failed. Please try again.';
+    
+    if (error.status === 409) {
+      errorMessage = 'An account with this email already exists.';
+    } else if (error.status === 400) {
+      errorMessage = 'Please check all required fields and try again.';
+    } else if (error.status === 0) {
+      errorMessage = 'Unable to connect to server. Please check your internet connection.';
+    }
+
+    this.snackBar.open(errorMessage, 'Close', {
+      duration: 5000,
+      panelClass: ['error-snackbar']
+    });
+  }
+
+  private markFormGroupTouched(formGroup: FormGroup): void {
+    Object.keys(formGroup.controls).forEach(key => {
+      const control = formGroup.get(key);
+      control?.markAsTouched();
+    });
+  }
+
+  private clearFormErrors(): void {
+    Object.keys(this.loginForm.controls).forEach(key => {
+      this.loginForm.get(key)?.setErrors(null);
+    });
+    Object.keys(this.registerForm.controls).forEach(key => {
+      this.registerForm.get(key)?.setErrors(null);
+    });
+  }
+
+  getErrorMessage(field: string): string {
     const form = this.isLoginMode ? this.loginForm : this.registerForm;
     const control = form.get(field);
     
-    if (control?.hasError('required')) {
-      return `${field} is required`;
+    if (!control || !control.errors || !control.touched) {
+      return '';
     }
-    if (control?.hasError('email')) {
-      return 'Please enter a valid email';
+    
+    const errors = control.errors;
+    
+    if (errors['required']) {
+      return this.getFieldLabel(field) + ' is required';
     }
-    if (control?.hasError('minlength')) {
-      return `${field} must be at least 6 characters`;
+    if (errors['email']) {
+      return 'Please enter a valid email address';
     }
+    if (errors['minlength']) {
+      const requiredLength = errors['minlength'].requiredLength;
+      return this.getFieldLabel(field) + ` must be at least ${requiredLength} characters`;
+    }
+    if (errors['maxlength']) {
+      const maxLength = errors['maxlength'].requiredLength;
+      return this.getFieldLabel(field) + ` cannot exceed ${maxLength} characters`;
+    }
+    if (errors['passwordMismatch']) {
+      return 'Passwords do not match';
+    }
+    if (errors['weakPassword']) {
+      return 'Password is too weak. Please use a stronger password';
+    }
+    if (errors['invalidName']) {
+      return 'Name can only contain letters, spaces, hyphens, and apostrophes';
+    }
+    
     return '';
+  }
+
+  private getFieldLabel(field: string): string {
+    const labels: { [key: string]: string } = {
+      email: 'Email',
+      password: 'Password',
+      firstName: 'First name',
+      lastName: 'Last name',
+      companyName: 'Company name',
+      confirmPassword: 'Confirm password'
+    };
+    return labels[field] || field;
+  }
+
+  private calculatePasswordStrength(password: string): void {
+    if (!password) {
+      this.passwordStrength = 0;
+      this.passwordStrengthLabel = '';
+      return;
+    }
+
+    let strength = 0;
+    let label = '';
+
+    // Length check
+    if (password.length >= 8) strength += 20;
+    if (password.length >= 12) strength += 10;
+
+    // Character variety checks
+    if (/[a-z]/.test(password)) strength += 10;
+    if (/[A-Z]/.test(password)) strength += 10;
+    if (/[0-9]/.test(password)) strength += 10;
+    if (/[^A-Za-z0-9]/.test(password)) strength += 20;
+
+    // Common patterns penalty
+    if (/(.)\1{2,}/.test(password)) strength -= 10; // Repeated characters
+    if (/123|abc|qwe/i.test(password)) strength -= 10; // Common sequences
+
+    this.passwordStrength = Math.max(0, Math.min(100, strength));
+
+    if (this.passwordStrength < 30) {
+      label = 'Weak';
+    } else if (this.passwordStrength < 60) {
+      label = 'Fair';
+    } else if (this.passwordStrength < 80) {
+      label = 'Good';
+    } else {
+      label = 'Strong';
+    }
+
+    this.passwordStrengthLabel = label;
+  }
+
+  private passwordStrengthValidator(control: AbstractControl): { [key: string]: any } | null {
+    const password = control.value;
+    if (!password) return null;
+
+    let score = 0;
+    if (password.length >= 8) score += 1;
+    if (/[a-z]/.test(password)) score += 1;
+    if (/[A-Z]/.test(password)) score += 1;
+    if (/[0-9]/.test(password)) score += 1;
+    if (/[^A-Za-z0-9]/.test(password)) score += 1;
+
+    return score < 3 ? { weakPassword: true } : null;
+  }
+
+  private passwordMatchValidator(control: AbstractControl): { [key: string]: any } | null {
+    const password = control.get('password');
+    const confirmPassword = control.get('confirmPassword');
+
+    if (!password || !confirmPassword) return null;
+
+    return password.value === confirmPassword.value ? null : { passwordMismatch: true };
+  }
+
+  private nameValidator(control: AbstractControl): { [key: string]: any } | null {
+    const name = control.value;
+    if (!name) return null;
+
+    const validNamePattern = /^[a-zA-Z\s\-']+$/;
+    return validNamePattern.test(name) ? null : { invalidName: true };
+  }
+
+  get isFormDisabled(): boolean {
+    return this.isLoading || this.isLockedOut();
+  }
+
+  get lockoutMessage(): string {
+    if (!this.isLockedOut()) return '';
+    return `Account locked for ${this.getRemainingLockoutTime()} due to multiple failed attempts.`;
   }
 }

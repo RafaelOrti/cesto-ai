@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { AuthService } from './services/auth.service';
 import { Router } from '@angular/router';
+import { ThemeInitializerService } from './core/services/theme-initializer.service';
 
 @Component({
   selector: 'app-root',
@@ -14,10 +15,14 @@ export class AppComponent implements OnInit {
 
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private themeInitializer: ThemeInitializerService
   ) {}
 
   ngOnInit() {
+    // Initialize the default theme
+    this.themeInitializer.initializeTheme();
+    
     this.authService.isAuthenticated$.subscribe(isAuth => {
       this.isLoggedIn = isAuth;
       this.currentUser = this.authService.getCurrentUser();

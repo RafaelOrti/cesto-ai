@@ -1,16 +1,15 @@
-import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { registerAs } from '@nestjs/config';
 
-@Injectable()
-export class RedisConfig {
-  constructor(private configService: ConfigService) {}
-
-  getRedisConfig() {
-    return {
-      host: this.configService.get('REDIS_HOST', 'localhost'),
-      port: this.configService.get('REDIS_PORT', 6379),
-      password: this.configService.get('REDIS_PASSWORD'),
-      db: this.configService.get('REDIS_DB', 0),
-    };
-  }
-}
+export default registerAs('redis', () => ({
+  host: process.env.REDIS_HOST || 'localhost',
+  port: parseInt(process.env.REDIS_PORT || '6379', 10),
+  password: process.env.REDIS_PASSWORD,
+  db: parseInt(process.env.REDIS_DB || '0', 10),
+  url: process.env.REDIS_URL,
+  retryDelayOnFailover: 100,
+  maxRetriesPerRequest: 3,
+  lazyConnect: true,
+  keepAlive: 30000,
+  connectTimeout: 10000,
+  commandTimeout: 5000,
+}));

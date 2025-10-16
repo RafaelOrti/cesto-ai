@@ -12,6 +12,7 @@ export class HeaderComponent implements OnInit {
   @Output() logout = new EventEmitter<void>();
 
   searchQuery = '';
+  showUserMenu = false;
 
   constructor(
     private router: Router,
@@ -29,6 +30,10 @@ export class HeaderComponent implements OnInit {
       // Implement search functionality
       console.log('Searching for:', this.searchQuery);
     }
+  }
+
+  toggleUserMenu() {
+    this.showUserMenu = !this.showUserMenu;
   }
 
   get userDisplayName(): string {

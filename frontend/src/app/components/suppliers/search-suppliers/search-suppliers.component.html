@@ -1,0 +1,294 @@
+<div class="search-suppliers-container">
+  <!-- Header Section -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1>Search for suppliers</h1>
+      <p>Discover and connect with suppliers from around the world</p>
+    </div>
+  </div>
+
+  <!-- Search and Filter Section -->
+  <div class="search-filter-section">
+    <!-- Main Search Bar -->
+    <div class="search-bar-container">
+      <div class="search-input-wrapper">
+        <i class="icon-search"></i>
+        <input 
+          type="text" 
+          [(ngModel)]="searchQuery" 
+          (input)="onSearchChange()"
+          placeholder="Search your suppliers"
+          class="search-input">
+        <button class="clear-search" *ngIf="searchQuery" (click)="clearSearch()">
+          <i class="icon-close"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Category Filters -->
+    <div class="category-filters">
+      <div class="categories-scroll">
+        <button 
+          *ngFor="let category of categories" 
+          [class.active]="selectedCategories.includes(category.id)"
+          (click)="toggleCategory(category.id)"
+          class="category-button">
+          <i [class]="category.icon"></i>
+          <span>{{ category.name }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Additional Filters -->
+    <div class="additional-filters">
+      <div class="filter-section">
+        <h3>Additional filters</h3>
+        <div class="filter-options">
+          <label class="filter-checkbox">
+            <input type="checkbox" [(ngModel)]="filters.suppliersToPurchase">
+            <span class="checkmark"></span>
+            <span>Suppliers I may need to purchase from</span>
+          </label>
+          
+          <label class="filter-checkbox">
+            <input type="checkbox" [(ngModel)]="filters.stoppedBuying">
+            <span class="checkmark"></span>
+            <span>Suppliers I have stopped buying from</span>
+          </label>
+
+          <label class="filter-checkbox">
+            <input type="checkbox" [(ngModel)]="filters.coDelivery">
+            <span class="checkmark"></span>
+            <span>Co-delivery</span>
+          </label>
+
+          <label class="filter-checkbox">
+            <input type="checkbox" [(ngModel)]="filters.freeShipping">
+            <span class="checkmark"></span>
+            <span>Free shipping cost</span>
+          </label>
+
+          <label class="filter-checkbox">
+            <input type="checkbox" [(ngModel)]="filters.activeCampaigns">
+            <span class="checkmark"></span>
+            <span>Active campaigns</span>
+          </label>
+
+          <label class="filter-checkbox">
+            <input type="checkbox" [(ngModel)]="filters.newProducts">
+            <span class="checkmark"></span>
+            <span>New products</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Supplier Tabs -->
+      <div class="supplier-tabs">
+        <button 
+          *ngFor="let tab of supplierTabs" 
+          [class.active]="activeTab === tab.id"
+          (click)="setActiveTab(tab.id)"
+          class="tab-button">
+          {{ tab.name }}
+          <span class="tab-count" *ngIf="tab.count > 0">({{ tab.count }})</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Suppliers List -->
+  <div class="suppliers-list-container">
+    <div class="list-header">
+      <div class="sort-options">
+        <select [(ngModel)]="sortBy" (change)="onSortChange()" class="sort-select">
+          <option value="name">Sort by Name</option>
+          <option value="lastDelivery">Sort by Last Delivery</option>
+          <option value="rating">Sort by Rating</option>
+          <option value="products">Sort by Products Count</option>
+        </select>
+      </div>
+      
+      <div class="view-options">
+        <button 
+          [class.active]="viewMode === 'grid'"
+          (click)="setViewMode('grid')"
+          class="view-button">
+          <i class="icon-grid"></i>
+        </button>
+        <button 
+          [class.active]="viewMode === 'list'"
+          (click)="setViewMode('list')"
+          class="view-button">
+          <i class="icon-list"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading-container" *ngIf="isLoading">
+      <div class="loading-spinner"></div>
+      <p>Loading suppliers...</p>
+    </div>
+
+    <!-- Suppliers Grid View -->
+    <div class="suppliers-grid" *ngIf="viewMode === 'grid' && !isLoading">
+      <div 
+        *ngFor="let supplier of filteredSuppliers" 
+        (click)="viewSupplier(supplier)"
+        class="supplier-card">
+        
+        <div class="card-header">
+          <div class="supplier-logo">
+            <img [src]="supplier.logo" [alt]="supplier.name" *ngIf="supplier.logo">
+            <div class="logo-placeholder" *ngIf="!supplier.logo">
+              <i class="icon-building"></i>
+            </div>
+          </div>
+          
+          <button 
+            class="favorite-button"
+            [class.favorited]="supplier.isFavorite"
+            (click)="toggleFavorite(supplier, $event)">
+            <i class="icon-heart"></i>
+          </button>
+        </div>
+
+        <div class="card-content">
+          <h3 class="supplier-name">{{ supplier.name }}</h3>
+          <p class="supplier-description">{{ supplier.description }}</p>
+          
+          <div class="supplier-tags">
+            <span *ngFor="let tag of supplier.tags" class="tag">{{ tag }}</span>
+          </div>
+
+          <div class="supplier-stats">
+            <div class="stat">
+              <span class="stat-label">Products</span>
+              <span class="stat-value">{{ supplier.productsCount }}</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Rating</span>
+              <span class="stat-value">
+                <i class="icon-star"></i>
+                {{ supplier.rating }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-footer">
+          <button class="order-button" (click)="orderFromSupplier(supplier, $event)">
+            <i class="icon-shopping-cart"></i>
+            Order
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Suppliers List View -->
+    <div class="suppliers-table" *ngIf="viewMode === 'list' && !isLoading">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Last Delivery</th>
+            <th>Future Delivery</th>
+            <th>Campaign</th>
+            <th>New Products</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let supplier of filteredSuppliers" (click)="viewSupplier(supplier)">
+            <td class="supplier-cell">
+              <button 
+                class="favorite-button"
+                [class.favorited]="supplier.isFavorite"
+                (click)="toggleFavorite(supplier, $event)">
+                <i class="icon-heart"></i>
+              </button>
+              <div class="supplier-info">
+                <h4>{{ supplier.name }}</h4>
+                <p>{{ supplier.description }}</p>
+              </div>
+            </td>
+            
+            <td class="delivery-cell">
+              <span class="delivery-date">{{ supplier.lastDelivery | date:'yyyy-MM-dd' }}</span>
+              <span class="delivery-status" [class]="getDeliveryStatusClass(supplier.lastDelivery)">
+                {{ getDeliveryStatus(supplier.lastDelivery) }}
+              </span>
+            </td>
+            
+            <td class="delivery-cell">
+              <span class="delivery-date">{{ supplier.futureDelivery | date:'yyyy-MM-dd' }}</span>
+            </td>
+            
+            <td class="campaign-cell">
+              <span *ngIf="supplier.activeCampaign" class="campaign-badge">
+                {{ supplier.activeCampaign }}
+              </span>
+            </td>
+            
+            <td class="products-cell">
+              <span *ngIf="supplier.newProductsCount > 0" class="new-products-badge">
+                {{ supplier.newProductsCount }} new
+              </span>
+            </td>
+            
+            <td class="action-cell">
+              <button class="order-button" (click)="orderFromSupplier(supplier, $event)">
+                Order
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="!isLoading && filteredSuppliers.length === 0">
+      <i class="icon-search"></i>
+      <h3>No suppliers found</h3>
+      <p>Try adjusting your search criteria or filters</p>
+      <button class="clear-filters-button" (click)="clearAllFilters()">
+        Clear all filters
+      </button>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination-container" *ngIf="!isLoading && filteredSuppliers.length > 0">
+      <div class="pagination-info">
+        Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to 
+        {{ Math.min(currentPage * itemsPerPage, totalSuppliers) }} of {{ totalSuppliers }} suppliers
+      </div>
+      
+      <div class="pagination-controls">
+        <button 
+          [disabled]="currentPage === 1"
+          (click)="previousPage()"
+          class="page-button">
+          <i class="icon-arrow-left"></i>
+        </button>
+        
+        <div class="page-numbers">
+          <button 
+            *ngFor="let page of getPageNumbers()"
+            [class.active]="page === currentPage"
+            (click)="goToPage(page)"
+            class="page-number">
+            {{ page }}
+          </button>
+        </div>
+        
+        <button 
+          [disabled]="currentPage === totalPages"
+          (click)="nextPage()"
+          class="page-button">
+          <i class="icon-arrow-right"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+

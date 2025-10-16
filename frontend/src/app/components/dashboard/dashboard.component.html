@@ -1,150 +1,146 @@
 <div class="dashboard-container">
-  <!-- Welcome Section -->
-  <div class="welcome-section">
-    <h1>Welcome back, {{ currentUser?.firstName }}!</h1>
-    <p>Here's what's happening with your {{ isBuyer ? 'purchases' : 'business' }} today.</p>
+  <!-- Page Header -->
+  <div class="page-header">
+    <h1 class="page-title">Client Insights</h1>
   </div>
 
-  <!-- Dashboard Cards -->
-  <div class="dashboard-cards">
-    <mat-card *ngFor="let card of dashboardCards" class="dashboard-card" [routerLink]="card.route">
-      <mat-card-content>
-        <div class="card-header">
-          <div class="card-icon" [style.background-color]="card.color">
-            <mat-icon>{{ card.icon }}</mat-icon>
-          </div>
-          <div class="card-trend" *ngIf="card.trend" [class.positive]="card.trend.isPositive" [class.negative]="!card.trend.isPositive">
-            <mat-icon>{{ card.trend.isPositive ? 'trending_up' : 'trending_down' }}</mat-icon>
-            <span>{{ card.trend.value }}%</span>
-          </div>
-        </div>
-        <div class="card-content">
-          <h3>{{ card.title }}</h3>
-          <div class="card-value">{{ card.value }}</div>
-        </div>
-      </mat-card-content>
-    </mat-card>
+  <!-- Filter and Control Bar -->
+  <div class="controls-bar">
+    <div class="filter-section">
+      <div class="filter-dropdown">
+        <span class="filter-label">+ Choose filter</span>
+      </div>
+
+      <div class="filter-tabs">
+        <button 
+          *ngFor="let filter of filters"
+          class="filter-tab"
+          [class.active]="selectedFilter === filter"
+          (click)="onFilterChange(filter)">
+          {{ filter }}
+        </button>
+      </div>
+
+      <div class="date-range">
+        <input 
+          type="date" 
+          [(ngModel)]="dateRange.from" 
+          (change)="onDateRangeChange()"
+          class="date-input">
+        <span class="date-separator">-</span>
+        <input 
+          type="date" 
+          [(ngModel)]="dateRange.to" 
+          (change)="onDateRangeChange()"
+          class="date-input">
+      </div>
+
+      <button class="comparison-btn" (click)="addComparison()">
+        Add comparison
+      </button>
+      
+      <button class="generate-btn" (click)="generateReport()">
+        Generate
+      </button>
+    </div>
+
+    <div class="legend-section">
+      <div class="legend-item" *ngFor="let item of legendData">
+        <div class="legend-dot" [style.background-color]="item.color"></div>
+        <span class="legend-value">{{ item.value }}</span>
+      </div>
+    </div>
   </div>
 
-  <!-- Main Content Grid -->
-  <div class="dashboard-grid">
-    <!-- Recent Orders -->
-    <mat-card class="dashboard-section">
-      <mat-card-header>
-        <mat-card-title>Recent Orders</mat-card-title>
-        <mat-card-subtitle>Your latest purchase activity</mat-card-subtitle>
-      </mat-card-header>
-      <mat-card-content>
-        <div class="orders-list">
-          <div *ngFor="let order of recentOrders" class="order-item">
-            <div class="order-info">
-              <div class="order-id">{{ order.id }}</div>
-              <div class="order-supplier">{{ order.supplier }}</div>
-              <div class="order-date">{{ order.date }}</div>
+  <!-- Line Graph -->
+  <div class="chart-section">
+    <div class="chart-container">
+      <div class="line-chart">
+        <div class="chart-area">
+          <!-- Y-axis labels -->
+          <div class="y-axis">
+            <div class="y-label" *ngFor="let label of yAxisLabels">
+              {{ label }}
             </div>
-            <div class="order-details">
-              <div class="order-total">{{ order.total }}</div>
-              <div class="order-status" [style.color]="getStatusColor(order.status)">
-                <mat-icon>{{ getStatusIcon(order.status) }}</mat-icon>
-                <span>{{ order.status | titlecase }}</span>
-              </div>
+          </div>
+
+          <!-- Chart line -->
+          <div class="chart-line">
+            <svg width="100%" height="100%" viewBox="0 0 800 200">
+              <polyline
+                [attr.points]="getChartPoints()"
+                fill="none"
+                stroke="#20B2AA"
+                stroke-width="3"
+              />
+              <circle
+                *ngFor="let point of getChartPointsArray()"
+                [attr.cx]="point.x"
+                [attr.cy]="point.y"
+                r="4"
+                fill="#20B2AA"
+                stroke="white"
+                stroke-width="2"
+              />
+            </svg>
+          </div>
+
+          <!-- X-axis labels -->
+          <div class="x-axis">
+            <div class="x-label" *ngFor="let data of analyticsData.sales">
+              {{ data.month }}
             </div>
           </div>
         </div>
-        <div class="section-footer">
-          <button mat-button color="primary" routerLink="/orders">View All Orders</button>
-        </div>
-      </mat-card-content>
-    </mat-card>
+      </div>
+    </div>
+  </div>
 
-    <!-- Low Stock Items (Buyers only) -->
-    <mat-card *ngIf="isBuyer" class="dashboard-section">
-      <mat-card-header>
-        <mat-card-title>Low Stock Alert</mat-card-title>
-        <mat-card-subtitle>Items that need restocking</mat-card-subtitle>
-      </mat-card-header>
-      <mat-card-content>
-        <div class="stock-list">
-          <div *ngFor="let item of lowStockItems" class="stock-item">
-            <div class="stock-info">
-              <div class="stock-name">{{ item.name }}</div>
-              <div class="stock-category">{{ item.category }}</div>
-            </div>
-            <div class="stock-details">
-              <div class="stock-levels">
-                <span class="current-stock">{{ item.currentStock }}</span>
-                <span class="min-stock">/ {{ item.minStock }}</span>
-              </div>
-              <button mat-raised-button color="warn" size="small">Reorder</button>
-            </div>
-          </div>
-        </div>
-        <div class="section-footer">
-          <button mat-button color="primary" routerLink="/inventory">View Inventory</button>
-        </div>
-      </mat-card-content>
-    </mat-card>
+  <!-- Customer Performance Table -->
+  <div class="table-section">
+    <div class="table-container">
+      <table class="performance-table">
+        <thead>
+          <tr>
+            <th>Customer</th>
+            <th>Sales</th>
+            <th>Orders</th>
+            <th>Average order...</th>
+            <th>Frequency</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let customer of customerData">
+            <td class="customer-cell">
+              <div class="customer-indicator" [style.background-color]="customer.color"></div>
+              {{ customer.name }}
+            </td>
+            <td class="sales-cell">{{ customer.sales | number }}</td>
+            <td class="orders-cell">{{ customer.orders }}</td>
+            <td class="avg-order-cell">{{ customer.averageOrder | number }}</td>
+            <td class="frequency-cell">{{ customer.frequency }}</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr class="summary-row">
+            <td><strong>Amount of stores: {{ summaryTotals.totalStores }}</strong></td>
+            <td><strong>Total: {{ summaryTotals.totalSales | number }}</strong></td>
+            <td><strong>{{ summaryTotals.totalOrders | number }}</strong></td>
+            <td><strong>{{ summaryTotals.averageOrder | number }}</strong></td>
+            <td><strong>{{ summaryTotals.averageFrequency }}</strong></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
 
-    <!-- Upcoming Deliveries (Buyers only) -->
-    <mat-card *ngIf="isBuyer" class="dashboard-section">
-      <mat-card-header>
-        <mat-card-title>Upcoming Deliveries</mat-card-title>
-        <mat-card-subtitle>Scheduled deliveries</mat-card-subtitle>
-      </mat-card-header>
-      <mat-card-content>
-        <div class="deliveries-list">
-          <div *ngFor="let delivery of upcomingDeliveries" class="delivery-item">
-            <div class="delivery-info">
-              <div class="delivery-supplier">{{ delivery.supplier }}</div>
-              <div class="delivery-date">{{ delivery.date }}</div>
-              <div class="delivery-items">{{ delivery.items }} items</div>
-            </div>
-            <div class="delivery-status" [style.color]="getStatusColor(delivery.status)">
-              <mat-icon>{{ getStatusIcon(delivery.status) }}</mat-icon>
-              <span>{{ delivery.status | titlecase }}</span>
-            </div>
-          </div>
-        </div>
-        <div class="section-footer">
-          <button mat-button color="primary" routerLink="/orders">View All Deliveries</button>
-        </div>
-      </mat-card-content>
-    </mat-card>
-
-    <!-- Quick Actions -->
-    <mat-card class="dashboard-section">
-      <mat-card-header>
-        <mat-card-title>Quick Actions</mat-card-title>
-        <mat-card-subtitle>Common tasks</mat-card-subtitle>
-      </mat-card-header>
-      <mat-card-content>
-        <div class="quick-actions">
-          <button mat-raised-button color="primary" routerLink="/suppliers" *ngIf="isBuyer">
-            <mat-icon>store</mat-icon>
-            Find Suppliers
-          </button>
-          <button mat-raised-button color="primary" routerLink="/products" *ngIf="isBuyer">
-            <mat-icon>shopping_cart</mat-icon>
-            Browse Products
-          </button>
-          <button mat-raised-button color="primary" routerLink="/shopping-list" *ngIf="isBuyer">
-            <mat-icon>shopping_list</mat-icon>
-            Shopping List
-          </button>
-          <button mat-raised-button color="primary" routerLink="/products" *ngIf="isSupplier">
-            <mat-icon>add</mat-icon>
-            Add Products
-          </button>
-          <button mat-raised-button color="primary" routerLink="/orders" *ngIf="isSupplier">
-            <mat-icon>inbox</mat-icon>
-            View Orders
-          </button>
-          <button mat-raised-button color="primary" routerLink="/analytics" *ngIf="isSupplier">
-            <mat-icon>analytics</mat-icon>
-            View Analytics
-          </button>
-        </div>
-      </mat-card-content>
-    </mat-card>
+  <!-- Annotations -->
+  <div class="annotations">
+    <div class="annotation-item">
+      <span>GRAPHIC (filters): sales orders</span>
+    </div>
+    <div class="annotation-item">
+      <span>LIST (Filters)</span>
+    </div>
   </div>
 </div>

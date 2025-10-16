@@ -21,7 +21,7 @@ export class LayoutComponent implements OnInit {
     // Track current route
     this.router.events
       .pipe(filter(event => event instanceof NavigationEnd))
-      .subscribe((event: NavigationEnd) => {
+      .subscribe((event: any) => {
         this.currentRoute = event.url;
       });
 

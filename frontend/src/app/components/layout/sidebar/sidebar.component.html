@@ -1,39 +1,32 @@
 <div class="sidebar-container">
-  <div class="sidebar-header">
-    <div class="logo">
-      <mat-icon>grid_view</mat-icon>
-      <span>Cesto AI</span>
-    </div>
-  </div>
-
   <nav class="sidebar-nav">
-    <mat-list>
-      <ng-container *ngFor="let item of menuItems">
-        <!-- Main menu item -->
-        <mat-list-item 
-          class="menu-item"
-          [class.active]="isActiveRoute(item.route)"
-          (click)="item.subItems ? toggleSubItems(item) : navigateTo(item.route)">
-          <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
-          <span matListItemTitle>{{ item.label }}</span>
-          <mat-icon *ngIf="item.subItems" matListItemMeta>
-            {{ item.expanded ? 'expand_less' : 'expand_more' }}
-          </mat-icon>
-        </mat-list-item>
+    <div class="menu-section">
+      <button 
+        *ngFor="let item of menuItems"
+        class="menu-item"
+        [class.active]="isActiveRoute(item.route)"
+        [class.has-submenu]="item.subItems"
+        (click)="item.subItems ? toggleSubItems(item) : navigateTo(item.route)">
+        <span class="menu-icon">{{ item.icon }}</span>
+        <span class="menu-label">{{ item.label }}</span>
+        <span *ngIf="item.subItems" class="expand-icon">
+          {{ item.expanded ? '▼' : '▶' }}
+        </span>
+      </button>
 
-        <!-- Sub menu items -->
+      <!-- Sub menu items -->
+      <div *ngFor="let item of menuItems">
         <div *ngIf="item.subItems && item.expanded" class="sub-menu">
-          <mat-list-item 
+          <button 
             *ngFor="let subItem of item.subItems"
             class="sub-menu-item"
             [class.active]="isActiveRoute(subItem.route)"
             (click)="navigateTo(subItem.route)">
-            <mat-icon matListItemIcon>{{ subItem.icon }}</mat-icon>
-            <span matListItemTitle>{{ subItem.label }}</span>
-          </mat-list-item>
+            <span class="sub-menu-label">{{ subItem.label }}</span>
+          </button>
         </div>
-      </ng-container>
-    </mat-list>
+      </div>
+    </div>
   </nav>
 
   <div class="sidebar-footer">

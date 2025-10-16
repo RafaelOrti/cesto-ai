@@ -1,0 +1,147 @@
+<div class="my-suppliers">
+  <div class="page-header">
+    <h1>My Suppliers</h1>
+    <div class="header-actions">
+      <div class="search-bar">
+        <input 
+          type="text" 
+          [(ngModel)]="searchQuery" 
+          (input)="onSearch()"
+          placeholder="Search suppliers and products..."
+          class="search-input"
+        >
+        <button class="search-btn">
+          <i class="icon-search"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="welcome-section">
+    <h2>Discover a selection of suppliers</h2>
+    <p>Your trusted suppliers with personalized product recommendations</p>
+  </div>
+
+  <div class="category-tabs">
+    <div 
+      class="tab-item" 
+      *ngFor="let category of supplierCategories"
+      [class.active]="selectedCategory === category.id"
+      (click)="onCategorySelect(category.id)"
+    >
+      <span class="tab-name">{{ category.name }}</span>
+      <span class="tab-count">{{ category.count }}</span>
+    </div>
+  </div>
+
+  <div class="filters-section">
+    <h3>Additional Filters</h3>
+    <div class="filters-grid">
+      <label class="filter-item" *ngFor="let filter of filterOptions">
+        <input 
+          type="checkbox" 
+          [checked]="getFilterValue(filter.key)"
+          (change)="onFilterChange(filter.key)"
+        >
+        <span class="filter-label">{{ filter.label }}</span>
+      </label>
+    </div>
+  </div>
+
+  <div class="suppliers-section">
+    <div class="suppliers-list">
+      <div class="supplier-card" *ngFor="let supplier of filteredSuppliers">
+        <div class="supplier-header">
+          <div class="supplier-info">
+            <div class="supplier-logo">
+              <img [src]="supplier.logo" [alt]="supplier.name" class="logo-image">
+            </div>
+            <div class="supplier-details">
+              <h3>{{ supplier.name }}</h3>
+              <p class="supplier-description">{{ supplier.description }}</p>
+              <div class="supplier-stats">
+                <span class="stat">
+                  <i class="icon-orders"></i>
+                  {{ supplier.orderCount }} orders
+                </span>
+                <span class="stat">
+                  <i class="icon-money"></i>
+                  {{ formatCurrency(supplier.totalSpent) }}
+                </span>
+                <span class="stat">
+                  <i class="icon-date"></i>
+                  Last order: {{ formatDate(supplier.lastOrderDate) }}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="supplier-status">
+            <span class="status-badge" [class]="getStatusClass(supplier)">
+              {{ getSupplierStatus(supplier) }}
+            </span>
+            <div class="supplier-badges">
+              <span class="badge new-badge" *ngIf="supplier.hasNewProducts">New Products</span>
+              <span class="badge campaign-badge" *ngIf="supplier.hasCampaigns">Active Campaigns</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="products-section" *ngIf="supplier.products.length > 0">
+          <h4>Available Products</h4>
+          <div class="products-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Product Pic</th>
+                  <th>Description</th>
+                  <th>MOQ</th>
+                  <th>Price</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let product of supplier.products">
+                  <td class="product-image">
+                    <img [src]="product.image" [alt]="product.name" class="product-img">
+                  </td>
+                  <td class="product-description">
+                    <div class="product-name">{{ product.name }}</div>
+                    <div class="product-desc">{{ product.description }}</div>
+                    <div class="order-history" *ngIf="product.hasOrdered">
+                      <small class="order-info" (click)="viewOrderHistory(product)">
+                        Last ordered: {{ formatDate(product.lastOrderDate!) }} ({{ product.orderCount }} times)
+                      </small>
+                    </div>
+                  </td>
+                  <td class="product-moq">{{ product.moq }}</td>
+                  <td class="product-price">{{ product.price }} {{ product.unit }}</td>
+                  <td class="product-actions">
+                    <button class="btn-add-to-list" (click)="addToShoppingList(product)">
+                      Add to List
+                    </button>
+                    <button class="btn-add-to-cart" (click)="addToCart(product)">
+                      Add to Cart
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="no-products" *ngIf="supplier.products.length === 0">
+          <p>No products available from this supplier at the moment.</p>
+          <button class="btn-contact-supplier">Contact Supplier</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="help-popup">
+    <div class="popup-content">
+      <h3>Hey! We hope you will find and connect with new external suppliers in the same place.</h3>
+      <p>Use our AI-powered recommendations to discover suppliers that match your business needs.</p>
+      <button class="popup-close">Got it!</button>
+    </div>
+  </div>
+</div>

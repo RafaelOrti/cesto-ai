@@ -242,12 +242,118 @@ CREATE TRIGGER update_products_updated_at BEFORE UPDATE ON products FOR EACH ROW
 CREATE TRIGGER update_campaigns_updated_at BEFORE UPDATE ON campaigns FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_orders_updated_at BEFORE UPDATE ON orders FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
--- Insert sample data
-INSERT INTO users (email, password_hash, role, first_name, last_name, company_name) VALUES
-('admin@cesto.ai', '$2b$10$rQZ8K9vY8kZ8K9vY8kZ8K.9vY8kZ8K9vY8kZ8K9vY8kZ8K9vY8kZ8K', 'admin', 'Admin', 'User', 'Cesto AI'),
-('demo@stockfiller.com', '$2b$10$rQZ8K9vY8kZ8K9vY8kZ8K.9vY8kZ8K9vY8kZ8K9vY8kZ8K9vY8kZ8K', 'buyer', 'Demo', 'User', 'Demo Restaurant');
+-- Insert sample data with real password hashes
+-- Password for ALL users: Test1234
+
+INSERT INTO users (email, password_hash, role, first_name, last_name, company_name, phone, address, city, country, postal_code) VALUES
+('admin@cesto.ai', '$2b$12$D0gvCoalJ.KrgMwjdHch2e8yENsKaTvUvUWNgTlrZ5rU6mitrRgKK', 'admin', 'Admin', 'User', 'Cesto AI', '+1-555-0100', '123 Tech Street', 'San Francisco', 'USA', '94105'),
+('demo@stockfiller.com', '$2b$12$D0gvCoalJ.KrgMwjdHch2e8yENsKaTvUvUWNgTlrZ5rU6mitrRgKK', 'buyer', 'Demo', 'User', 'Demo Restaurant', '+1-555-0101', '456 Restaurant Ave', 'New York', 'USA', '10001'),
+('buyer@restaurant.com', '$2b$12$D0gvCoalJ.KrgMwjdHch2e8yENsKaTvUvUWNgTlrZ5rU6mitrRgKK', 'buyer', 'John', 'Doe', 'Bella Vista Restaurant', '+1-555-0102', '789 Main Street', 'Los Angeles', 'USA', '90210'),
+('supplier@dairy.com', '$2b$12$D0gvCoalJ.KrgMwjdHch2e8yENsKaTvUvUWNgTlrZ5rU6mitrRgKK', 'supplier', 'Jane', 'Smith', 'Fresh Dairy Co', '+1-555-0103', '321 Farm Road', 'Wisconsin', 'USA', '53703'),
+('supplier@meat.com', '$2b$12$D0gvCoalJ.KrgMwjdHch2e8yENsKaTvUvUWNgTlrZ5rU6mitrRgKK', 'supplier', 'Mike', 'Johnson', 'Premium Meats Ltd', '+1-555-0104', '654 Butcher Lane', 'Texas', 'USA', '75001');
 
 -- Insert sample suppliers
-INSERT INTO suppliers (user_id, company_name, description, categories) 
-SELECT id, 'Luntgårdens Mejeri', 'Happy cows that satiate happy stomachs. Milk from Sweden!', ARRAY['dairy']::product_category[]
+INSERT INTO suppliers (user_id, company_name, description, categories, delivery_terms, payment_terms, minimum_order_amount, delivery_areas, is_verified) 
+SELECT id, 'Fresh Dairy Co', 'Premium dairy products from happy cows. Organic milk, cheese, and yogurt.', ARRAY['dairy']::product_category[], 'Next day delivery within 50 miles', 'Net 30 days', 150.00, ARRAY['Los Angeles', 'Orange County', 'San Diego'], true
+FROM users WHERE email = 'supplier@dairy.com';
+
+INSERT INTO suppliers (user_id, company_name, description, categories, delivery_terms, payment_terms, minimum_order_amount, delivery_areas, is_verified)
+SELECT id, 'Premium Meats Ltd', 'High-quality meats from local farms. Beef, pork, and poultry available.', ARRAY['meat']::product_category[], 'Same day delivery for orders before 2 PM', 'Cash on delivery or Net 15', 200.00, ARRAY['Texas', 'Louisiana', 'Oklahoma'], true
+FROM users WHERE email = 'supplier@meat.com';
+
+-- Insert sample buyers
+INSERT INTO buyers (user_id, business_name, business_type, description, categories)
+SELECT id, 'Demo Restaurant', 'Full Service Restaurant', 'Fine dining restaurant specializing in contemporary cuisine', ARRAY['dairy', 'meat', 'produce']::product_category[]
+FROM users WHERE email = 'demo@stockfiller.com';
+
+INSERT INTO buyers (user_id, business_name, business_type, description, categories)
+SELECT id, 'Bella Vista Restaurant', 'Fine Dining', 'Upscale restaurant featuring Mediterranean cuisine', ARRAY['dairy', 'meat', 'produce', 'beverages']::product_category[]
+FROM users WHERE email = 'buyer@restaurant.com';
+
+-- Insert sample products
+INSERT INTO products (supplier_id, name, description, category, price, unit, sku, ean_code, min_order_quantity, lead_time_days, is_active)
+SELECT s.id, 'Organic Whole Milk', 'Fresh organic whole milk from grass-fed cows', 'dairy', 4.99, 'gallon', 'DARY-001', '1234567890123', 1, 1, true
+FROM suppliers s JOIN users u ON s.user_id = u.id WHERE u.email = 'supplier@dairy.com';
+
+INSERT INTO products (supplier_id, name, description, category, price, unit, sku, ean_code, min_order_quantity, lead_time_days, is_active)
+SELECT s.id, 'Aged Cheddar Cheese', '12-month aged cheddar cheese, perfect for cooking', 'dairy', 12.99, 'pound', 'DARY-002', '1234567890124', 2, 2, true
+FROM suppliers s JOIN users u ON s.user_id = u.id WHERE u.email = 'supplier@dairy.com';
+
+INSERT INTO products (supplier_id, name, description, category, price, unit, sku, ean_code, min_order_quantity, lead_time_days, is_active)
+SELECT s.id, 'Premium Ground Beef', '80/20 ground beef from grass-fed cattle', 'meat', 8.99, 'pound', 'MEAT-001', '1234567890125', 5, 1, true
+FROM suppliers s JOIN users u ON s.user_id = u.id WHERE u.email = 'supplier@meat.com';
+
+INSERT INTO products (supplier_id, name, description, category, price, unit, sku, ean_code, min_order_quantity, lead_time_days, is_active)
+SELECT s.id, 'Chicken Breast', 'Boneless skinless chicken breast', 'meat', 6.99, 'pound', 'MEAT-002', '1234567890126', 3, 1, true
+FROM suppliers s JOIN users u ON s.user_id = u.id WHERE u.email = 'supplier@meat.com';
+
+-- Insert sample campaigns
+INSERT INTO campaigns (supplier_id, name, description, discount_percentage, start_date, end_date, is_active)
+SELECT s.id, 'Dairy Summer Sale', 'Special discount on all dairy products for the summer season', 15.00, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP + INTERVAL '30 days', true
+FROM suppliers s JOIN users u ON s.user_id = u.id WHERE u.email = 'supplier@dairy.com';
+
+-- Insert sample shopping lists
+INSERT INTO shopping_lists (buyer_id, name, description, is_active)
+SELECT b.id, 'Weekly Essentials', 'Regular weekly shopping list for restaurant supplies', true
+FROM buyers b JOIN users u ON b.user_id = u.id WHERE u.email = 'demo@stockfiller.com';
+
+-- Insert sample shopping list items
+INSERT INTO shopping_list_items (shopping_list_id, product_id, quantity, notes)
+SELECT sl.id, p.id, 10, 'For daily breakfast service'
+FROM shopping_lists sl 
+JOIN buyers b ON sl.buyer_id = b.id 
+JOIN users u ON b.user_id = u.id 
+JOIN products p ON p.sku = 'DARY-001'
+WHERE u.email = 'demo@stockfiller.com';
+
+-- Insert sample orders
+INSERT INTO orders (buyer_id, supplier_id, order_number, status, total_amount, delivery_date, delivery_address, notes)
+SELECT b.id, s.id, 'ORD-2024-001', 'confirmed', 149.85, CURRENT_TIMESTAMP + INTERVAL '2 days', '456 Restaurant Ave, New York, NY 10001', 'Please deliver before 8 AM'
+FROM buyers b 
+JOIN users ub ON b.user_id = ub.id 
+JOIN suppliers s 
+JOIN users us ON s.user_id = us.id 
+WHERE ub.email = 'demo@stockfiller.com' AND us.email = 'supplier@dairy.com';
+
+-- Insert sample order items
+INSERT INTO order_items (order_id, product_id, quantity, unit_price, total_price)
+SELECT o.id, p.id, 15, 4.99, 74.85
+FROM orders o 
+JOIN buyers b ON o.buyer_id = b.id 
+JOIN users u ON b.user_id = u.id 
+JOIN products p ON p.sku = 'DARY-001'
+WHERE o.order_number = 'ORD-2024-001' AND u.email = 'demo@stockfiller.com';
+
+INSERT INTO order_items (order_id, product_id, quantity, unit_price, total_price)
+SELECT o.id, p.id, 5, 12.99, 64.95
+FROM orders o 
+JOIN buyers b ON o.buyer_id = b.id 
+JOIN users u ON b.user_id = u.id 
+JOIN products p ON p.sku = 'DARY-002'
+WHERE o.order_number = 'ORD-2024-001' AND u.email = 'demo@stockfiller.com';
+
+-- Insert sample inventory
+INSERT INTO inventory (buyer_id, product_id, current_stock, min_stock_threshold, max_stock_threshold, reorder_point)
+SELECT b.id, p.id, 25, 10, 50, 15
+FROM buyers b 
+JOIN users u ON b.user_id = u.id 
+JOIN products p ON p.sku = 'DARY-001'
+WHERE u.email = 'demo@stockfiller.com';
+
+-- Insert sample messages
+INSERT INTO messages (sender_id, receiver_id, order_id, content, is_read)
+SELECT 
+    (SELECT id FROM users WHERE email = 'demo@stockfiller.com'),
+    (SELECT id FROM users WHERE email = 'supplier@dairy.com'),
+    (SELECT id FROM orders WHERE order_number = 'ORD-2024-001'),
+    'Hi, can we confirm the delivery time for tomorrow?',
+    false;
+
+-- Insert sample notifications
+INSERT INTO notifications (user_id, title, message, type, is_read)
+SELECT id, 'New Order Confirmed', 'Your order ORD-2024-001 has been confirmed and is being prepared', 'order_update', false
+FROM users WHERE email = 'demo@stockfiller.com';
+
+INSERT INTO notifications (user_id, title, message, type, is_read)
+SELECT id, 'Inventory Low Alert', 'Your milk inventory is running low (25 units remaining)', 'inventory_alert', false
 FROM users WHERE email = 'demo@stockfiller.com';

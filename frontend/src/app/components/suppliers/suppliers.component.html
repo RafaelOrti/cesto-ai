@@ -1,10 +1,241 @@
-<div class="suppliers-container">
-  <h1>Suppliers</h1>
-  <p>Manage your supplier relationships and discover new ones.</p>
-  
-  <div class="coming-soon">
-    <mat-icon>construction</mat-icon>
-    <h2>Coming Soon</h2>
-    <p>This section is under development and will include supplier management features.</p>
+<!-- Suppliers Dashboard -->
+<div class="suppliers-dashboard">
+  <!-- Page Header -->
+  <div class="page-header">
+    <h1 class="page-title">SUPPLIERS</h1>
+    <div class="header-notes">
+      <div class="note-left">
+        <p><strong>Note:</strong> The view should only display the categories in which the supplier is active, along with campaigns and products on sale.</p>
+      </div>
+      <div class="note-right">
+        <p><strong>Note:</strong> Current suppliers, which can be navigated if the company has multiple suppliers.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Explore Suppliers Section -->
+  <div class="explore-suppliers-section">
+    <h2 class="section-title">Utforska leverantörer</h2>
+    
+    <!-- Main Search Bar -->
+    <div class="main-search-container">
+      <mat-form-field appearance="outline" class="main-search-field">
+        <mat-label>Sök på leverantör</mat-label>
+        <input matInput [formControl]="mainSearchControl" placeholder="Search for supplier...">
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+    </div>
+
+    <!-- Recommendation/Filter Bar -->
+    <div class="recommendation-bar">
+      <div class="recommendation-filters">
+        <span class="filter-label">Rekommenderat för er:</span>
+        <div class="recommendation-buttons">
+          <button 
+            *ngFor="let rec of recommendations" 
+            class="recommendation-btn"
+            [class.active]="rec.active"
+            (click)="onRecommendationSelect(rec)">
+            <mat-icon>{{ rec.icon }}</mat-icon>
+            <span>{{ rec.nameSwedish }}</span>
+          </button>
+        </div>
+      </div>
+      
+      <div class="add-supplier-section">
+        <button mat-icon-button class="cart-icon">
+          <mat-icon>shopping_cart</mat-icon>
+        </button>
+        <button mat-raised-button color="primary" class="add-supplier-btn" (click)="onAddSupplier()">
+          <mat-icon>add</mat-icon>
+          Lägg Till Leverantör
+        </button>
+      </div>
+    </div>
+
+    <!-- Category Filters -->
+    <div class="category-filters">
+      <h3 class="filter-title">Filtrera på kategori</h3>
+      <div class="categories-container">
+        <button 
+          *ngFor="let category of categories" 
+          class="category-btn"
+          [class.active]="category.active"
+          (click)="onCategorySelect(category)">
+          <span class="category-icon">{{ category.icon }}</span>
+          <span class="category-name">{{ category.nameSwedish }}</span>
+        </button>
+        <button class="more-categories-btn">
+          <mat-icon>chevron_right</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <!-- Secondary Search Bar -->
+    <div class="secondary-search-container">
+      <mat-form-field appearance="outline" class="secondary-search-field">
+        <mat-label>SEARCHBAR</mat-label>
+        <input matInput [formControl]="secondarySearchControl" placeholder="Additional search...">
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+    </div>
+
+    <!-- Special Filters -->
+    <div class="special-filters">
+      <div class="special-filter-buttons">
+        <button 
+          *ngFor="let filter of specialFilters" 
+          class="special-filter-btn"
+          [class.active]="filter.active"
+          (click)="onSpecialFilterToggle(filter)">
+          {{ filter.label }}
+        </button>
+      </div>
+      <div class="filter-actions" *ngIf="getActiveFiltersCount() > 0">
+        <span class="active-filters-count">{{ getActiveFiltersCount() }} filters active</span>
+        <button mat-button (click)="clearAllFilters()">Clear All</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Suppliers Listing -->
+  <div class="suppliers-listing">
+    <div class="suppliers-grid">
+      <div 
+        *ngFor="let supplier of filteredSuppliers" 
+        class="supplier-card"
+        [class.inquiry-sent]="supplier.inquirySent">
+        
+        <!-- Supplier Image -->
+        <div class="supplier-image">
+          <img [src]="supplier.imageUrl" [alt]="supplier.name" *ngIf="supplier.imageUrl">
+          <div class="supplier-placeholder" *ngIf="!supplier.imageUrl">
+            <mat-icon>business</mat-icon>
+          </div>
+        </div>
+
+        <!-- Supplier Info -->
+        <div class="supplier-info">
+          <h3 class="supplier-name">{{ supplier.name }}</h3>
+          <p class="supplier-description">{{ supplier.description }}</p>
+          
+          <!-- Supplier Features -->
+          <div class="supplier-features">
+            <span *ngIf="supplier.freeDelivery" class="feature-tag free-delivery">
+              <mat-icon>local_shipping</mat-icon>
+              Free Delivery
+            </span>
+            <span *ngIf="supplier.onSale" class="feature-tag on-sale">
+              <mat-icon>local_offer</mat-icon>
+              On Sale
+            </span>
+            <span *ngIf="supplier.coDelivery" class="feature-tag co-delivery">
+              <mat-icon>group_work</mat-icon>
+              Co-Delivery
+            </span>
+            <span *ngIf="supplier.recentlyAdded" class="feature-tag recently-added">
+              <mat-icon>new_releases</mat-icon>
+              New
+            </span>
+            <span *ngIf="supplier.popular" class="feature-tag popular">
+              <mat-icon>star</mat-icon>
+              Popular
+            </span>
+          </div>
+
+          <!-- Supplier Rating -->
+          <div class="supplier-rating" *ngIf="supplier.rating">
+            <mat-icon class="star-icon" *ngFor="let star of [1,2,3,4,5]">
+              {{ star <= supplier.rating ? 'star' : 'star_border' }}
+            </mat-icon>
+            <span class="rating-text">{{ supplier.rating }}/5</span>
+          </div>
+        </div>
+
+        <!-- Supplier Actions -->
+        <div class="supplier-actions">
+          <button 
+            mat-raised-button 
+            [color]="supplier.inquirySent ? 'accent' : 'primary'"
+            [disabled]="supplier.inquirySent"
+            (click)="onSendInquiry(supplier)">
+            <mat-icon *ngIf="!supplier.inquirySent">send</mat-icon>
+            <mat-icon *ngIf="supplier.inquirySent">check_circle</mat-icon>
+            {{ supplier.inquirySent ? 'Förfrågan skickad' : 'Skicka förfrågan' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- No Results -->
+    <div class="no-results" *ngIf="filteredSuppliers.length === 0 && !loading">
+      <mat-icon>search_off</mat-icon>
+      <h3>No suppliers found</h3>
+      <p>Try adjusting your search criteria or filters</p>
+      <button mat-button (click)="clearAllFilters()">Clear Filters</button>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading-state" *ngIf="loading">
+      <mat-spinner></mat-spinner>
+      <p>Loading suppliers...</p>
+    </div>
+  </div>
+
+  <!-- Comments Section (Development Notes) -->
+  <div class="comments-section">
+    <div class="comment-box yellow-box">
+      <h4>Development Notes:</h4>
+      <ul>
+        <li>ON SALE DIFFERENT FROM RECOMMENDED?</li>
+        <li>CO-DELIVERY?</li>
+        <li>EXACT FILTERS?</li>
+      </ul>
+    </div>
+
+    <div class="translation-table">
+      <h4>Multilingual Support</h4>
+      <table>
+        <thead>
+          <tr>
+            <th>English</th>
+            <th>Swedish</th>
+            <th>Spanish</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Suppliers I may need to buy from</td>
+            <td>Leverantörer jag eventuellt behöver handla från</td>
+            <td>Proveedores de los que posiblemente necesite comprar</td>
+          </tr>
+          <tr>
+            <td>Suppliers I have stopped buying from</td>
+            <td>Leverantörer jag har slutat handla från</td>
+            <td>Proveedores de los que he dejado de comprar</td>
+          </tr>
+          <tr>
+            <td>Combined delivery</td>
+            <td>Samleverans</td>
+            <td>Entrega combinada</td>
+          </tr>
+          <tr>
+            <td>Free shipping cost</td>
+            <td>Gratis fraktkostnad</td>
+            <td>Envío gratuito</td>
+          </tr>
+          <tr>
+            <td>Active campaigns</td>
+            <td>Aktiva kampanjer</td>
+            <td>Campañas activas</td>
+          </tr>
+          <tr>
+            <td>New products</td>
+            <td>Nya produkter</td>
+            <td>Nuevos productos</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>

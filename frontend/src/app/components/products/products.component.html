@@ -1,10 +1,137 @@
 <div class="products-container">
-  <h1>Products</h1>
-  <p>Browse and manage products from your suppliers.</p>
-  
-  <div class="coming-soon">
-    <mat-icon>inventory</mat-icon>
-    <h2>Coming Soon</h2>
-    <p>Product catalog and management features are under development.</p>
+  <!-- Tutorial Popup -->
+  <div *ngIf="showTutorial" class="tutorial-popup">
+    <div class="tutorial-content">
+      <p>You can add all products from one supplier, and also add products from other suppliers.</p>
+      <button class="tutorial-button" (click)="closeTutorial()">
+        Next
+      </button>
+    </div>
   </div>
+
+  <div class="content-header">
+    <h1>All products</h1>
+  </div>
+
+  <!-- Category Filters -->
+  <div class="category-filters">
+    <div class="category-grid">
+      <button 
+        *ngFor="let category of categories"
+        class="category-btn"
+        [class.active]="selectedCategory === category.id"
+        (click)="onCategorySelect(category.id)">
+        <div class="category-icon">{{ category.icon }}</div>
+        <span class="category-name">{{ category.name }}</span>
+      </button>
+      <button class="see-more-btn">
+        <span class="see-more-text">See More</span>
+        <span class="arrow-icon">→</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Popular Products Section -->
+  <div class="popular-products-section">
+    <h2>Popular products</h2>
+    <div class="products-grid">
+      <div *ngFor="let product of popularProducts" class="product-card">
+        <div class="product-image">
+          <img [src]="product.image" [alt]="product.name" class="product-img">
+          <div *ngIf="product.isCampaign" class="sale-badge">
+            {{ product.discount }}%
+          </div>
+        </div>
+        
+        <div class="product-info">
+          <h4 class="product-name">{{ product.name }}</h4>
+          <div class="product-details">
+            <span class="volume">{{ product.volume }}</span>
+          </div>
+          <div class="pricing">
+            <span class="current-price">{{ formatCurrency(product.totalPrice) }}</span>
+          </div>
+        </div>
+
+        <div class="product-actions">
+          <button 
+            *ngIf="!product.originalPrice"
+            class="add-btn primary-btn"
+            (click)="addToCart(product)">
+            Add To Cart
+          </button>
+          <button 
+            *ngIf="product.originalPrice"
+            class="add-btn primary-btn"
+            (click)="addToCheckout(product)">
+            Add To Cart
+          </button>
+          <button class="view-details-btn secondary-btn">
+            View Details
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+    <!-- Offers Section (On Sale Tab) -->
+    <div *ngIf="selectedTab === 'on-sale'" class="offers-section">
+      <div class="offers-header">
+        <div class="psst-section">
+          <span class="psst">Psst</span>
+          <span class="campaign-text">Klipp och kampanjer för er</span>
+        </div>
+      </div>
+
+      <div class="offers-grid">
+        <div *ngFor="let offer of offers" class="offer-card">
+          <div class="offer-image">
+            <img [src]="offer.image" [alt]="offer.name" class="offer-img">
+            <div class="discount-badge">
+              -{{ offer.discount }}%
+            </div>
+          </div>
+          
+          <div class="offer-info">
+            <h4 class="offer-name">{{ offer.name }}</h4>
+            <div class="offer-volume">{{ offer.volume }}</div>
+            <div class="offer-pricing">
+              <span class="original-price">{{ formatCurrency(offer.originalPrice) }}</span>
+              <span class="discount-price">{{ formatCurrency(offer.discountPrice) }}</span>
+            </div>
+            <div class="delivery-info">{{ offer.deliveryDate }}</div>
+          </div>
+
+          <div class="offer-actions">
+            <button mat-raised-button color="primary" class="buy-btn" (click)="buyProduct(offer)">
+              <mat-icon>shopping_cart</mat-icon>
+              Köp
+            </button>
+            <button mat-button class="add-to-cart-btn" (click)="addToCart(offer)">
+              <mat-icon>add_shopping_cart</mat-icon>
+              Lägg i kassan
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Addresses Section -->
+    <div class="addresses-section">
+      <h3>Mina adresser</h3>
+      <p>Address management section</p>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer-section">
+      <div class="language-selector">
+        <span>Svenska-SE</span>
+      </div>
+      <div class="support-link">
+        <span>Stockfiller Support</span>
+      </div>
+      <div class="stockfiller-brand">
+        <span>Verse This is STOCKFILLER</span>
+      </div>
+    </div>
 </div>

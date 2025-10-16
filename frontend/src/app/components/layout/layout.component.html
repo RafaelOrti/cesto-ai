@@ -1,19 +1,16 @@
 <div class="layout-container">
-  <mat-sidenav-container class="sidenav-container">
+  <!-- Header -->
+  <app-header (logout)="logout()" [currentUser]="currentUser"></app-header>
+  
+  <div class="layout-body">
     <!-- Sidebar -->
-    <mat-sidenav #drawer class="sidenav" fixedInViewport
-        [attr.role]="'navigation'"
-        [mode]="'side'"
-        [opened]="true">
+    <div class="sidebar">
       <app-sidebar></app-sidebar>
-    </mat-sidenav>
+    </div>
 
     <!-- Main Content -->
-    <mat-sidenav-content>
-      <app-header (logout)="logout()" [currentUser]="currentUser"></app-header>
-      <main class="main-content">
-        <router-outlet></router-outlet>
-      </main>
-    </mat-sidenav-content>
-  </mat-sidenav-container>
+    <main class="main-content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
 </div>

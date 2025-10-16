@@ -33,7 +33,10 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { LoginComponent } from './components/login/login.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
-import { SuppliersComponent } from './components/suppliers/suppliers.component';
+import { ClientInsightsComponent } from './components/clients/client-insights/client-insights.component';
+import { ExploreSuppliersComponent } from './components/clients/explore-suppliers/explore-suppliers.component';
+import { MySuppliersComponent } from './components/clients/my-suppliers/my-suppliers.component';
+import { SuppliersModule } from './components/suppliers/suppliers.module';
 import { ProductsComponent } from './components/products/products.component';
 import { OrdersComponent } from './components/orders/orders.component';
 import { ShoppingListComponent } from './components/shopping-list/shopping-list.component';
@@ -41,8 +44,16 @@ import { InventoryComponent } from './components/inventory/inventory.component';
 import { AnalysisComponent } from './components/analysis/analysis.component';
 import { TeamComponent } from './components/team/team.component';
 import { TransactionsComponent } from './components/transactions/transactions.component';
+import { SupplierDashboardComponent } from './components/supplier-dashboard/supplier-dashboard.component';
+import { EdiComponent } from './components/edi/edi.component';
+import { AdminDashboardComponent } from './components/admin-dashboard/admin-dashboard.component';
+import { ColorThemeConfigComponent } from './components/admin-dashboard/color-theme-config/color-theme-config.component';
 
 import { AuthService } from './services/auth.service';
+import { SupplierService } from './services/supplier.service';
+import { ColorThemeService } from './services/color-theme.service';
+import { UserManagementService } from './services/user-management.service';
+import { ThemeInitializerService } from './core/services/theme-initializer.service';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
 import { LayoutComponent } from './components/layout/layout.component';
 import { SidebarComponent } from './components/layout/sidebar/sidebar.component';
@@ -53,7 +64,9 @@ import { HeaderComponent } from './components/layout/header/header.component';
     AppComponent,
     LoginComponent,
     DashboardComponent,
-    SuppliersComponent,
+    ClientInsightsComponent,
+    ExploreSuppliersComponent,
+    MySuppliersComponent,
     ProductsComponent,
     OrdersComponent,
     ShoppingListComponent,
@@ -64,6 +77,10 @@ import { HeaderComponent } from './components/layout/header/header.component';
     LayoutComponent,
     SidebarComponent,
     HeaderComponent,
+    SupplierDashboardComponent,
+    EdiComponent,
+    AdminDashboardComponent,
+    ColorThemeConfigComponent,
   ],
   imports: [
     BrowserModule,
@@ -73,6 +90,7 @@ import { HeaderComponent } from './components/layout/header/header.component';
     ReactiveFormsModule,
     RouterModule,
     AppRoutingModule,
+    SuppliersModule,
     // Angular Material
     MatToolbarModule,
     MatButtonModule,
@@ -96,9 +114,15 @@ import { HeaderComponent } from './components/layout/header/header.component';
     MatMenuModule,
     MatExpansionModule,
     MatStepperModule,
+    // Feature Modules
+    SuppliersModule,
   ],
   providers: [
     AuthService,
+    SupplierService,
+    ColorThemeService,
+    UserManagementService,
+    ThemeInitializerService,
     {
       provide: HTTP_INTERCEPTORS,
       useClass: AuthInterceptor,

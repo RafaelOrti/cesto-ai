@@ -1,0 +1,354 @@
+<div class="supplier-profile-container">
+  <!-- Supplier Header -->
+  <div class="supplier-header">
+    <div class="header-banner">
+      <img [src]="supplier.bannerImage" [alt]="supplier.name + ' banner'" *ngIf="supplier.bannerImage">
+      <div class="banner-overlay" *ngIf="!supplier.bannerImage">
+        <div class="banner-content">
+          <h1>{{ supplier.name }}</h1>
+          <p>{{ supplier.slogan }}</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="supplier-info">
+      <div class="supplier-main-info">
+        <div class="supplier-logo">
+          <img [src]="supplier.logo" [alt]="supplier.name" *ngIf="supplier.logo">
+          <div class="logo-placeholder" *ngIf="!supplier.logo">
+            <i class="icon-building"></i>
+          </div>
+        </div>
+        
+        <div class="supplier-details">
+          <h1>{{ supplier.name }}</h1>
+          <p class="supplier-description">{{ supplier.description }}</p>
+          
+          <div class="supplier-tags">
+            <span *ngFor="let tag of supplier.tags" class="tag">{{ tag }}</span>
+          </div>
+          
+          <div class="supplier-meta">
+            <span class="joined-date">Joined {{ supplier.joinedDate | date:'yyyy' }}</span>
+            <div class="rating">
+              <i class="icon-star"></i>
+              <span>{{ supplier.rating }}</span>
+              <span class="rating-count">({{ supplier.reviewCount }} reviews)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="supplier-actions">
+        <button 
+          class="favorite-button"
+          [class.favorited]="supplier.isFavorite"
+          (click)="toggleFavorite()">
+          <i class="icon-heart"></i>
+          {{ supplier.isFavorite ? 'Remove from favorites' : 'Add to favorites' }}
+        </button>
+        
+        <button class="contact-button" (click)="showContactInfo()">
+          <i class="icon-mail"></i>
+          Contact Information
+        </button>
+        
+        <button class="report-button" (click)="reportError()">
+          <i class="icon-flag"></i>
+          Report Error
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation Tabs -->
+  <div class="supplier-navigation">
+    <div class="nav-tabs">
+      <button 
+        *ngFor="let tab of tabs" 
+        [class.active]="activeTab === tab.id"
+        (click)="setActiveTab(tab.id)"
+        class="tab-button">
+        <i [class]="tab.icon"></i>
+        <span>{{ tab.name }}</span>
+        <span class="tab-badge" *ngIf="tab.badge">{{ tab.badge }}</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Tab Content -->
+  <div class="tab-content">
+    <!-- Products Tab -->
+    <div class="products-tab" *ngIf="activeTab === 'products'">
+      <div class="products-header">
+        <div class="products-nav">
+          <button 
+            *ngFor="let subTab of productSubTabs" 
+            [class.active]="activeProductTab === subTab.id"
+            (click)="setActiveProductTab(subTab.id)"
+            class="sub-tab-button">
+            {{ subTab.name }}
+          </button>
+        </div>
+        
+        <div class="products-search">
+          <div class="search-wrapper">
+            <i class="icon-search"></i>
+            <input 
+              type="text" 
+              [(ngModel)]="productSearchQuery"
+              (input)="filterProducts()"
+              placeholder="Search products within {{ supplier.name }}"
+              class="product-search-input">
+          </div>
+          
+          <select [(ngModel)]="productSortBy" (change)="sortProducts()" class="product-sort">
+            <option value="name">Sort by Name</option>
+            <option value="price">Sort by Price</option>
+            <option value="newest">Sort by Newest</option>
+            <option value="popular">Sort by Popular</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Products Grid -->
+      <div class="products-grid">
+        <div 
+          *ngFor="let product of filteredProducts" 
+          class="product-card">
+          
+          <div class="product-image">
+            <img [src]="product.image" [alt]="product.name">
+            <div class="product-badges">
+              <span *ngIf="product.isNew" class="badge new-badge">New</span>
+              <span *ngIf="product.campaign" class="badge campaign-badge">Campaign</span>
+            </div>
+          </div>
+          
+          <div class="product-info">
+            <h3 class="product-name">{{ product.name }}</h3>
+            <p class="product-description">{{ product.description }}</p>
+            
+            <div class="product-specs">
+              <span class="spec">{{ product.packaging }}</span>
+              <span class="spec">{{ product.quantity }}</span>
+            </div>
+            
+            <div class="product-pricing">
+              <div class="price-info">
+                <span class="price-per-unit">{{ product.pricePerUnit }}</span>
+                <span class="total-price">{{ product.totalPrice }}</span>
+              </div>
+              
+              <div class="campaign-info" *ngIf="product.campaign">
+                <p class="campaign-text">{{ product.campaign }}</p>
+              </div>
+            </div>
+            
+            <div class="product-actions">
+              <div class="quantity-selector">
+                <button class="qty-btn" (click)="decreaseQuantity(product)">-</button>
+                <input 
+                  type="number" 
+                  [(ngModel)]="product.quantity"
+                  class="qty-input"
+                  min="0"
+                  max="999">
+                <button class="qty-btn" (click)="increaseQuantity(product)">+</button>
+              </div>
+              
+              <button 
+                class="add-to-cart-btn"
+                [disabled]="product.quantity === 0"
+                (click)="addToCart(product)">
+                <i class="icon-shopping-cart"></i>
+                Add to cart
+              </button>
+            </div>
+            
+            <div class="delivery-info">
+              <span class="last-delivery">Last delivery: {{ product.lastDelivery | date:'yyyy-MM-dd' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Products Pagination -->
+      <div class="products-pagination" *ngIf="totalProducts > productsPerPage">
+        <button 
+          [disabled]="currentProductPage === 1"
+          (click)="previousProductPage()"
+          class="page-btn">
+          <i class="icon-arrow-left"></i>
+        </button>
+        
+        <div class="page-numbers">
+          <button 
+            *ngFor="let page of getProductPageNumbers()"
+            [class.active]="page === currentProductPage"
+            (click)="goToProductPage(page)"
+            class="page-number">
+            {{ page }}
+          </button>
+        </div>
+        
+        <button 
+          [disabled]="currentProductPage === totalProductPages"
+          (click)="nextProductPage()"
+          class="page-btn">
+          <i class="icon-arrow-right"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Delivery Terms Tab -->
+    <div class="delivery-terms-tab" *ngIf="activeTab === 'delivery'">
+      <div class="delivery-info-card">
+        <h2>Delivery Terms</h2>
+        
+        <div class="delivery-details">
+          <div class="delivery-row">
+            <span class="label">Minimum order:</span>
+            <span class="value">{{ supplier.deliveryTerms.minimumOrder ? supplier.deliveryTerms.minimumOrder + ' kr' : 'No minimum' }}</span>
+          </div>
+          
+          <div class="delivery-row">
+            <span class="label">Shipping costs:</span>
+            <div class="shipping-costs">
+              <div *ngFor="let cost of supplier.deliveryTerms.shippingCosts" class="cost-tier">
+                <span>{{ cost.range }}: {{ cost.cost === 0 ? 'Free' : cost.cost + ' kr' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="delivery-schedule">
+          <h3>Delivery Schedule</h3>
+          <table class="delivery-table">
+            <thead>
+              <tr>
+                <th>Order by</th>
+                <th>Delivery day</th>
+                <th>Cut-off time</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let schedule of supplier.deliveryTerms.schedule">
+                <td>{{ schedule.orderBy }}</td>
+                <td>{{ schedule.deliveryDay }}</td>
+                <td>{{ schedule.cutoffTime }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <div class="delivery-notes">
+          <h3>Additional Information</h3>
+          <p>{{ supplier.deliveryTerms.notes }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Order History Tab -->
+    <div class="order-history-tab" *ngIf="activeTab === 'history'">
+      <div class="history-header">
+        <h2>Order History</h2>
+        <div class="history-filters">
+          <select [(ngModel)]="historyFilter" (change)="filterOrderHistory()" class="history-filter">
+            <option value="all">All Orders</option>
+            <option value="last-month">Last Month</option>
+            <option value="last-3-months">Last 3 Months</option>
+            <option value="last-year">Last Year</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="order-history-list">
+        <div *ngFor="let order of filteredOrderHistory" class="order-item">
+          <div class="order-header">
+            <div class="order-info">
+              <h3>Order #{{ order.orderNumber }}</h3>
+              <span class="order-date">{{ order.orderDate | date:'yyyy-MM-dd' }}</span>
+            </div>
+            <div class="order-status">
+              <span class="status-badge" [class]="'status-' + order.status">
+                {{ order.status }}
+              </span>
+            </div>
+          </div>
+          
+          <div class="order-details">
+            <div class="order-items">
+              <span>{{ order.itemsCount }} items</span>
+            </div>
+            <div class="order-total">
+              <span>Total: {{ order.totalAmount }} kr</span>
+            </div>
+          </div>
+          
+          <div class="order-actions">
+            <button class="view-order-btn" (click)="viewOrderDetails(order)">
+              View Details
+            </button>
+            <button class="repeat-order-btn" (click)="repeatOrder(order)">
+              Repeat Order
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- About Us Tab -->
+    <div class="about-tab" *ngIf="activeTab === 'about'">
+      <div class="about-content">
+        <div class="about-text">
+          <h2>About {{ supplier.name }}</h2>
+          <p>{{ supplier.aboutText }}</p>
+        </div>
+        
+        <div class="company-info">
+          <div class="info-section">
+            <h3>Company Information</h3>
+            <div class="info-grid">
+              <div class="info-item">
+                <span class="info-label">Founded:</span>
+                <span class="info-value">{{ supplier.foundedYear }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Employees:</span>
+                <span class="info-value">{{ supplier.employeeCount }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Location:</span>
+                <span class="info-value">{{ supplier.location }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Certifications:</span>
+                <span class="info-value">{{ supplier.certifications.join(', ') }}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="contact-section">
+            <h3>Contact Information</h3>
+            <div class="contact-info">
+              <div class="contact-item">
+                <i class="icon-mail"></i>
+                <span>{{ supplier.contactInfo.email }}</span>
+              </div>
+              <div class="contact-item">
+                <i class="icon-phone"></i>
+                <span>{{ supplier.contactInfo.phone }}</span>
+              </div>
+              <div class="contact-item">
+                <i class="icon-map"></i>
+                <span>{{ supplier.contactInfo.address }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+

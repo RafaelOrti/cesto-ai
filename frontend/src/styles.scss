@@ -1,0 +1,162 @@
+/* You can add global styles to this file, and also import other style files */
+// @import '~@angular/material/theming'; // Commented out - Angular Material not installed
+
+// CSS Custom Properties for Dynamic Color System
+:root {
+  // Default Cesto theme colors (will be overridden by ColorThemeService)
+  --color-primary-main: #008080;
+  --color-primary-light: #20B2AA;
+  --color-primary-dark: #006666;
+  --color-primary-contrast: #FFFFFF;
+  
+  --color-secondary-main: #E0E0E0;
+  --color-secondary-light: #EDEDED;
+  --color-secondary-dark: #BDBDBD;
+  --color-secondary-contrast: #333333;
+  
+  --color-accent-main: #ADD8E6;
+  --color-accent-light: #B8DCE8;
+  --color-accent-dark: #8BC4D6;
+  --color-accent-contrast: #333333;
+  
+  --color-background-primary: #F5F5F5;
+  --color-background-secondary: #FFFFFF;
+  --color-background-tertiary: #FAFAFA;
+  
+  --color-surface-primary: #FFFFFF;
+  --color-surface-secondary: #F8F8F8;
+  --color-surface-elevated: #FFFFFF;
+  
+  --color-text-primary: #333333;
+  --color-text-secondary: #666666;
+  --color-text-disabled: #999999;
+  --color-text-hint: #CCCCCC;
+  
+  --color-border-primary: #E0E0E0;
+  --color-border-secondary: #F0F0F0;
+  --color-border-focus: #008080;
+  
+  --color-status-success: #008080;
+  --color-status-warning: #FF6347;
+  --color-status-error: #FF0000;
+  --color-status-info: #ADD8E6;
+}
+
+html, body { 
+  height: 100%; 
+  margin: 0; 
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+  background-color: var(--color-background-primary);
+  color: var(--color-text-primary);
+}
+
+// Global styles
+* {
+  box-sizing: border-box;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.3s ease;
+
+  &.btn-primary {
+    background-color: var(--color-primary-main);
+    color: var(--color-primary-contrast);
+
+    &:hover {
+      background-color: var(--color-primary-dark);
+    }
+  }
+
+  &.btn-secondary {
+    background-color: var(--color-secondary-main);
+    color: var(--color-secondary-contrast);
+
+    &:hover {
+      background-color: var(--color-secondary-dark);
+    }
+  }
+
+  &.btn-accent {
+    background-color: var(--color-accent-main);
+    color: var(--color-accent-contrast);
+
+    &:hover {
+      background-color: var(--color-accent-dark);
+    }
+  }
+}
+
+.card {
+  background: var(--color-surface-primary);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  padding: 20px;
+  margin-bottom: 20px;
+  border: 1px solid var(--color-border-primary);
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
+}
+
+// Text color utilities
+.text-primary { color: var(--color-text-primary); }
+.text-secondary { color: var(--color-text-secondary); }
+.text-disabled { color: var(--color-text-disabled); }
+.text-hint { color: var(--color-text-hint); }
+
+// Background color utilities
+.bg-primary { background-color: var(--color-background-primary); }
+.bg-secondary { background-color: var(--color-background-secondary); }
+.bg-tertiary { background-color: var(--color-background-tertiary); }
+
+// Status color utilities
+.text-success { color: var(--color-status-success); }
+.text-warning { color: var(--color-status-warning); }
+.text-error { color: var(--color-status-error); }
+.text-info { color: var(--color-status-info); }
+
+.bg-success { background-color: var(--color-status-success); }
+.bg-warning { background-color: var(--color-status-warning); }
+.bg-error { background-color: var(--color-status-error); }
+.bg-info { background-color: var(--color-status-info); }
+
+// Border utilities
+.border-primary { border: 1px solid var(--color-border-primary); }
+.border-secondary { border: 1px solid var(--color-border-secondary); }
+.border-focus { border: 1px solid var(--color-border-focus); }
+
+// Spacing utilities
+.mb-1 { margin-bottom: 8px; }
+.mb-2 { margin-bottom: 16px; }
+.mb-3 { margin-bottom: 24px; }
+.mb-4 { margin-bottom: 32px; }
+
+.mt-1 { margin-top: 8px; }
+.mt-2 { margin-top: 16px; }
+.mt-3 { margin-top: 24px; }
+.mt-4 { margin-top: 32px; }
+
+.p-1 { padding: 8px; }
+.p-2 { padding: 16px; }
+.p-3 { padding: 24px; }
+.p-4 { padding: 32px; }
+

@@ -8,12 +8,12 @@ import {
   OneToMany,
 } from 'typeorm';
 import { Supplier } from '../../suppliers/entities/supplier.entity';
-import { Buyer } from '../../buyers/entities/buyer.entity';
+import { Client } from '../../clients/entities/client.entity';
 import { Message } from '../../messages/entities/message.entity';
 import { Notification } from '../../notifications/entities/notification.entity';
 
 export enum UserRole {
-  BUYER = 'buyer',
+  CLIENT = 'client',
   SUPPLIER = 'supplier',
   ADMIN = 'admin',
 }
@@ -32,7 +32,7 @@ export class User {
   @Column({
     type: 'enum',
     enum: UserRole,
-    default: UserRole.BUYER,
+    default: UserRole.CLIENT,
   })
   role: UserRole;
 
@@ -79,8 +79,8 @@ export class User {
   @OneToOne(() => Supplier, (supplier) => supplier.user, { cascade: true })
   supplier: Supplier;
 
-  @OneToOne(() => Buyer, (buyer) => buyer.user, { cascade: true })
-  buyer: Buyer;
+  @OneToOne(() => Client, (client) => client.user, { cascade: true })
+  client: Client;
 
   @OneToMany(() => Message, (message) => message.sender)
   sentMessages: Message[];

@@ -14,13 +14,8 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
   const logger = app.get(LoggerService);
   
-  // Use custom logger
   app.useLogger(logger);
-  
-  // Global exception filter
   app.useGlobalFilters(new GlobalExceptionFilter());
-  
-  // Global validation pipe
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true,
     forbidNonWhitelisted: true,
@@ -30,7 +25,6 @@ async function bootstrap() {
     },
   }));
   
-  // Enable CORS
   const corsOrigins = configService.get('app.cors.origins', [
     'http://localhost:4200',
     'http://localhost:4400',
@@ -43,11 +37,8 @@ async function bootstrap() {
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
   });
   
-  // Global prefix
   const apiPrefix = configService.get('app.apiPrefix', 'api/v1');
   app.setGlobalPrefix(apiPrefix);
-  
-  // Swagger documentation
   if (configService.get('app.nodeEnv') !== 'production') {
     const config = new DocumentBuilder()
       .setTitle('Cesto AI API')
@@ -66,7 +57,6 @@ async function bootstrap() {
     
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('api/docs', app, document);
-    
     logger.log('Swagger documentation available at /api/docs');
   }
   

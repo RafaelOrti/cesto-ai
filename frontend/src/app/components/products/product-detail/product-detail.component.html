@@ -1,0 +1,360 @@
+<div class="product-detail-container" *ngIf="product && !loading">
+  <!-- Breadcrumb -->
+  <div class="breadcrumb">
+    <a href="/products">Products</a>
+    <span class="separator">></span>
+    <a [href]="'/products?category=' + product.category">{{ product.category }}</a>
+    <span class="separator">></span>
+    <span class="current">{{ product.name }}</span>
+  </div>
+
+  <!-- Main Product Section -->
+  <div class="product-main">
+    <!-- Product Images -->
+    <div class="product-images">
+      <div class="main-image">
+        <img [src]="product.images[selectedImageIndex]" [alt]="product.name">
+        <div class="image-badges">
+          <span *ngIf="product.isOnSale" class="badge sale-badge">
+            -{{ getDiscountPercentage() }}%
+          </span>
+          <span *ngIf="product.isNew" class="badge new-badge">New</span>
+          <span *ngIf="product.isRecommended" class="badge recommended-badge">Recommended</span>
+        </div>
+      </div>
+      
+      <div class="thumbnail-images">
+        <div *ngFor="let image of product.images; let i = index" 
+             class="thumbnail" 
+             [class.selected]="i === selectedImageIndex"
+             (click)="selectImage(i)">
+          <img [src]="image" [alt]="product.name + ' ' + (i + 1)">
+        </div>
+      </div>
+    </div>
+
+    <!-- Product Info -->
+    <div class="product-info">
+      <!-- Product Header -->
+      <div class="product-header">
+        <h1 class="product-name">{{ product.name }}</h1>
+        <div class="product-meta">
+          <div class="supplier-info">
+            <img [src]="product.supplier.logo" [alt]="product.supplier.name" class="supplier-logo">
+            <div class="supplier-details">
+              <span class="supplier-name">{{ product.supplier.name }}</span>
+              <div class="supplier-rating">
+                <div class="stars">
+                  <i *ngFor="let star of getStarRating(product.supplier.rating)" 
+                     class="fas fa-star" 
+                     [class.filled]="star === 1"></i>
+                </div>
+                <span class="rating-text">{{ product.supplier.rating }} ({{ product.supplier.reviewCount }})</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="product-rating">
+            <div class="stars">
+              <i *ngFor="let star of getStarRating(product.averageRating)" 
+                 class="fas fa-star" 
+                 [class.filled]="star === 1"></i>
+            </div>
+            <span class="rating-text">{{ product.averageRating }} ({{ product.totalReviews }} reviews)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Product Description -->
+      <div class="product-description">
+        <p>{{ product.longDescription }}</p>
+      </div>
+
+      <!-- Pricing Section -->
+      <div class="pricing-section">
+        <div class="price-row">
+          <span class="current-price">{{ formatCurrency(product.pricing.currentPrice) }}</span>
+          <span *ngIf="product.pricing.originalPrice" class="original-price">
+            {{ formatCurrency(product.pricing.originalPrice) }}
+          </span>
+          <span class="unit">/ {{ product.pricing.unit }}</span>
+        </div>
+        
+        <div class="savings" *ngIf="getSavings() > 0">
+          <span class="savings-text">You save {{ formatCurrency(getSavings()) }}</span>
+        </div>
+
+        <!-- Bulk Pricing -->
+        <div class="bulk-pricing" *ngIf="product.pricing.bulkPricing && product.pricing.bulkPricing.length > 0">
+          <h4>Bulk Pricing</h4>
+          <div class="bulk-pricing-table">
+            <div *ngFor="let bulk of product.pricing.bulkPricing" class="bulk-row">
+              <span class="qty-range">{{ bulk.minQty }}-{{ bulk.maxQty }} units</span>
+              <span class="bulk-price">{{ formatCurrency(bulk.price) }}/unit</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quantity and Actions -->
+      <div class="quantity-actions">
+        <div class="quantity-section">
+          <label>Quantity:</label>
+          <div class="quantity-controls">
+            <button class="qty-btn" (click)="updateQuantity(-1)" 
+                    [disabled]="selectedQuantity <= product.pricing.moq">
+              <i class="fas fa-minus"></i>
+            </button>
+            <input type="number" 
+                   [(ngModel)]="selectedQuantity" 
+                   (change)="onQuantityChange($event)"
+                   [min]="product.pricing.moq"
+                   class="qty-input">
+            <button class="qty-btn" (click)="updateQuantity(1)">
+              <i class="fas fa-plus"></i>
+            </button>
+          </div>
+          <span class="moq">Min: {{ product.pricing.moq }} {{ product.pricing.unit }}</span>
+        </div>
+
+        <div class="total-price">
+          <span class="total-label">Total:</span>
+          <span class="total-amount">{{ formatCurrency(getTotalPrice()) }}</span>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <button class="btn btn-primary btn-large" (click)="addToCart()">
+          <i class="fas fa-shopping-cart"></i>
+          Add to Cart
+        </button>
+        <button class="btn btn-success btn-large" (click)="buyNow()">
+          <i class="fas fa-bolt"></i>
+          Buy Now
+        </button>
+        <button class="btn btn-outline" (click)="addToWishlist()">
+          <i class="fas fa-heart"></i>
+          Add to Wishlist
+        </button>
+        <button class="btn btn-outline" (click)="contactSupplier()">
+          <i class="fas fa-envelope"></i>
+          Contact Supplier
+        </button>
+      </div>
+
+      <!-- Stock Status -->
+      <div class="stock-status" [class]="getStockStatusClass()">
+        <i class="fas fa-box"></i>
+        <span>{{ getStockStatusText() }}</span>
+        <span *ngIf="product.availability.stockLevel > 0" class="stock-count">
+          ({{ product.availability.stockLevel }} available)
+        </span>
+      </div>
+
+      <!-- Delivery Info -->
+      <div class="delivery-info">
+        <div class="delivery-item">
+          <i class="fas fa-truck"></i>
+          <span>Lead time: {{ product.availability.leadTime }}</span>
+        </div>
+        <div class="delivery-item" *ngIf="product.availability.expectedRestock">
+          <i class="fas fa-calendar"></i>
+          <span>Expected restock: {{ product.availability.expectedRestock | date:'MMM dd, yyyy' }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Product Details Tabs -->
+  <div class="product-tabs">
+    <div class="tab-navigation">
+      <button class="tab-btn" [class.active]="showSpecifications" (click)="toggleSpecifications()">
+        <i class="fas fa-list"></i>
+        Specifications
+      </button>
+      <button class="tab-btn" [class.active]="showReviews" (click)="toggleReviews()">
+        <i class="fas fa-star"></i>
+        Reviews ({{ product.totalReviews }})
+      </button>
+      <button class="tab-btn" [class.active]="showRelatedProducts" (click)="toggleRelatedProducts()">
+        <i class="fas fa-th-large"></i>
+        Related Products
+      </button>
+    </div>
+
+    <!-- Specifications Tab -->
+    <div class="tab-content" *ngIf="showSpecifications">
+      <div class="specifications">
+        <h3>Product Specifications</h3>
+        <div class="specs-grid">
+          <div class="spec-item">
+            <span class="spec-label">Brand:</span>
+            <span class="spec-value">{{ product.specifications.brand }}</span>
+          </div>
+          <div class="spec-item">
+            <span class="spec-label">Weight:</span>
+            <span class="spec-value">{{ product.specifications.weight }}</span>
+          </div>
+          <div class="spec-item">
+            <span class="spec-label">Dimensions:</span>
+            <span class="spec-value">{{ product.specifications.dimensions }}</span>
+          </div>
+          <div class="spec-item">
+            <span class="spec-label">Color:</span>
+            <span class="spec-value">{{ product.specifications.color }}</span>
+          </div>
+          <div class="spec-item">
+            <span class="spec-label">Material:</span>
+            <span class="spec-value">{{ product.specifications.material }}</span>
+          </div>
+          <div class="spec-item">
+            <span class="spec-label">Origin:</span>
+            <span class="spec-value">{{ product.specifications.origin }}</span>
+          </div>
+          <div class="spec-item">
+            <span class="spec-label">Shelf Life:</span>
+            <span class="spec-value">{{ product.specifications.shelfLife }}</span>
+          </div>
+          <div class="spec-item">
+            <span class="spec-label">Storage:</span>
+            <span class="spec-value">{{ product.specifications.storage }}</span>
+          </div>
+        </div>
+
+        <div class="features">
+          <h4>Key Features</h4>
+          <ul class="features-list">
+            <li *ngFor="let feature of product.features">{{ feature }}</li>
+          </ul>
+        </div>
+
+        <div class="tags">
+          <h4>Tags</h4>
+          <div class="tags-list">
+            <span *ngFor="let tag of product.tags" class="tag">{{ tag }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reviews Tab -->
+    <div class="tab-content" *ngIf="showReviews">
+      <div class="reviews">
+        <div class="reviews-summary">
+          <div class="rating-overview">
+            <div class="average-rating">{{ product.averageRating }}</div>
+            <div class="stars">
+              <i *ngFor="let star of getStarRating(product.averageRating)" 
+                 class="fas fa-star" 
+                 [class.filled]="star === 1"></i>
+            </div>
+            <div class="total-reviews">Based on {{ product.totalReviews }} reviews</div>
+          </div>
+        </div>
+
+        <div class="reviews-list">
+          <div *ngFor="let review of product.reviews" class="review-item">
+            <div class="review-header">
+              <div class="reviewer-info">
+                <span class="reviewer-name">{{ review.user }}</span>
+                <span *ngIf="review.verified" class="verified-badge">
+                  <i class="fas fa-check-circle"></i>
+                  Verified Purchase
+                </span>
+              </div>
+              <div class="review-rating">
+                <div class="stars">
+                  <i *ngFor="let star of getStarRating(review.rating)" 
+                     class="fas fa-star" 
+                     [class.filled]="star === 1"></i>
+                </div>
+                <span class="review-date">{{ review.date | date:'MMM dd, yyyy' }}</span>
+              </div>
+            </div>
+            <div class="review-comment">{{ review.comment }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Related Products Tab -->
+    <div class="tab-content" *ngIf="showRelatedProducts">
+      <div class="related-products">
+        <h3>Related Products</h3>
+        <div class="related-grid">
+          <div *ngFor="let related of product.relatedProducts" 
+               class="related-product-card"
+               (click)="viewRelatedProduct(related)">
+            <div class="related-image">
+              <img [src]="related.image" [alt]="related.name">
+            </div>
+            <div class="related-info">
+              <h4>{{ related.name }}</h4>
+              <div class="related-rating">
+                <div class="stars">
+                  <i *ngFor="let star of getStarRating(related.rating)" 
+                     class="fas fa-star" 
+                     [class.filled]="star === 1"></i>
+                </div>
+                <span class="rating-text">{{ related.rating }}</span>
+              </div>
+              <div class="related-price">{{ formatCurrency(related.price) }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Insights -->
+  <div class="ai-insights" *ngIf="product.aiInsights">
+    <div class="insights-header">
+      <h3>
+        <i class="fas fa-brain"></i>
+        AI Insights
+      </h3>
+      <span class="confidence-score">
+        {{ Math.round(product.aiInsights.recommendationScore * 100) }}% confidence
+      </span>
+    </div>
+    
+    <div class="insights-content">
+      <div class="insight-item">
+        <i class="fas fa-chart-line"></i>
+        <div class="insight-text">
+          <strong>Demand Prediction:</strong> {{ product.aiInsights.demandPrediction }}
+        </div>
+      </div>
+      <div class="insight-item">
+        <i class="fas fa-trending-up"></i>
+        <div class="insight-text">
+          <strong>Price Trend:</strong> {{ product.aiInsights.priceTrend }}
+        </div>
+      </div>
+      <div class="insight-item">
+        <i class="fas fa-calendar-alt"></i>
+        <div class="insight-text">
+          <strong>Seasonal Pattern:</strong> {{ product.aiInsights.seasonalPattern }}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Loading State -->
+<div class="loading-container" *ngIf="loading">
+  <div class="loading-spinner"></div>
+  <p>Loading product details...</p>
+</div>
+
+<!-- Error State -->
+<div class="error-container" *ngIf="!product && !loading">
+  <i class="fas fa-exclamation-triangle"></i>
+  <h3>Product not found</h3>
+  <p>The product you're looking for doesn't exist or has been removed.</p>
+  <button class="btn btn-primary" (click)="loadProduct()">
+    <i class="fas fa-refresh"></i>
+    Try Again
+  </button>
+</div>

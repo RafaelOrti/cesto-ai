@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { AdminAuditLog } from '../types/common.types';
+import { AdminAuditLog } from '../../admin/entities/admin-audit-log.entity';
 
 /**
  * Advanced audit service for tracking all system activities
@@ -34,13 +34,13 @@ export class AuditService {
   ): Promise<void> {
     try {
       const auditLog = this.auditLogRepository.create({
-        adminId,
-        entityType,
-        entityId,
-        action,
-        details: JSON.stringify(details),
-        ipAddress,
-        userAgent,
+        admin_user_id: adminId,
+        entity_type: entityType as any,
+        entity_id: entityId,
+        action: action as any,
+        description: JSON.stringify(details),
+        ip_address: ipAddress,
+        user_agent: userAgent,
       });
 
       await this.auditLogRepository.save(auditLog);
@@ -280,8 +280,8 @@ export class AuditService {
     offset: number = 0
   ): Promise<AdminAuditLog[]> {
     return await this.auditLogRepository.find({
-      where: { entityType, entityId },
-      order: { createdAt: 'DESC' },
+      where: { entity_type: entityType as any, entity_id: entityId },
+      order: { created_at: 'DESC' },
       take: limit,
       skip: offset,
     });
@@ -296,8 +296,8 @@ export class AuditService {
     offset: number = 0
   ): Promise<AdminAuditLog[]> {
     return await this.auditLogRepository.find({
-      where: { adminId },
-      order: { createdAt: 'DESC' },
+      where: { admin_user_id: adminId },
+      order: { created_at: 'DESC' },
       take: limit,
       skip: offset,
     });
@@ -333,8 +333,8 @@ export class AuditService {
     offset: number = 0
   ): Promise<AdminAuditLog[]> {
     return await this.auditLogRepository.find({
-      where: { action },
-      order: { createdAt: 'DESC' },
+      where: { action: action as any },
+      order: { created_at: 'DESC' },
       take: limit,
       skip: offset,
     });
@@ -439,7 +439,7 @@ export class AuditService {
     const result = await this.auditLogRepository
       .createQueryBuilder()
       .update()
-      .set({ archived: true })
+      .set({ is_successful: false })
       .where('createdAt < :cutoffDate', { cutoffDate })
       .execute();
 

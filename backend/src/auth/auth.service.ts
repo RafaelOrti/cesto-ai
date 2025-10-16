@@ -6,6 +6,7 @@ import * as bcrypt from 'bcrypt';
 import { User, UserRole } from '../users/entities/user.entity';
 import { Supplier } from '../suppliers/entities/supplier.entity';
 import { Buyer } from '../buyers/entities/buyer.entity';
+import { Client } from '../clients/entities/client.entity';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { InjectRedis } from '@nestjs-modules/ioredis';
@@ -14,7 +15,6 @@ import { Redis } from 'ioredis';
 @Injectable()
 export class AuthService {
   private readonly MAX_LOGIN_ATTEMPTS = 5;
-  private readonly LOCKOUT_DURATION = 15 * 60 * 1000; // 15 minutes
   private readonly JWT_EXPIRES_IN = '24h';
   private readonly REFRESH_TOKEN_EXPIRES_IN = '7d';
 
@@ -25,78 +25,31 @@ export class AuthService {
     private suppliersRepository: Repository<Supplier>,
     @InjectRepository(Buyer)
     private buyersRepository: Repository<Buyer>,
+    @InjectRepository(Client)
+    private clientsRepository: Repository<Client>,
     private jwtService: JwtService,
     @InjectRedis() private redis: Redis,
   ) {}
 
   async validateUser(email: string, password: string): Promise<any> {
-    // Check rate limiting
-    await this.checkRateLimit(email);
-
     const user = await this.usersRepository.findOne({
       where: { email: email.toLowerCase().trim() },
-      relations: ['supplier', 'buyer'],
+      relations: ['supplier', 'buyer', 'client'],
     });
 
     if (!user) {
-      await this.recordFailedAttempt(email);
       return null;
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
     if (!isPasswordValid) {
-      await this.recordFailedAttempt(email);
       return null;
     }
-
-    // Clear failed attempts on successful login
-    await this.clearFailedAttempts(email);
 
     const { passwordHash, ...result } = user;
     return result;
   }
 
-  private async checkRateLimit(email: string): Promise<void> {
-    const key = `login_attempts:${email.toLowerCase()}`;
-    const attempts = await this.redis.get(key);
-    
-    if (attempts && parseInt(attempts) >= this.MAX_LOGIN_ATTEMPTS) {
-      const lockoutKey = `login_lockout:${email.toLowerCase()}`;
-      const lockoutTime = await this.redis.get(lockoutKey);
-      
-      if (lockoutTime) {
-        const remainingTime = parseInt(lockoutTime) - Date.now();
-        if (remainingTime > 0) {
-          throw new BadRequestException(
-            `Account locked due to multiple failed attempts. Please try again in ${Math.ceil(remainingTime / 60000)} minutes.`
-          );
-        }
-      }
-    }
-  }
-
-  private async recordFailedAttempt(email: string): Promise<void> {
-    const key = `login_attempts:${email.toLowerCase()}`;
-    const attempts = await this.redis.incr(key);
-    
-    if (attempts === 1) {
-      await this.redis.expire(key, this.LOCKOUT_DURATION / 1000);
-    }
-    
-    if (attempts >= this.MAX_LOGIN_ATTEMPTS) {
-      const lockoutKey = `login_lockout:${email.toLowerCase()}`;
-      await this.redis.setex(lockoutKey, this.LOCKOUT_DURATION / 1000, Date.now().toString());
-    }
-  }
-
-  private async clearFailedAttempts(email: string): Promise<void> {
-    const key = `login_attempts:${email.toLowerCase()}`;
-    const lockoutKey = `login_lockout:${email.toLowerCase()}`;
-    await Promise.all([
-      this.redis.del(key),
-      this.redis.del(lockoutKey)
-    ]);
-  }
 
   async login(loginDto: LoginDto) {
     const user = await this.validateUser(loginDto.email, loginDto.password);
@@ -105,7 +58,6 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // Check if user account is active
     if (!user.isActive) {
       throw new UnauthorizedException('Account is deactivated. Please contact support.');
     }
@@ -127,14 +79,12 @@ export class AuthService {
       { expiresIn: this.REFRESH_TOKEN_EXPIRES_IN }
     );
 
-    // Store refresh token in Redis
     await this.redis.setex(
       `refresh_token:${user.id}`,
       this.parseExpirationTime(this.REFRESH_TOKEN_EXPIRES_IN),
       refreshToken
     );
 
-    // Update last login
     await this.usersRepository.update(user.id, {
       lastLoginAt: new Date(),
     });
@@ -151,20 +101,18 @@ export class AuthService {
         role: user.role,
         companyName: user.companyName,
         supplier: user.supplier,
-        buyer: user.buyer,
+        client: user.client,
         lastLoginAt: user.lastLoginAt,
       },
     };
   }
 
   async register(registerDto: RegisterDto) {
-    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(registerDto.email)) {
       throw new BadRequestException('Invalid email format');
     }
 
-    // Check for existing user
     const existingUser = await this.usersRepository.findOne({
       where: { email: registerDto.email.toLowerCase().trim() },
     });
@@ -173,10 +121,7 @@ export class AuthService {
       throw new ConflictException('User with this email already exists');
     }
 
-    // Validate password strength
     this.validatePasswordStrength(registerDto.password);
-
-    // Hash password with higher cost factor for better security
     const hashedPassword = await bcrypt.hash(registerDto.password, 12);
 
     const user = this.usersRepository.create({
@@ -185,7 +130,7 @@ export class AuthService {
       firstName: registerDto.firstName.trim(),
       lastName: registerDto.lastName.trim(),
       companyName: registerDto.companyName.trim(),
-      role: registerDto.role || UserRole.BUYER,
+      role: registerDto.role || UserRole.CLIENT,
       isActive: true,
       emailVerified: false,
       createdAt: new Date(),
@@ -193,7 +138,6 @@ export class AuthService {
 
     const savedUser = await this.usersRepository.save(user);
 
-    // Create role-specific profile
     if (registerDto.role === UserRole.SUPPLIER) {
       const supplier = this.suppliersRepository.create({
         userId: savedUser.id,
@@ -208,13 +152,19 @@ export class AuthService {
         userId: savedUser.id,
         businessName: registerDto.companyName.trim(),
         businessType: registerDto.businessType?.trim(),
-        categories: registerDto.categories || [],
+        categories: (registerDto.categories || []) as any,
         createdAt: new Date(),
       });
       await this.buyersRepository.save(buyer);
+    } else if (registerDto.role === UserRole.CLIENT) {
+      const client = this.clientsRepository.create({
+        userId: savedUser.id,
+        businessName: registerDto.companyName.trim(),
+        businessType: registerDto.businessType?.trim(),
+        createdAt: new Date(),
+      });
+      await this.clientsRepository.save(client);
     }
-
-    // Generate tokens
     const payload = { 
       email: savedUser.email, 
       sub: savedUser.id, 
@@ -232,7 +182,6 @@ export class AuthService {
       { expiresIn: this.REFRESH_TOKEN_EXPIRES_IN }
     );
 
-    // Store refresh token in Redis
     await this.redis.setex(
       `refresh_token:${savedUser.id}`,
       this.parseExpirationTime(this.REFRESH_TOKEN_EXPIRES_IN),
@@ -266,7 +215,6 @@ export class AuthService {
       );
     }
 
-    // Check for common patterns
     const commonPatterns = [
       /123456/,
       /password/i,
@@ -290,7 +238,7 @@ export class AuthService {
     };
 
     const match = timeString.match(/^(\d+)([smhd])$/);
-    if (!match) return 3600; // Default to 1 hour
+    if (!match) return 3600;
 
     const value = parseInt(match[1]);
     const unit = match[2];
@@ -300,7 +248,7 @@ export class AuthService {
   async getProfile(userId: string) {
     const user = await this.usersRepository.findOne({
       where: { id: userId },
-      relations: ['supplier', 'buyer'],
+      relations: ['supplier', 'client'],
     });
 
     if (!user) {
@@ -326,7 +274,7 @@ export class AuthService {
 
       const user = await this.usersRepository.findOne({
         where: { id: payload.sub },
-        relations: ['supplier', 'buyer'],
+        relations: ['supplier', 'client'],
       });
 
       if (!user || !user.isActive) {
@@ -355,13 +303,9 @@ export class AuthService {
   }
 
   async logout(userId: string, refreshToken?: string) {
-    // Remove refresh token from Redis
     if (refreshToken) {
       await this.redis.del(`refresh_token:${userId}`);
     }
-
-    // Add token to blacklist (optional, for immediate token invalidation)
-    // This would require implementing a token blacklist mechanism
 
     return { message: 'Logged out successfully' };
   }
@@ -387,7 +331,6 @@ export class AuthService {
       passwordHash: hashedPassword,
     });
 
-    // Invalidate all refresh tokens for security
     await this.redis.del(`refresh_token:${userId}`);
 
     return { message: 'Password changed successfully' };
@@ -399,25 +342,19 @@ export class AuthService {
     });
 
     if (!user) {
-      // Don't reveal if user exists for security
       return { message: 'If the email exists, a password reset link has been sent' };
     }
 
-    // Generate reset token
     const resetToken = this.jwtService.sign(
       { sub: user.id, type: 'password-reset' },
       { expiresIn: '1h' }
     );
 
-    // Store reset token in Redis with 1 hour expiry
     await this.redis.setex(
       `password_reset:${user.id}`,
       3600,
       resetToken
     );
-
-    // TODO: Send email with reset link
-    // await this.emailService.sendPasswordResetEmail(user.email, resetToken);
 
     return { message: 'If the email exists, a password reset link has been sent' };
   }
@@ -450,7 +387,6 @@ export class AuthService {
         passwordHash: hashedPassword,
       });
 
-      // Remove reset token and invalidate all refresh tokens
       await Promise.all([
         this.redis.del(`password_reset:${user.id}`),
         this.redis.del(`refresh_token:${user.id}`),

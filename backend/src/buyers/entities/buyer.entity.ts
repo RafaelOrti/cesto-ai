@@ -14,6 +14,23 @@ import { Inventory } from '../../inventory/entities/inventory.entity';
 import { ShoppingList } from '../../shopping-lists/entities/shopping-list.entity';
 import { ProductCategory } from '../../products/enums/product-category.enum';
 
+export enum BuyerCategory {
+  MEAT = 'meat',
+  DAIRY = 'dairy',
+  PRODUCE = 'produce',
+  FROZEN = 'frozen',
+  READY_MEALS = 'ready_meals',
+  FRUIT_VEGETABLES = 'fruit_vegetables',
+  ICE_CREAM = 'ice_cream',
+  SWEETS = 'sweets',
+  CUPBOARD = 'cupboard',
+  ALCOHOL = 'alcohol',
+  TOBACCO = 'tobacco',
+  BEVERAGES = 'beverages',
+  BAKERY = 'bakery',
+  SEAFOOD = 'seafood',
+}
+
 @Entity('buyers')
 export class Buyer {
   @PrimaryGeneratedColumn('uuid')
@@ -33,11 +50,11 @@ export class Buyer {
 
   @Column({
     type: 'enum',
-    enum: ProductCategory,
+    enum: BuyerCategory,
     array: true,
     default: [],
   })
-  categories: ProductCategory[];
+  categories: BuyerCategory[];
 
   @Column({ type: 'uuid', array: true, default: [] })
   preferredSuppliers: string[];
@@ -52,7 +69,7 @@ export class Buyer {
   updatedAt: Date;
 
   // Relations
-  @OneToOne(() => User, (user) => user.buyer)
+  @OneToOne(() => User, (user) => user.client)
   @JoinColumn({ name: 'userId' })
   user: User;
 

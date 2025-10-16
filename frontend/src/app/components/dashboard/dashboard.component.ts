@@ -1,31 +1,20 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
+import { Subject, takeUntil, forkJoin } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
+import { 
+  AnalyticsService, 
+  ChartDataPoint, 
+  CustomerData, 
+  SummaryTotals, 
+  LegendItem, 
+  FilterOptions, 
+  AnalyticsFilters 
+} from '../../core/services/analytics.service';
 
-interface ChartDataPoint {
-  month: string;
-  value: number;
-}
-
-interface CustomerData {
-  name: string;
-  color: string;
-  sales: number;
-  orders: number;
-  averageOrder: number;
-  frequency: number;
-}
-
-interface SummaryTotals {
-  totalStores: number;
-  totalSales: number;
-  totalOrders: number;
-  averageOrder: number;
-  averageFrequency: number;
-}
-
-interface LegendItem {
-  color: string;
-  value: number;
+interface AdditionalFilter {
+  key: string;
+  label: string;
+  active: boolean;
 }
 
 @Component({
@@ -33,96 +22,43 @@ interface LegendItem {
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+  
   currentUser: any = null;
-  isBuyer = false;
+  isClient = false;
   isSupplier = false;
 
   selectedFilter = 'Sales';
-  filters = ['Sales', 'Orders', 'Delivere', 'Delivery date'];
+  filters: FilterOptions[] = [];
+  availableFilters: FilterOptions[] = [];
+  showFilterDropdown = false;
 
   dateRange = {
     from: '2022-02-01',
     to: '2023-01-31'
   };
 
-  analyticsData: { sales: ChartDataPoint[] } = {
-    sales: [
-      { month: 'Feb', value: 1800000 },
-      { month: 'Mar', value: 2200000 },
-      { month: 'Apr', value: 1900000 },
-      { month: 'May', value: 2100000 },
-      { month: 'Jun', value: 2000000 },
-      { month: 'Jul', value: 2300000 },
-      { month: 'Aug', value: 2400000 },
-      { month: 'Sep', value: 2200000 },
-      { month: 'Oct', value: 2100000 },
-      { month: 'Nov', value: 2000000 },
-      { month: 'Dec', value: 1900000 },
-      { month: 'Jan', value: 1800000 }
-    ]
-  };
-
-  customerData: CustomerData[] = [
-    {
-      name: 'Butik Nära Hällevadshellm',
-      color: 'red',
-      sales: 4003061,
-      orders: 45,
-      averageOrder: 88957,
-      frequency: 5
-    },
-    {
-      name: 'Butik Närs Hällevadshelm',
-      color: 'orange',
-      sales: 2987558,
-      orders: 27,
-      averageOrder: 110650,
-      frequency: 8
-    },
-    {
-      name: 'Coop Forum Hököpinge',
-      color: 'yellow',
-      sales: 1926981,
-      orders: 28,
-      averageOrder: 68821,
-      frequency: 5
-    },
-    {
-      name: 'Coop Forum Järna',
-      color: 'green',
-      sales: 901860,
-      orders: 7,
-      averageOrder: 141694,
-      frequency: 36
-    },
-    {
-      name: 'City Nära Stavsnäs',
-      color: 'blue',
-      sales: 457475,
-      orders: 30,
-      averageOrder: 15249,
-      frequency: 5
-    }
+  additionalFilters: AdditionalFilter[] = [
+    { key: 'highVolume', label: 'High Volume', active: false },
+    { key: 'highFrequency', label: 'High Frequency', active: false },
+    { key: 'newCustomers', label: 'New Customers', active: false }
   ];
 
+  showComparison = false;
+  comparisonFilters: Partial<AnalyticsFilters> = {};
+  isLoading = false;
+
+  analyticsData: ChartDataPoint[] = [];
+  customerData: CustomerData[] = [];
   summaryTotals: SummaryTotals = {
-    totalStores: 245,
-    totalSales: 16677110,
-    totalOrders: 917,
-    averageOrder: 8777,
-    averageFrequency: 21
+    totalStores: 0,
+    totalSales: 0,
+    totalOrders: 0,
+    averageOrder: 0,
+    averageFrequency: 0
   };
-
-  legendData: LegendItem[] = [
-    { color: 'red', value: 78 },
-    { color: 'orange', value: 40 },
-    { color: 'yellow', value: 31 },
-    { color: 'green', value: 0 },
-    { color: 'blue', value: 0 },
-    { color: 'purple', value: 90 },
-    { color: 'pink', value: 6 }
-  ];
+  legendData: LegendItem[] = [];
 
   yAxisLabels = ['2.00M', '1.50M', '1.00M', '0.50M', '0.00M'];
 
@@ -130,15 +66,41 @@ export class DashboardComponent implements OnInit {
   private readonly CHART_HEIGHT = 200;
   private readonly MAX_VALUE = 2500000;
 
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private analyticsService: AnalyticsService
+  ) {}
 
   ngOnInit() {
-    this.authService.currentUser$.subscribe(user => {
+    this.authService.currentUser$.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(user => {
       this.currentUser = user;
       if (user) {
-        this.isBuyer = user.role === 'buyer';
+        this.isClient = user.role === 'buyer';
         this.isSupplier = user.role === 'supplier';
       }
+    });
+
+    this.loadInitialData();
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  loadInitialData(): void {
+    // Load available filters and initial data
+    forkJoin({
+      filters: this.analyticsService.getFilters(),
+      analytics: this.analyticsService.getAnalyticsData(this.getCurrentFilters())
+    }).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(({ filters, analytics }) => {
+      this.availableFilters = filters;
+      this.filters = filters.filter(f => f.type === 'primary');
+      this.updateAnalyticsData(analytics);
     });
   }
 
@@ -151,36 +113,148 @@ export class DashboardComponent implements OnInit {
     this.loadAnalyticsData();
   }
 
+  toggleFilterDropdown(): void {
+    this.showFilterDropdown = !this.showFilterDropdown;
+  }
+
+  addFilter(filter: FilterOptions): void {
+    if (!this.filters.find(f => f.value === filter.value)) {
+      this.filters.push(filter);
+      this.showFilterDropdown = false;
+    }
+  }
+
+  removeFilter(filterValue: string): void {
+    this.filters = this.filters.filter(f => f.value !== filterValue);
+    if (this.selectedFilter === filterValue && this.filters.length > 0) {
+      this.selectedFilter = this.filters[0].value;
+    }
+    this.loadAnalyticsData();
+  }
+
+  toggleAdditionalFilter(filter: AdditionalFilter): void {
+    filter.active = !filter.active;
+    this.loadAnalyticsData();
+  }
+
   generateReport(): void {
-    // Implementation for report generation
-    console.log('Generating report...');
+    this.isLoading = true;
+    this.analyticsService.generateReport(this.getCurrentFilters()).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (report) => {
+        console.log('Report generated:', report);
+        this.isLoading = false;
+        // Here you could show a success message or navigate to the report
+      },
+      error: (error) => {
+        console.error('Error generating report:', error);
+        this.isLoading = false;
+      }
+    });
   }
 
   addComparison(): void {
-    // Implementation for adding comparison
-    console.log('Adding comparison...');
+    this.showComparison = !this.showComparison;
+    if (this.showComparison) {
+      // Set default comparison filters
+      this.comparisonFilters = {
+        dateRange: {
+          from: '2021-02-01',
+          to: '2022-01-31'
+        }
+      };
+    }
+  }
+
+  applyComparison(): void {
+    if (this.showComparison) {
+      this.analyticsService.addComparison(
+        this.getCurrentFilters(), 
+        this.comparisonFilters
+      ).pipe(
+        takeUntil(this.destroy$)
+      ).subscribe({
+        next: (comparisonData) => {
+          console.log('Comparison data:', comparisonData);
+          // Handle comparison data display
+        },
+        error: (error) => {
+          console.error('Error loading comparison:', error);
+        }
+      });
+    }
   }
 
   getChartPoints(): string {
-    return this.analyticsData.sales
+    return this.analyticsData
       .map((data, index) => this.calculateChartPoint(data, index))
       .map(point => `${point.x},${point.y}`)
       .join(' ');
   }
 
   getChartPointsArray(): { x: number; y: number }[] {
-    return this.analyticsData.sales
+    return this.analyticsData
       .map((data, index) => this.calculateChartPoint(data, index));
   }
 
   private loadAnalyticsData(): void {
-    // Load client insights data from API
-    console.log('Loading analytics data...');
+    this.isLoading = true;
+    this.analyticsService.getAnalyticsData(this.getCurrentFilters()).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (data) => {
+        this.updateAnalyticsData(data);
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error loading analytics data:', error);
+        this.isLoading = false;
+      }
+    });
+  }
+
+  private getCurrentFilters(): AnalyticsFilters {
+    return {
+      selectedFilter: this.selectedFilter,
+      dateRange: this.dateRange,
+      additionalFilters: this.additionalFilters
+        .filter(f => f.active)
+        .map(f => f.key)
+    };
+  }
+
+  private updateAnalyticsData(data: { chartData: ChartDataPoint[], customerData: CustomerData[], summaryTotals: SummaryTotals, legendData: LegendItem[] }): void {
+    this.analyticsData = data.chartData;
+    this.customerData = data.customerData;
+    this.summaryTotals = data.summaryTotals;
+    this.legendData = data.legendData;
+    
+    // Update analytics service with current filters
+    this.analyticsService.updateFilters(this.getCurrentFilters());
   }
 
   private calculateChartPoint(data: ChartDataPoint, index: number): { x: number; y: number } {
-    const x = (index / (this.analyticsData.sales.length - 1)) * this.CHART_WIDTH;
+    const x = (index / (this.analyticsData.length - 1)) * this.CHART_WIDTH;
     const y = this.CHART_HEIGHT - ((data.value / this.MAX_VALUE) * this.CHART_HEIGHT);
     return { x, y };
+  }
+
+  trackByCustomer(index: number, customer: CustomerData): string {
+    return customer.name;
+  }
+
+  trackByLegend(index: number, item: LegendItem): string {
+    return item.color;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: Event): void {
+    const target = event.target as HTMLElement;
+    const filterDropdown = document.querySelector('.filter-dropdown');
+    
+    if (filterDropdown && !filterDropdown.contains(target)) {
+      this.showFilterDropdown = false;
+    }
   }
 }

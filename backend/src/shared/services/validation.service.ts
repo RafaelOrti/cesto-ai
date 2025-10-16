@@ -1,5 +1,5 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
-import { ValidationError } from '../types/common.types';
+import { ValidationError } from '../../../shared/types/common.types';
 
 /**
  * Advanced validation service for backend
@@ -290,7 +290,7 @@ export class ValidationService {
   /**
    * Validate file upload
    */
-  validateFileUpload(file: Express.Multer.File, options: {
+  validateFileUpload(file: any, options: {
     maxSize?: number;
     allowedTypes?: string[];
     allowedExtensions?: string[];

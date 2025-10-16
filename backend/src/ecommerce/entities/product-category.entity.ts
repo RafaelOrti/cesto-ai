@@ -55,3 +55,4 @@ export class ProductCategory {
   @OneToMany(() => ProductCategory, (category) => category.parent)
   children: ProductCategory[];
 }
+

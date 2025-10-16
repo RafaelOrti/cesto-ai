@@ -22,7 +22,7 @@
     <p class="section-description">Suppliers that match your buying patterns and preferences</p>
     
     <div class="recommended-grid">
-      <div class="supplier-card recommended" *ngFor="let supplier of recommendedSuppliersList">
+      <div class="supplier-card recommended" *ngFor="let supplier of recommendedSuppliersList" [attr.data-supplier-id]="supplier.id">
         <div class="supplier-header">
           <div class="supplier-logo">
             <img [src]="supplier.logo" [alt]="supplier.name" class="logo-image">
@@ -37,6 +37,9 @@
           <div class="supplier-actions">
             <button class="add-btn" (click)="addSupplier(supplier)">
               <i class="icon-plus"></i> Add Supplier
+            </button>
+            <button class="view-btn" (click)="viewSupplier(supplier)">
+              <i class="icon-eye"></i> View
             </button>
           </div>
         </div>
@@ -111,6 +114,7 @@
         class="supplier-card" 
         *ngFor="let supplier of filteredSuppliers"
         [class]="getStatusClass(supplier)"
+        [attr.data-supplier-id]="supplier.id"
       >
         <div class="supplier-header">
           <div class="supplier-logo">

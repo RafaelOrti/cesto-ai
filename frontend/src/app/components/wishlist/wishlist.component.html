@@ -1,0 +1,337 @@
+<div class="wishlist-container">
+  <!-- Header Section -->
+  <div class="page-header">
+    <div class="header-content">
+      <div class="title-section">
+        <h1>
+          <i class="fas fa-heart"></i>
+          Wishlist
+        </h1>
+        <div class="header-info">
+          <span class="info-icon" title="Your saved products">💝</span>
+          <span class="item-count">{{ filteredItems.length }} items</span>
+          <span class="ai-count" *ngIf="filteredItems.filter(item => item.aiRecommended).length > 0">
+            {{ filteredItems.filter(item => item.aiRecommended).length }} AI recommended
+          </span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-secondary" (click)="exportWishlist()">
+          <i class="fas fa-download"></i>
+          Export
+        </button>
+        <button class="btn btn-outline" (click)="shareWishlist()">
+          <i class="fas fa-share"></i>
+          Share
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search and Filters -->
+  <div class="search-filters-section">
+    <div class="search-container">
+      <i class="fas fa-search search-icon"></i>
+      <input 
+        type="text" 
+        class="search-input"
+        placeholder="Search wishlist items..."
+        [(ngModel)]="searchQuery"
+        (input)="onSearch()">
+    </div>
+
+    <div class="filters-container">
+      <div class="filter-group">
+        <label>Category:</label>
+        <select [(ngModel)]="selectedCategory" (change)="onCategoryChange(selectedCategory)" class="filter-select">
+          <option *ngFor="let category of categories" [value]="category.id">
+            {{ category.name }} ({{ category.count }})
+          </option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>Priority:</label>
+        <select [(ngModel)]="selectedPriority" (change)="onPriorityChange(selectedPriority)" class="filter-select">
+          <option *ngFor="let priority of priorities" [value]="priority.id">
+            {{ priority.name }}
+          </option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>Supplier:</label>
+        <select [(ngModel)]="selectedSupplier" (change)="onSupplierChange(selectedSupplier)" class="filter-select">
+          <option *ngFor="let supplier of suppliers" [value]="supplier.id">
+            {{ supplier.name }}
+          </option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>Sort by:</label>
+        <div class="sort-controls">
+          <select [(ngModel)]="sortBy" (change)="onSortChange(sortBy)" class="sort-select">
+            <option *ngFor="let option of sortOptions" [value]="option.value">
+              {{ option.label }}
+            </option>
+          </select>
+          <button class="sort-order-btn" (click)="onSortOrderChange()">
+            <i class="fas" [class.fa-sort-amount-up]="sortOrder === 'asc'" [class.fa-sort-amount-down]="sortOrder === 'desc'"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="filter-toggles">
+      <button class="filter-toggle" [class.active]="showOnlyInStock" (click)="onFilterToggle('inStock')">
+        <i class="fas fa-box"></i>
+        In Stock Only
+      </button>
+      <button class="filter-toggle" [class.active]="showOnlyOnSale" (click)="onFilterToggle('onSale')">
+        <i class="fas fa-tag"></i>
+        On Sale Only
+      </button>
+      <button class="filter-toggle" [class.active]="showOnlyAIRecommended" (click)="onFilterToggle('aiRecommended')">
+        <i class="fas fa-robot"></i>
+        AI Recommended
+      </button>
+    </div>
+
+    <div class="view-controls">
+      <div class="view-mode-buttons">
+        <button class="view-btn" [class.active]="viewMode === 'grid'" (click)="onViewModeChange('grid')">
+          <i class="fas fa-th"></i>
+        </button>
+        <button class="view-btn" [class.active]="viewMode === 'list'" (click)="onViewModeChange('list')">
+          <i class="fas fa-list"></i>
+        </button>
+      </div>
+      
+      <button class="btn btn-outline btn-sm" (click)="clearFilters()" *ngIf="getActiveFiltersCount() > 0">
+        <i class="fas fa-times"></i>
+        Clear Filters ({{ getActiveFiltersCount() }})
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading wishlist...</p>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && filteredItems.length === 0" class="empty-state">
+    <i class="fas fa-heart"></i>
+    <h3>Your wishlist is empty</h3>
+    <p>Start adding products to your wishlist to save them for later</p>
+    <button class="btn btn-primary" (click)="clearFilters()">
+      <i class="fas fa-shopping-bag"></i>
+      Browse Products
+    </button>
+  </div>
+
+  <!-- Wishlist Items -->
+  <div *ngIf="!loading && filteredItems.length > 0" class="wishlist-content">
+    <!-- Grid View -->
+    <div *ngIf="viewMode === 'grid'" class="wishlist-grid">
+      <div *ngFor="let item of filteredItems" class="wishlist-card">
+        <!-- Product Image -->
+        <div class="product-image">
+          <img [src]="item.image" [alt]="item.productName">
+          <div class="image-badges">
+            <span *ngIf="item.isOnSale" class="badge sale-badge">
+              -{{ getDiscountPercentage(item) }}%
+            </span>
+            <span *ngIf="item.isNew" class="badge new-badge">New</span>
+            <span *ngIf="item.aiRecommended" class="badge ai-badge">
+              <i class="fas fa-robot"></i>
+              AI
+            </span>
+          </div>
+          
+          <div class="image-actions">
+            <button class="action-btn remove-btn" (click)="removeFromWishlist(item)" title="Remove from wishlist">
+              <i class="fas fa-times"></i>
+            </button>
+            <button class="action-btn priority-btn" [class]="getPriorityClass(item.priority)" 
+                    (click)="updatePriority(item, getNextPriority(item.priority))" 
+                    [title]="'Priority: ' + item.priority">
+              <i class="fas fa-flag"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Product Info -->
+        <div class="product-info">
+          <div class="product-header">
+            <h3 class="product-name">{{ item.productName }}</h3>
+            <div class="supplier-info">
+              <img [src]="item.supplier.logo" [alt]="item.supplier.name" class="supplier-logo">
+              <span class="supplier-name">{{ item.supplier.name }}</span>
+            </div>
+          </div>
+
+          <p class="product-description">{{ item.description }}</p>
+
+          <div class="product-category">
+            <span class="category-badge">{{ item.category }}</span>
+            <span *ngIf="item.subcategory" class="subcategory-badge">{{ item.subcategory }}</span>
+          </div>
+
+          <div class="product-tags">
+            <span *ngFor="let tag of item.tags" class="tag">{{ tag }}</span>
+          </div>
+
+          <div class="product-pricing">
+            <div class="price-row">
+              <span class="current-price">{{ formatCurrency(item.pricing.currentPrice) }}</span>
+              <span *ngIf="item.pricing.originalPrice" class="original-price">
+                {{ formatCurrency(item.pricing.originalPrice) }}
+              </span>
+              <span class="unit">/ {{ item.pricing.unit }}</span>
+            </div>
+            <div class="moq">MOQ: {{ item.pricing.moq }} {{ item.pricing.unit }}</div>
+          </div>
+
+          <div class="product-availability" [class]="getStockStatusClass(item)">
+            <i class="fas fa-box"></i>
+            <span>{{ getStockStatusText(item) }}</span>
+            <span *ngIf="item.availability.stockLevel > 0" class="stock-count">
+              ({{ item.availability.stockLevel }})
+            </span>
+          </div>
+
+          <div class="product-meta">
+            <div class="added-date">
+              <i class="fas fa-calendar"></i>
+              <span>Added {{ getDaysSinceAdded(item.addedDate) }} days ago</span>
+            </div>
+            <div class="ai-confidence" *ngIf="item.aiRecommended && item.aiConfidence">
+              <i class="fas fa-brain"></i>
+              <span>{{ Math.round(item.aiConfidence * 100) }}% confidence</span>
+            </div>
+          </div>
+
+          <div class="product-notes" *ngIf="item.notes">
+            <i class="fas fa-sticky-note"></i>
+            <span>{{ item.notes }}</span>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="product-actions">
+          <button class="btn btn-primary btn-sm" (click)="addToCart(item)" [disabled]="!item.availability.inStock || processing">
+            <i class="fas fa-shopping-cart"></i>
+            Add to Cart
+          </button>
+          <button class="btn btn-success btn-sm" (click)="buyNow(item)" [disabled]="!item.availability.inStock">
+            <i class="fas fa-bolt"></i>
+            Buy Now
+          </button>
+          <button class="btn btn-outline btn-sm" (click)="moveToCart(item)" [disabled]="!item.availability.inStock">
+            <i class="fas fa-arrow-right"></i>
+            Move to Cart
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- List View -->
+    <div *ngIf="viewMode === 'list'" class="wishlist-list">
+      <div *ngFor="let item of filteredItems" class="wishlist-item">
+        <div class="item-image">
+          <img [src]="item.image" [alt]="item.productName">
+          <div class="image-badges">
+            <span *ngIf="item.isOnSale" class="badge sale-badge">-{{ getDiscountPercentage(item) }}%</span>
+            <span *ngIf="item.isNew" class="badge new-badge">New</span>
+            <span *ngIf="item.aiRecommended" class="badge ai-badge">AI</span>
+          </div>
+        </div>
+
+        <div class="item-details">
+          <div class="item-header">
+            <h3 class="item-name">{{ item.productName }}</h3>
+            <div class="item-actions">
+              <button class="priority-btn" [class]="getPriorityClass(item.priority)" 
+                      (click)="updatePriority(item, getNextPriority(item.priority))" 
+                      [title]="'Priority: ' + item.priority">
+                <i class="fas fa-flag"></i>
+              </button>
+              <button class="remove-btn" (click)="removeFromWishlist(item)" title="Remove from wishlist">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="item-info">
+            <div class="supplier-info">
+              <img [src]="item.supplier.logo" [alt]="item.supplier.name" class="supplier-logo">
+              <span class="supplier-name">{{ item.supplier.name }}</span>
+            </div>
+
+            <div class="item-category">
+              <span class="category-badge">{{ item.category }}</span>
+              <span *ngIf="item.subcategory" class="subcategory-badge">{{ item.subcategory }}</span>
+            </div>
+
+            <div class="item-description">{{ item.description }}</div>
+
+            <div class="item-tags">
+              <span *ngFor="let tag of item.tags" class="tag">{{ tag }}</span>
+            </div>
+          </div>
+
+          <div class="item-pricing">
+            <div class="price-row">
+              <span class="current-price">{{ formatCurrency(item.pricing.currentPrice) }}</span>
+              <span *ngIf="item.pricing.originalPrice" class="original-price">
+                {{ formatCurrency(item.pricing.originalPrice) }}
+              </span>
+              <span class="unit">/ {{ item.pricing.unit }}</span>
+            </div>
+            <div class="moq">MOQ: {{ item.pricing.moq }} {{ item.pricing.unit }}</div>
+          </div>
+
+          <div class="item-availability" [class]="getStockStatusClass(item)">
+            <i class="fas fa-box"></i>
+            <span>{{ getStockStatusText(item) }}</span>
+            <span *ngIf="item.availability.stockLevel > 0" class="stock-count">({{ item.availability.stockLevel }})</span>
+          </div>
+
+          <div class="item-meta">
+            <div class="added-date">
+              <i class="fas fa-calendar"></i>
+              <span>Added {{ getDaysSinceAdded(item.addedDate) }} days ago</span>
+            </div>
+            <div class="ai-confidence" *ngIf="item.aiRecommended && item.aiConfidence">
+              <i class="fas fa-brain"></i>
+              <span>{{ Math.round(item.aiConfidence * 100) }}% confidence</span>
+            </div>
+          </div>
+
+          <div class="item-notes" *ngIf="item.notes">
+            <i class="fas fa-sticky-note"></i>
+            <span>{{ item.notes }}</span>
+          </div>
+        </div>
+
+        <div class="item-actions">
+          <button class="btn btn-primary btn-sm" (click)="addToCart(item)" [disabled]="!item.availability.inStock || processing">
+            <i class="fas fa-shopping-cart"></i>
+            Add to Cart
+          </button>
+          <button class="btn btn-success btn-sm" (click)="buyNow(item)" [disabled]="!item.availability.inStock">
+            <i class="fas fa-bolt"></i>
+            Buy Now
+          </button>
+          <button class="btn btn-outline btn-sm" (click)="moveToCart(item)" [disabled]="!item.availability.inStock">
+            <i class="fas fa-arrow-right"></i>
+            Move to Cart
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

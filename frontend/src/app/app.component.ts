@@ -20,7 +20,6 @@ export class AppComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    // Initialize the default theme
     this.themeInitializer.initializeTheme();
     
     this.authService.isAuthenticated$.subscribe(isAuth => {

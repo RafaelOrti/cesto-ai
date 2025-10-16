@@ -58,3 +58,4 @@ export const QUERY_PARAMS = {
   ORDER: 'order',
   FILTER: 'filter'
 };
+

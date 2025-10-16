@@ -492,14 +492,179 @@ export class MySuppliersComponent implements OnInit, OnDestroy {
 
   // Export functionality
   exportSuppliers(): void {
-    // Implementation for exporting supplier data
-    console.log('Exporting suppliers...');
+    console.log('Exporting suppliers data...');
+    
+    // Show loading state
+    const exportButton = document.querySelector('.export-btn') as HTMLButtonElement;
+    if (exportButton) {
+      exportButton.disabled = true;
+      exportButton.innerHTML = '<i class="icon-loading"></i> Exporting...';
+    }
+
+    // Simulate export process
+    setTimeout(() => {
+      // Reset button state
+      if (exportButton) {
+        exportButton.disabled = false;
+        exportButton.innerHTML = '<i class="icon-export"></i> Export';
+      }
+      
+      // Create and download CSV
+      this.createSuppliersCSV();
+      
+      // Show success notification
+      this.showNotification('Suppliers data exported successfully!', 'success');
+    }, 1500);
   }
 
   // Bulk actions
   bulkAction(action: string): void {
-    // Implementation for bulk actions like bulk delete, bulk export, etc.
     console.log(`Bulk action: ${action}`);
+    
+    const selectedSuppliers = this.getSelectedSuppliers();
+    
+    if (selectedSuppliers.length === 0) {
+      this.showNotification('Please select suppliers first', 'error');
+      return;
+    }
+
+    switch (action) {
+      case 'delete':
+        this.bulkDeleteSuppliers(selectedSuppliers);
+        break;
+      case 'export':
+        this.bulkExportSuppliers(selectedSuppliers);
+        break;
+      case 'connect':
+        this.bulkConnectSuppliers(selectedSuppliers);
+        break;
+      case 'disconnect':
+        this.bulkDisconnectSuppliers(selectedSuppliers);
+        break;
+      default:
+        console.log(`Unknown bulk action: ${action}`);
+    }
+  }
+
+  private getSelectedSuppliers(): Supplier[] {
+    // In a real app, this would get selected suppliers from checkboxes
+    // For now, we'll return all suppliers as an example
+    return this.filteredSuppliers;
+  }
+
+  private bulkDeleteSuppliers(suppliers: Supplier[]): void {
+    const confirmed = confirm(`Are you sure you want to delete ${suppliers.length} supplier(s)?`);
+    
+    if (confirmed) {
+      suppliers.forEach(supplier => {
+        this.suppliers = this.suppliers.filter(s => s.id !== supplier.id);
+      });
+      
+      this.applyFilters();
+      this.showNotification(`${suppliers.length} supplier(s) deleted successfully`, 'success');
+    }
+  }
+
+  private bulkExportSuppliers(suppliers: Supplier[]): void {
+    const csvContent = this.createSuppliersCSV(suppliers);
+    this.downloadFile(csvContent, `selected-suppliers-${Date.now()}.csv`, 'text/csv');
+    this.showNotification(`${suppliers.length} supplier(s) exported successfully`, 'success');
+  }
+
+  private bulkConnectSuppliers(suppliers: Supplier[]): void {
+    suppliers.forEach(supplier => {
+      if (!supplier.isConnected) {
+        supplier.isConnected = true;
+        supplier.requestSent = false;
+      }
+    });
+    
+    this.showNotification(`${suppliers.length} supplier(s) connected successfully`, 'success');
+  }
+
+  private bulkDisconnectSuppliers(suppliers: Supplier[]): void {
+    suppliers.forEach(supplier => {
+      if (supplier.isConnected) {
+        supplier.isConnected = false;
+        supplier.requestSent = false;
+      }
+    });
+    
+    this.showNotification(`${suppliers.length} supplier(s) disconnected successfully`, 'success');
+  }
+
+  private createSuppliersCSV(suppliers?: Supplier[]): string {
+    const suppliersToExport = suppliers || this.filteredSuppliers;
+    
+    const csvHeaders = [
+      'Name', 'Description', 'Category', 'Rating', 'Review Count', 
+      'Connected', 'Total Orders', 'Average Order Value', 'Response Time',
+      'Contact Email', 'Contact Phone', 'Address', 'Minimum Order',
+      'Payment Terms', 'Established Year', 'Specialties', 'Certifications'
+    ];
+    
+    const csvRows = suppliersToExport.map(supplier => [
+      supplier.name,
+      supplier.description,
+      this.getCategoryName(supplier.category),
+      supplier.rating,
+      supplier.reviewCount,
+      supplier.isConnected ? 'Yes' : 'No',
+      supplier.totalOrders,
+      supplier.averageOrderValue,
+      supplier.responseTime,
+      supplier.contactEmail,
+      supplier.contactPhone,
+      supplier.address,
+      supplier.minimumOrder,
+      supplier.paymentTerms,
+      supplier.establishedYear,
+      supplier.specialties.join('; '),
+      supplier.certifications.join('; ')
+    ]);
+
+    const csvContent = [csvHeaders, ...csvRows]
+      .map(row => row.map(cell => `"${cell}"`).join(','))
+      .join('\n');
+
+    this.downloadFile(csvContent, `suppliers-export-${Date.now()}.csv`, 'text/csv');
+    return csvContent;
+  }
+
+  private downloadFile(content: string, filename: string, mimeType: string): void {
+    const blob = new Blob([content], { type: mimeType });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  }
+
+  private showNotification(message: string, type: 'success' | 'error' | 'info'): void {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.innerHTML = `
+      <div class="notification-content">
+        <i class="icon-${type === 'success' ? 'check' : type === 'error' ? 'error' : 'info'}"></i>
+        <span>${message}</span>
+      </div>
+    `;
+
+    // Add to page
+    document.body.appendChild(notification);
+
+    // Show notification
+    setTimeout(() => notification.classList.add('show'), 100);
+
+    // Remove notification after 3 seconds
+    setTimeout(() => {
+      notification.classList.remove('show');
+      setTimeout(() => document.body.removeChild(notification), 300);
+    }, 3000);
   }
 
   // Pagination helpers

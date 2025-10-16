@@ -85,8 +85,6 @@ export const Z_INDEX = {
   ASIDE_OVERLAY: 6600,
   MAIN_OVERLAY: 6700,
   NAV_OVERLAY: 6800,
-  HEADER_OVERLAY: 6900,
-  FOOTER_OVERLAY: 7000,
 
   // Component specific z-index values
   COMPONENTS: {
@@ -133,7 +131,6 @@ export const Z_INDEX = {
     TABLE: 100,
     CARD: 200,
     LIST: 300,
-    GRID: 400,
     CHART: 500,
     MAP: 600,
     IMAGE: 700,
@@ -162,24 +159,16 @@ export const Z_INDEX = {
 
     // Interactive components
     DROPDOWN: 100,
-    SELECT: 200,
     AUTOCOMPLETE: 300,
     COMBobox: 400,
     MULTISELECT: 500,
     TREE: 600,
-    MENU: 700,
-    CONTEXT_MENU: 800,
     RIGHT_CLICK_MENU: 900,
 
     // Media components
     IMAGE_VIEWER: 100,
     VIDEO_PLAYER: 200,
     AUDIO_PLAYER: 300,
-    GALLERY: 400,
-    LIGHTBOX: 500,
-    CAROUSEL: 600,
-    SLIDER: 700,
-    RANGE_SLIDER: 800,
 
     // Utility components
     DRAG_HANDLE: 100,
@@ -190,7 +179,6 @@ export const Z_INDEX = {
     HOVER: 600,
     ACTIVE: 700,
     DISABLED: 800,
-    LOADING: 900,
 
     // Animation components
     TRANSITION: 100,
@@ -265,7 +253,6 @@ export const Z_INDEX = {
     TRACKING: 400,
     REPORTING: 500,
     ALERTING: 600,
-    NOTIFICATION: 700,
     ESCALATION: 800,
     INCIDENT: 900,
 
@@ -298,8 +285,7 @@ export const Z_INDEX = {
     COLOR_SCHEME: 400,
     TYPOGRAPHY: 500,
     SPACING: 600,
-    LAYOUT: 700,
-    COMPONENTS: 800,
+    COMPONENT_STYLES: 800,
     UTILITIES: 900
   }
 };

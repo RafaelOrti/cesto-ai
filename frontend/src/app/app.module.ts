@@ -5,7 +5,6 @@ import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 
-// Angular Material
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -110,7 +109,6 @@ import { ProductCatalogComponent } from './components/ecommerce/product-catalog/
     RouterModule,
     AppRoutingModule,
     SuppliersModule,
-    // Angular Material
     MatToolbarModule,
     MatButtonModule,
     MatIconModule,

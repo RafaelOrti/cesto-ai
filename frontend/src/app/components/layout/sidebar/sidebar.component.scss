@@ -11,6 +11,60 @@
   display: flex;
   flex-direction: column;
 
+  .sidebar-header {
+    padding: $spacing-4 $spacing-6;
+    border-bottom: 1px solid var(--color-border-primary);
+    background: var(--color-surface-primary);
+
+    .logo-section {
+      margin-bottom: $spacing-4;
+
+      .logo-text {
+        font-size: $font-size-lg;
+        font-weight: $font-weight-bold;
+        color: var(--color-primary-main);
+        margin: 0;
+        text-align: center;
+      }
+    }
+
+    .search-section {
+      .search-container {
+        position: relative;
+        display: flex;
+        align-items: center;
+
+        .global-search {
+          width: 100%;
+          padding: $spacing-2 $spacing-3 $spacing-2 $spacing-10;
+          border: 1px solid var(--color-border-primary);
+          border-radius: $border-radius-sm;
+          font-size: $font-size-sm;
+          background: var(--color-surface-primary);
+          color: var(--color-text-primary);
+
+          &:focus {
+            outline: none;
+            border-color: var(--color-primary-main);
+            box-shadow: 0 0 0 2px rgba(0, 121, 107, 0.15);
+          }
+
+          &::placeholder {
+            color: var(--color-text-hint);
+          }
+        }
+
+        .search-icon {
+          position: absolute;
+          left: $spacing-3;
+          color: var(--color-text-hint);
+          font-size: $font-size-sm;
+          pointer-events: none;
+        }
+      }
+    }
+  }
+
   .sidebar-nav {
     flex: 1;
     padding: $spacing-4 0;

@@ -129,3 +129,4 @@ export const translations = {
 
 export type Language = 'en' | 'sv' | 'es';
 export type TranslationKey = keyof typeof translations.en.suppliers;
+

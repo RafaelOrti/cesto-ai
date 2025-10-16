@@ -10,6 +10,56 @@ The application follows a microservices architecture with three main components:
 - **Frontend** (Angular + Material Design) - Port 4400  
 - **AI Services** (FastAPI + Python) - Port 8001
 
+## 👥 Test Users
+
+The application comes with pre-configured test users for different roles:
+
+### Admin Users
+- **Email**: `admin@cesto.com` | **Password**: `password123`
+- **Email**: `admin@cesto.ai` | **Password**: `password123`
+- **Role**: Administrator with full system access
+
+### Supplier Users
+- **Email**: `supplier@cesto.com` | **Password**: `password123`
+- **Email**: `supplier@dairy.com` | **Password**: `password123`
+- **Email**: `supplier@meat.com` | **Password**: `password123`
+- **Role**: Suppliers who can manage products, campaigns, and orders
+
+### Client/Buyer Users
+- **Email**: `client@cesto.com` | **Password**: `password123`
+- **Email**: `client2@cesto.com` | **Password**: `password123`
+- **Email**: `buyer@cesto.com` | **Password**: `password123`
+- **Email**: `buyer@restaurant.com` | **Password**: `password123`
+- **Email**: `cliente@restaurante.com` | **Password**: `password123`
+- **Email**: `demo@stockfiller.com` | **Password**: `password123`
+- **Role**: Clients who can browse products, place orders, and manage their business
+
+### Demo User
+- **Email**: `demo@stockfiller.com` | **Password**: `password123`
+- **Role**: Demo user for testing purposes
+
+## 🔐 User Roles & Permissions
+
+### Administrator (`admin`)
+- Full system access and configuration
+- User management and role assignment
+- System analytics and reporting
+- Platform configuration and settings
+
+### Supplier (`supplier`)
+- Product catalog management
+- Campaign creation and management
+- Order processing and fulfillment
+- Inventory management
+- Customer communication and support
+
+### Client/Buyer (`client`, `buyer`)
+- Product browsing and search
+- Shopping cart and wishlist management
+- Order placement and tracking
+- Supplier discovery and evaluation
+- Business analytics and reporting
+
 ## 🚀 Quick Start
 
 ### Prerequisites

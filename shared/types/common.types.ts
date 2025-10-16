@@ -42,7 +42,7 @@ export interface User extends BaseEntity {
   email: string;
   firstName: string;
   lastName: string;
-  role: 'admin' | 'supplier' | 'buyer';
+  role: 'admin' | 'supplier' | 'buyer' | 'client';
   isActive: boolean;
   lastLoginAt?: string;
 }
@@ -226,6 +226,21 @@ export interface ValidationError {
   field: string;
   message: string;
   code: string;
+}
+
+export interface AdminAuditLog extends BaseEntity {
+  adminUserId: string;
+  action: string;
+  entityType: string;
+  entityId?: string;
+  description?: string;
+  oldValues?: any;
+  newValues?: any;
+  ipAddress?: string;
+  userAgent?: string;
+  isSuccessful: boolean;
+  errorMessage?: string;
+  metadata?: any;
 }
 
 export interface ApiErrorResponse {

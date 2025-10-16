@@ -7,20 +7,34 @@
   <!-- Filter and Control Bar -->
   <div class="controls-bar">
     <div class="filter-section">
-      <div class="filter-dropdown">
-        <span class="filter-label">+ Choose filter</span>
+      <!-- Choose Filter Dropdown -->
+      <div class="filter-dropdown" [class.open]="showFilterDropdown">
+        <span class="filter-label" (click)="toggleFilterDropdown()">
+          + Choose filter
+          <i class="dropdown-arrow" [class.rotated]="showFilterDropdown">▼</i>
+        </span>
+        <div class="dropdown-menu" *ngIf="showFilterDropdown">
+          <div class="dropdown-item" 
+               *ngFor="let filter of availableFilters"
+               (click)="addFilter(filter)">
+            {{ filter.label }}
+          </div>
+        </div>
       </div>
 
+      <!-- Active Filter Tabs -->
       <div class="filter-tabs">
         <button 
           *ngFor="let filter of filters"
           class="filter-tab"
-          [class.active]="selectedFilter === filter"
-          (click)="onFilterChange(filter)">
-          {{ filter }}
+          [class.active]="selectedFilter === filter.value"
+          (click)="onFilterChange(filter.value)">
+          {{ filter.label }}
+          <span class="remove-filter" (click)="removeFilter(filter.value); $event.stopPropagation()">×</span>
         </button>
       </div>
 
+      <!-- Date Range -->
       <div class="date-range">
         <input 
           type="date" 
@@ -35,25 +49,73 @@
           class="date-input">
       </div>
 
-      <button class="comparison-btn" (click)="addComparison()">
-        Add comparison
-      </button>
-      
-      <button class="generate-btn" (click)="generateReport()">
-        Generate
-      </button>
+      <!-- Additional Filters -->
+      <div class="additional-filters" *ngIf="additionalFilters.length > 0">
+        <div class="filter-chip" 
+             *ngFor="let filter of additionalFilters"
+             [class.active]="filter.active"
+             (click)="toggleAdditionalFilter(filter)">
+          {{ filter.label }}
+        </div>
+      </div>
+
+      <!-- Comparison Section -->
+      <div class="comparison-section" *ngIf="showComparison">
+        <div class="comparison-filters">
+          <h4>Comparison Filters:</h4>
+          <div class="date-range">
+            <label>From:</label>
+            <input 
+              type="date" 
+              [ngModel]="comparisonFilters.dateRange?.from" 
+              (ngModelChange)="comparisonFilters.dateRange = { ...comparisonFilters.dateRange, from: $event }" 
+              class="date-input">
+            <label>To:</label>
+            <input 
+              type="date" 
+              [ngModel]="comparisonFilters.dateRange?.to" 
+              (ngModelChange)="comparisonFilters.dateRange = { ...comparisonFilters.dateRange, to: $event }" 
+              class="date-input">
+          </div>
+          <button class="apply-comparison-btn" (click)="applyComparison()">
+            Apply Comparison
+          </button>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <button class="comparison-btn" (click)="addComparison()">
+          {{ showComparison ? 'Hide comparison' : 'Add comparison' }}
+        </button>
+        
+        <button class="generate-btn" 
+                (click)="generateReport()"
+                [disabled]="isLoading">
+          <span *ngIf="isLoading">Generating...</span>
+          <span *ngIf="!isLoading">Generate</span>
+        </button>
+      </div>
     </div>
 
+    <!-- Legend Section -->
     <div class="legend-section">
       <div class="legend-item" *ngFor="let item of legendData">
         <div class="legend-dot" [style.background-color]="item.color"></div>
         <span class="legend-value">{{ item.value }}</span>
+        <span class="legend-label" *ngIf="item.label">{{ item.label }}</span>
       </div>
     </div>
   </div>
 
+  <!-- Loading Indicator -->
+  <div class="loading-indicator" *ngIf="isLoading">
+    <div class="loading-spinner"></div>
+    <span>Loading analytics data...</span>
+  </div>
+
   <!-- Line Graph -->
-  <div class="chart-section">
+  <div class="chart-section" [class.loading]="isLoading">
     <div class="chart-container">
       <div class="line-chart">
         <div class="chart-area">
@@ -87,7 +149,7 @@
 
           <!-- X-axis labels -->
           <div class="x-axis">
-            <div class="x-label" *ngFor="let data of analyticsData.sales">
+            <div class="x-label" *ngFor="let data of analyticsData">
               {{ data.month }}
             </div>
           </div>
@@ -110,7 +172,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let customer of customerData">
+          <tr *ngFor="let customer of customerData; trackBy: trackByCustomer">
             <td class="customer-cell">
               <div class="customer-indicator" [style.background-color]="customer.color"></div>
               {{ customer.name }}

@@ -51,3 +51,4 @@ export class ProductReview {
   @JoinColumn({ name: 'buyerId' })
   buyer: Buyer;
 }
+

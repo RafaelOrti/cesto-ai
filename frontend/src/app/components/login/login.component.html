@@ -1,26 +1,4 @@
 <div class="login-container">
-  <!-- Professional Header -->
-  <div class="professional-header">
-    <div class="header-content">
-      <div class="brand-section">
-        <div class="brand-logo">
-          <i class="icon-store"></i>
-        </div>
-        <h1 class="brand-name">CESTO</h1>
-      </div>
-      <div class="header-actions">
-        <div class="search-container">
-          <input type="text" placeholder="Search..." class="header-search" disabled>
-          <i class="icon-search"></i>
-        </div>
-        <div class="user-info">
-          <i class="icon-user"></i>
-          <span>demo&#64;cesto.com</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- Background Elements -->
   <div class="background-elements">
     <div class="floating-shape shape-1"></div>
@@ -28,29 +6,6 @@
     <div class="floating-shape shape-3"></div>
   </div>
 
-  <!-- Navigation Buttons (Top Left) -->
-  <div class="nav-buttons">
-    <button class="nav-button" [class.active]="isLoginMode" (click)="setLoginMode()" [disabled]="isFormDisabled">
-      <i class="icon-login"></i>
-      <span>LOGIN</span>
-    </button>
-    <button class="nav-button" [class.active]="!isLoginMode" (click)="setRegisterMode()" [disabled]="isFormDisabled">
-      <i class="icon-user-plus"></i>
-      <span>REGISTER</span>
-    </button>
-    <button class="nav-button" (click)="setForgotPasswordMode()" [disabled]="isFormDisabled">
-      <i class="icon-key"></i>
-      <span>FORGOT PASSWORD</span>
-    </button>
-  </div>
-
-  <!-- Lockout Message -->
-  <div class="lockout-message" *ngIf="isLockedOut()" [@fadeInOut]>
-    <div class="lockout-content">
-      <i class="icon-lock"></i>
-      <span>{{ lockoutMessage }}</span>
-    </div>
-  </div>
 
   <!-- Main Login Form (Center) -->
   <div class="login-form-wrapper">
@@ -251,7 +206,7 @@
                 class="form-select"
                 [class.error]="registerForm.get('role')?.invalid && registerForm.get('role')?.touched">
                 <option value="">Select your role</option>
-                <option value="buyer">Buyer - I want to purchase products</option>
+                <option value="client">Client - I want to purchase products</option>
                 <option value="supplier">Supplier - I want to sell products</option>
               </select>
               <span class="select-icon">▼</span>

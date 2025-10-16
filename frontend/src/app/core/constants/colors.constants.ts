@@ -167,3 +167,4 @@ export const COLORS = {
     COLORED: 'rgba(33, 150, 243, 0.2)'
   }
 };
+

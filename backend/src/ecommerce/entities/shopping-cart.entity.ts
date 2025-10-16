@@ -39,3 +39,4 @@ export class ShoppingCart {
   @JoinColumn({ name: 'productId' })
   product: Product;
 }
+

@@ -160,3 +160,6 @@ html, body {
 .p-3 { padding: 24px; }
 .p-4 { padding: 32px; }
 
+// Import notification styles
+@import './app/shared/styles/notifications.scss';
+

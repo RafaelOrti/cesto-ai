@@ -123,3 +123,4 @@ export class I18nService {
     return this.translate(`suppliers.features.${feature}`);
   }
 }
+

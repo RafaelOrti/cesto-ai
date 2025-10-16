@@ -40,7 +40,8 @@ export abstract class BaseService<T extends BaseEntity> {
   async create(data: Partial<T>): Promise<T> {
     try {
       const entity = this.repository.create(data as any);
-      return await this.repository.save(entity);
+      const result = await this.repository.save(entity);
+      return Array.isArray(result) ? result[0] : result;
     } catch (error) {
       this.logger.error(`Error creating ${this.entityName}:`, error);
       throw error;

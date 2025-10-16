@@ -11,11 +11,11 @@ import { LocalStrategy } from './strategies/local.strategy';
 import { UsersModule } from '../users/users.module';
 import { User } from '../users/entities/user.entity';
 import { Supplier } from '../suppliers/entities/supplier.entity';
-import { Buyer } from '../buyers/entities/buyer.entity';
+import { Client } from '../clients/entities/client.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Supplier, Buyer]),
+    TypeOrmModule.forFeature([User, Supplier, Client]),
     UsersModule,
     PassportModule,
     RedisModule.forRootAsync({

@@ -5,7 +5,7 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- User roles enum
-CREATE TYPE user_role AS ENUM ('buyer', 'supplier', 'admin');
+CREATE TYPE user_role AS ENUM ('client', 'supplier', 'admin');
 
 -- Order status enum
 CREATE TYPE order_status AS ENUM ('pending', 'confirmed', 'preparing', 'shipped', 'delivered', 'cancelled', 'disputed');
@@ -271,8 +271,9 @@ CREATE TRIGGER update_orders_updated_at BEFORE UPDATE ON orders FOR EACH ROW EXE
 
 INSERT INTO users (email, password_hash, role, first_name, last_name, company_name, phone, address, city, country, postal_code) VALUES
 ('admin@cesto.ai', '$2b$12$D0gvCoalJ.KrgMwjdHch2e8yENsKaTvUvUWNgTlrZ5rU6mitrRgKK', 'admin', 'Admin', 'User', 'Cesto AI', '+1-555-0100', '123 Tech Street', 'San Francisco', 'USA', '94105'),
-('demo@stockfiller.com', '$2b$12$D0gvCoalJ.KrgMwjdHch2e8yENsKaTvUvUWNgTlrZ5rU6mitrRgKK', 'buyer', 'Demo', 'User', 'Demo Restaurant', '+1-555-0101', '456 Restaurant Ave', 'New York', 'USA', '10001'),
-('buyer@restaurant.com', '$2b$12$D0gvCoalJ.KrgMwjdHch2e8yENsKaTvUvUWNgTlrZ5rU6mitrRgKK', 'buyer', 'John', 'Doe', 'Bella Vista Restaurant', '+1-555-0102', '789 Main Street', 'Los Angeles', 'USA', '90210'),
+('demo@stockfiller.com', '$2b$12$D0gvCoalJ.KrgMwjdHch2e8yENsKaTvUvUWNgTlrZ5rU6mitrRgKK', 'client', 'Demo', 'User', 'Demo Restaurant', '+1-555-0101', '456 Restaurant Ave', 'New York', 'USA', '10001'),
+('buyer@restaurant.com', '$2b$12$D0gvCoalJ.KrgMwjdHch2e8yENsKaTvUvUWNgTlrZ5rU6mitrRgKK', 'client', 'John', 'Doe', 'Bella Vista Restaurant', '+1-555-0102', '789 Main Street', 'Los Angeles', 'USA', '90210'),
+('cliente@restaurante.com', '$2b$12$Bggsp70mVmKEwa74U2Uk8ORDF7YeVaPgrgELICGy8q05GnA8HdVJC', 'client', 'Carlos', 'García', 'Restaurante El Buen Sabor', '+34-666-123-456', 'Calle Mayor 123', 'Madrid', 'España', '28001'),
 ('supplier@dairy.com', '$2b$12$D0gvCoalJ.KrgMwjdHch2e8yENsKaTvUvUWNgTlrZ5rU6mitrRgKK', 'supplier', 'Jane', 'Smith', 'Fresh Dairy Co', '+1-555-0103', '321 Farm Road', 'Wisconsin', 'USA', '53703'),
 ('supplier@meat.com', '$2b$12$D0gvCoalJ.KrgMwjdHch2e8yENsKaTvUvUWNgTlrZ5rU6mitrRgKK', 'supplier', 'Mike', 'Johnson', 'Premium Meats Ltd', '+1-555-0104', '654 Butcher Lane', 'Texas', 'USA', '75001');
 
@@ -293,6 +294,10 @@ FROM users WHERE email = 'demo@stockfiller.com';
 INSERT INTO buyers (user_id, business_name, business_type, description, categories)
 SELECT id, 'Bella Vista Restaurant', 'Fine Dining', 'Upscale restaurant featuring Mediterranean cuisine', ARRAY['dairy', 'meat', 'produce', 'beverages']::product_category[]
 FROM users WHERE email = 'buyer@restaurant.com';
+
+INSERT INTO buyers (user_id, business_name, business_type, description, categories)
+SELECT id, 'Restaurante El Buen Sabor', 'Restaurante Familiar', 'Restaurante tradicional español con especialidades mediterráneas', ARRAY['dairy', 'meat', 'produce', 'beverages', 'seafood']::product_category[]
+FROM users WHERE email = 'cliente@restaurante.com';
 
 -- Insert sample products
 INSERT INTO products (supplier_id, name, description, category, price, unit, sku, ean_code, min_order_quantity, lead_time_days, is_active)

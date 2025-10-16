@@ -67,7 +67,7 @@ export class AdminDashboardComponent implements OnInit {
     }
   };
 
-  // Global Analytics Data (similar to Buyer Insights but for all users)
+  // Global Analytics Data (similar to Client Insights but for all users)
   globalAnalytics = {
     sales: {
       total: 0,
@@ -129,7 +129,7 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   loadGlobalAnalytics(): void {
-    // Load global analytics data (Buyer Insights for all users)
+    // Load global analytics data (Client Insights for all users)
     this.globalAnalytics = {
       sales: {
         total: 2500000,

@@ -59,6 +59,15 @@ export class OrdersComponent implements OnInit {
   searchQuery = '';
   statusFilter = 'all';
   dateRange = 'all';
+  expandedOrders = new Set<string>();
+
+  // Order tabs configuration
+  orderTabs = [
+    { id: 'past-orders', name: 'Past Orders', icon: 'fas fa-history', count: 0 },
+    { id: 'purchase-orders', name: 'Purchase Orders', icon: 'fas fa-file-invoice', count: 0 },
+    { id: 'unfulfilled', name: 'Unfulfilled', icon: 'fas fa-exclamation-triangle', count: 0 },
+    { id: 'damaged', name: 'Damaged Products', icon: 'fas fa-exclamation-circle', count: 0 }
+  ];
 
   // Sample data
   pastOrders: Order[] = [
@@ -272,11 +281,86 @@ export class OrdersComponent implements OnInit {
     }).format(amount);
   }
 
+  getTotalOrders(): number {
+    return this.pastOrders.length + this.purchaseOrders.length + this.unfulfilledOrders.length;
+  }
+
+  isOrderExpanded(orderId: string): boolean {
+    return this.expandedOrders.has(orderId);
+  }
+
+  toggleOrderItems(orderId: string): void {
+    if (this.expandedOrders.has(orderId)) {
+      this.expandedOrders.delete(orderId);
+    } else {
+      this.expandedOrders.add(orderId);
+    }
+  }
+
+  createNewOrder(): void {
+    console.log('Creating new order');
+    // Implement new order creation
+  }
+
+  exportOrders(): void {
+    console.log('Exporting orders');
+    // Implement order export
+  }
+
+  refreshOrders(): void {
+    console.log('Refreshing orders');
+    this.loadOrders();
+  }
+
+  createPurchaseOrder(): void {
+    console.log('Creating new purchase order');
+    // Implement purchase order creation
+  }
+
+  viewPODetails(po: PurchaseOrder): void {
+    console.log('Viewing PO details:', po.id);
+    // Implement PO details view
+  }
+
+  editPurchaseOrder(po: PurchaseOrder): void {
+    console.log('Editing purchase order:', po.id);
+    // Implement PO editing
+  }
+
+  escalateUnfulfilledOrders(): void {
+    console.log('Escalating all unfulfilled orders');
+    // Implement escalation logic
+  }
+
+  escalateOrder(order: Order): void {
+    console.log('Escalating order:', order.id);
+    // Implement order escalation
+  }
+
+
+  viewDamagedDetails(damaged: DamagedProduct): void {
+    console.log('Viewing damaged product details:', damaged.id);
+    // Implement damaged product details view
+  }
+
+  repeatOrder(order: Order): void {
+    console.log('Repeating order:', order.id);
+    // Implement order repetition
+  }
+
   private loadOrders(): void {
     // Load orders from API
+    this.updateTabCounts();
   }
 
   private filterOrders(): void {
     // Implement filtering logic
+  }
+
+  private updateTabCounts(): void {
+    this.orderTabs[0].count = this.pastOrders.length;
+    this.orderTabs[1].count = this.purchaseOrders.length;
+    this.orderTabs[2].count = this.unfulfilledOrders.length;
+    this.orderTabs[3].count = this.damagedProducts.length;
   }
 }

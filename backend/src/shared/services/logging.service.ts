@@ -1,7 +1,6 @@
 import { Injectable, LoggerService, LogLevel } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as winston from 'winston';
-import * as DailyRotateFile from 'winston-daily-rotate-file';
 
 /**
  * Advanced logging service with structured logging, file rotation, and multiple transports
@@ -41,11 +40,8 @@ export class LoggingService implements LoggerService {
     if (!this.isDevelopment) {
       // General log file
       transports.push(
-        new DailyRotateFile({
-          filename: `${logDir}/application-%DATE%.log`,
-          datePattern: 'YYYY-MM-DD',
-          maxSize: '20m',
-          maxFiles: '14d',
+        new winston.transports.File({
+          filename: `${logDir}/application.log`,
           level: logLevel,
           format: winston.format.combine(
             winston.format.timestamp(),
@@ -56,11 +52,8 @@ export class LoggingService implements LoggerService {
 
       // Error log file
       transports.push(
-        new DailyRotateFile({
-          filename: `${logDir}/error-%DATE%.log`,
-          datePattern: 'YYYY-MM-DD',
-          maxSize: '20m',
-          maxFiles: '30d',
+        new winston.transports.File({
+          filename: `${logDir}/error.log`,
           level: 'error',
           format: winston.format.combine(
             winston.format.timestamp(),
@@ -71,11 +64,8 @@ export class LoggingService implements LoggerService {
 
       // Access log file
       transports.push(
-        new DailyRotateFile({
-          filename: `${logDir}/access-%DATE%.log`,
-          datePattern: 'YYYY-MM-DD',
-          maxSize: '20m',
-          maxFiles: '7d',
+        new winston.transports.File({
+          filename: `${logDir}/access.log`,
           level: 'http',
           format: winston.format.combine(
             winston.format.timestamp(),

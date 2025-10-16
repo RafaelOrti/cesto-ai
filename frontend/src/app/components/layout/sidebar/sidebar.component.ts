@@ -23,7 +23,7 @@ interface User {
 })
 export class SidebarComponent implements OnInit, OnDestroy {
   currentRoute = '';
-  isBuyer = false;
+  isClient = false;
   isSupplier = false;
   isAdmin = false;
   menuItems: MenuItem[] = [];
@@ -82,20 +82,22 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   private setUserRole(user: User): void {
-    this.isBuyer = user.role === 'buyer';
+    this.isClient = user.role === 'buyer';
     this.isSupplier = user.role === 'supplier';
     this.isAdmin = user.role === 'admin';
   }
 
   private setMenuItems(): void {
-    if (this.isBuyer || this.isAdmin) {
-      this.menuItems = this.getBuyerMenuItems();
+    if (this.isAdmin) {
+      this.menuItems = this.getAdminMenuItems();
+    } else if (this.isClient) {
+      this.menuItems = this.getClientMenuItems();
     } else if (this.isSupplier) {
       this.menuItems = this.getSupplierMenuItems();
     }
   }
 
-         private getBuyerMenuItems(): MenuItem[] {
+         private getClientMenuItems(): MenuItem[] {
            return [
              {
                label: 'DASHBOARD',

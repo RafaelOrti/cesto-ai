@@ -42,7 +42,6 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       details = process.env.NODE_ENV === 'development' ? exception : undefined;
     }
 
-    // Log the error
     this.logger.error(
       `${request.method} ${request.url} - ${status} - ${message}`,
       exception instanceof Error ? exception.stack : undefined,
@@ -61,4 +60,3 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     response.status(status).json(errorResponse);
   }
 }
-

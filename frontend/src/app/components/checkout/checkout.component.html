@@ -1,0 +1,393 @@
+<div class="checkout-container">
+  <!-- Header -->
+  <div class="checkout-header">
+    <h1>
+      <i class="fas fa-shopping-cart"></i>
+      Checkout
+    </h1>
+    <div class="checkout-progress">
+      <div class="progress-bar">
+        <div class="progress-fill" [style.width.%]="(currentStep / totalSteps) * 100"></div>
+      </div>
+      <div class="step-indicators">
+        <div *ngFor="let step of [1,2,3,4]; let i = index" 
+             class="step-indicator"
+             [class.active]="currentStep === step"
+             [class.completed]="isStepCompleted(step)"
+             (click)="goToStep(step)">
+          <div class="step-number">{{ step }}</div>
+          <div class="step-title">{{ getStepTitle(step) }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="checkout-content">
+    <!-- Left Column - Steps -->
+    <div class="checkout-steps">
+      <!-- Step 1: Review Items -->
+      <div class="checkout-step" *ngIf="currentStep === 1">
+        <div class="step-header">
+          <h2>{{ getStepTitle(1) }}</h2>
+          <p>{{ getStepDescription(1) }}</p>
+        </div>
+
+        <div class="items-list">
+          <div *ngFor="let item of checkoutItems" class="checkout-item">
+            <div class="item-image">
+              <img *ngIf="item.productImage" [src]="item.productImage" [alt]="item.productName">
+              <div *ngIf="!item.productImage" class="image-placeholder">
+                <i class="fas fa-image"></i>
+              </div>
+            </div>
+
+            <div class="item-details">
+              <h3 class="item-name">{{ item.productName }}</h3>
+              <p class="supplier-name">{{ item.supplierName }}</p>
+              <div class="item-specs">
+                <span class="unit-price">{{ formatCurrency(item.unitPrice) }}/{{ item.unit }}</span>
+                <span class="moq">MOQ: {{ item.moq }} {{ item.unit }}</span>
+              </div>
+            </div>
+
+            <div class="item-quantity">
+              <label>Quantity:</label>
+              <div class="quantity-controls">
+                <button class="qty-btn" (click)="updateItemQuantity(item.id, item.quantity - 1)" 
+                        [disabled]="item.quantity <= item.moq">
+                  <i class="fas fa-minus"></i>
+                </button>
+                <input type="number" [value]="item.quantity" 
+                       (change)="updateItemQuantity(item.id, +$event.target.value)"
+                       [min]="item.moq" class="qty-input">
+                <button class="qty-btn" (click)="updateItemQuantity(item.id, item.quantity + 1)">
+                  <i class="fas fa-plus"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="item-total">
+              <span class="total-price">{{ formatCurrency(item.totalPrice) }}</span>
+              <button class="remove-btn" (click)="removeItem(item.id)" title="Remove item">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-actions">
+          <button class="btn btn-primary" (click)="nextStep()" [disabled]="!canProceedToNextStep()">
+            Continue to Delivery
+            <i class="fas fa-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 2: Delivery Address -->
+      <div class="checkout-step" *ngIf="currentStep === 2">
+        <div class="step-header">
+          <h2>{{ getStepTitle(2) }}</h2>
+          <p>{{ getStepDescription(2) }}</p>
+        </div>
+
+        <div class="address-section">
+          <h3>Billing Address</h3>
+          <div class="address-options">
+            <div *ngFor="let address of availableAddresses" 
+                 class="address-option"
+                 [class.selected]="billingAddress?.id === address.id">
+              <input type="radio" 
+                     [id]="'billing-' + address.id"
+                     name="billingAddress"
+                     [value]="address.id"
+                     [checked]="billingAddress?.id === address.id"
+                     (change)="onBillingAddressChange(address.id)">
+              <label [for]="'billing-' + address.id">
+                <div class="address-details">
+                  <h4>{{ address.companyName }}</h4>
+                  <p>{{ address.contactPerson }}</p>
+                  <p>{{ address.address }}</p>
+                  <p>{{ address.postalCode }} {{ address.city }}</p>
+                  <p>{{ address.country }}</p>
+                  <p>{{ address.phone }}</p>
+                </div>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="address-section">
+          <h3>Shipping Address</h3>
+          <div class="same-address-option">
+            <label class="checkbox-label">
+              <input type="checkbox" 
+                     [(ngModel)]="useSameAddress"
+                     (change)="onUseSameAddressChange()">
+              <span class="checkmark"></span>
+              Same as billing address
+            </label>
+          </div>
+
+          <div class="address-options" *ngIf="!useSameAddress">
+            <div *ngFor="let address of availableAddresses" 
+                 class="address-option"
+                 [class.selected]="shippingAddress?.id === address.id">
+              <input type="radio" 
+                     [id]="'shipping-' + address.id"
+                     name="shippingAddress"
+                     [value]="address.id"
+                     [checked]="shippingAddress?.id === address.id"
+                     (change)="onShippingAddressChange(address.id)">
+              <label [for]="'shipping-' + address.id">
+                <div class="address-details">
+                  <h4>{{ address.companyName }}</h4>
+                  <p>{{ address.contactPerson }}</p>
+                  <p>{{ address.address }}</p>
+                  <p>{{ address.postalCode }} {{ address.city }}</p>
+                  <p>{{ address.country }}</p>
+                  <p>{{ address.phone }}</p>
+                </div>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="delivery-options">
+          <h3>Delivery Options</h3>
+          <div class="delivery-options-list">
+            <div *ngFor="let option of deliveryOptions" 
+                 class="delivery-option"
+                 [class.selected]="selectedDeliveryOption === option.id">
+              <input type="radio" 
+                     [id]="'delivery-' + option.id"
+                     name="deliveryOption"
+                     [value]="option.id"
+                     [checked]="selectedDeliveryOption === option.id"
+                     (change)="onDeliveryOptionChange(option.id)">
+              <label [for]="'delivery-' + option.id">
+                <div class="delivery-details">
+                  <h4>{{ option.name }}</h4>
+                  <p>{{ option.days }}</p>
+                  <span class="delivery-cost">{{ formatCurrency(option.cost) }}</span>
+                </div>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="delivery-notes">
+          <label for="deliveryNotes">Delivery Notes (Optional)</label>
+          <textarea id="deliveryNotes" 
+                    [(ngModel)]="deliveryNotes"
+                    placeholder="Any special delivery instructions..."></textarea>
+        </div>
+
+        <div class="step-actions">
+          <button class="btn btn-outline" (click)="previousStep()">
+            <i class="fas fa-arrow-left"></i>
+            Back
+          </button>
+          <button class="btn btn-primary" (click)="nextStep()" [disabled]="!canProceedToNextStep()">
+            Continue to Payment
+            <i class="fas fa-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 3: Payment Method -->
+      <div class="checkout-step" *ngIf="currentStep === 3">
+        <div class="step-header">
+          <h2>{{ getStepTitle(3) }}</h2>
+          <p>{{ getStepDescription(3) }}</p>
+        </div>
+
+        <div class="payment-section">
+          <h3>Payment Method</h3>
+          <div class="payment-options">
+            <div *ngFor="let payment of availablePaymentMethods" 
+                 class="payment-option"
+                 [class.selected]="paymentMethod?.id === payment.id">
+              <input type="radio" 
+                     [id]="'payment-' + payment.id"
+                     name="paymentMethod"
+                     [value]="payment.id"
+                     [checked]="paymentMethod?.id === payment.id"
+                     (change)="onPaymentMethodChange(payment.id)">
+              <label [for]="'payment-' + payment.id">
+                <div class="payment-details">
+                  <h4>{{ payment.name }}</h4>
+                  <p>{{ payment.details }}</p>
+                </div>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="promo-code-section">
+          <h3>Promo Code</h3>
+          <div class="promo-code-input">
+            <input type="text" 
+                   [(ngModel)]="promoCode"
+                   placeholder="Enter promo code">
+            <button class="btn btn-outline" (click)="applyPromoCode()">
+              Apply
+            </button>
+          </div>
+        </div>
+
+        <div class="special-instructions">
+          <label for="specialInstructions">Special Instructions (Optional)</label>
+          <textarea id="specialInstructions" 
+                    [(ngModel)]="specialInstructions"
+                    placeholder="Any special instructions for this order..."></textarea>
+        </div>
+
+        <div class="step-actions">
+          <button class="btn btn-outline" (click)="previousStep()">
+            <i class="fas fa-arrow-left"></i>
+            Back
+          </button>
+          <button class="btn btn-primary" (click)="nextStep()" [disabled]="!canProceedToNextStep()">
+            Continue to Confirmation
+            <i class="fas fa-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 4: Order Confirmation -->
+      <div class="checkout-step" *ngIf="currentStep === 4">
+        <div class="step-header">
+          <h2>{{ getStepTitle(4) }}</h2>
+          <p>{{ getStepDescription(4) }}</p>
+        </div>
+
+        <div class="order-summary">
+          <h3>Order Summary</h3>
+          
+          <div class="summary-section">
+            <h4>Items</h4>
+            <div class="summary-items">
+              <div *ngFor="let item of checkoutItems" class="summary-item">
+                <span class="item-name">{{ item.productName }} ({{ item.quantity }}x)</span>
+                <span class="item-price">{{ formatCurrency(item.totalPrice) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="summary-section">
+            <h4>Delivery</h4>
+            <div class="delivery-summary">
+              <div class="delivery-address">
+                <strong>Shipping to:</strong>
+                <p>{{ shippingAddress?.companyName }}</p>
+                <p>{{ shippingAddress?.address }}</p>
+                <p>{{ shippingAddress?.postalCode }} {{ shippingAddress?.city }}</p>
+              </div>
+              <div class="delivery-method">
+                <strong>Method:</strong>
+                <p>{{ deliveryOptions.find(opt => opt.id === selectedDeliveryOption)?.name }}</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="summary-section">
+            <h4>Payment</h4>
+            <div class="payment-summary">
+              <p><strong>Method:</strong> {{ paymentMethod?.name }}</p>
+              <p><strong>Details:</strong> {{ paymentMethod?.details }}</p>
+            </div>
+          </div>
+
+          <div class="terms-section">
+            <label class="checkbox-label">
+              <input type="checkbox" [(ngModel)]="termsAccepted">
+              <span class="checkmark"></span>
+              I accept the <a href="#" target="_blank">Terms and Conditions</a> and <a href="#" target="_blank">Privacy Policy</a>
+            </label>
+          </div>
+
+          <div class="marketing-section">
+            <label class="checkbox-label">
+              <input type="checkbox" [(ngModel)]="marketingConsent">
+              <span class="checkmark"></span>
+              I would like to receive marketing communications
+            </label>
+          </div>
+        </div>
+
+        <div class="step-actions">
+          <button class="btn btn-outline" (click)="previousStep()">
+            <i class="fas fa-arrow-left"></i>
+            Back
+          </button>
+          <button class="btn btn-success btn-large" 
+                  (click)="placeOrder()" 
+                  [disabled]="!canProceedToNextStep() || processing">
+            <i class="fas fa-check" *ngIf="!processing"></i>
+            <i class="fas fa-spinner fa-spin" *ngIf="processing"></i>
+            {{ processing ? 'Processing...' : 'Place Order' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column - Order Summary -->
+    <div class="order-summary-sidebar">
+      <div class="summary-card">
+        <h3>Order Summary</h3>
+        
+        <div class="summary-row">
+          <span>Subtotal ({{ checkoutItems.length }} items):</span>
+          <span>{{ formatCurrency(orderSummary.subtotal) }}</span>
+        </div>
+
+        <div class="summary-row">
+          <span>Shipping:</span>
+          <span>{{ formatCurrency(orderSummary.shipping) }}</span>
+        </div>
+
+        <div class="summary-row">
+          <span>Tax (VAT 25%):</span>
+          <span>{{ formatCurrency(orderSummary.tax) }}</span>
+        </div>
+
+        <div class="summary-row discount" *ngIf="orderSummary.discount > 0">
+          <span>Discount:</span>
+          <span class="discount-amount">-{{ formatCurrency(orderSummary.discount) }}</span>
+        </div>
+
+        <div class="summary-divider"></div>
+
+        <div class="summary-row total">
+          <span>Total:</span>
+          <span class="total-amount">{{ formatCurrency(orderSummary.total) }}</span>
+        </div>
+
+        <div class="security-info">
+          <i class="fas fa-shield-alt"></i>
+          <span>Secure checkout with SSL encryption</span>
+        </div>
+      </div>
+
+      <!-- Help Section -->
+      <div class="help-section">
+        <h4>Need Help?</h4>
+        <div class="help-links">
+          <a href="#">
+            <i class="fas fa-phone"></i>
+            Contact Support
+          </a>
+          <a href="#">
+            <i class="fas fa-question-circle"></i>
+            FAQ
+          </a>
+          <a href="#">
+            <i class="fas fa-file-text"></i>
+            Terms & Conditions
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,10 +1,374 @@
 <div class="orders-container">
-  <h1>Orders</h1>
-  <p>Manage your purchase orders and track deliveries.</p>
-  
-  <div class="coming-soon">
-    <mat-icon>shopping_cart</mat-icon>
-    <h2>Coming Soon</h2>
-    <p>Order management and tracking features are under development.</p>
+  <!-- Header Section -->
+  <div class="page-header">
+    <div class="header-content">
+      <div class="title-section">
+        <h1>
+          <i class="fas fa-shopping-cart"></i>
+          Orders Management
+        </h1>
+        <div class="header-info">
+          <span class="info-icon" title="Track and manage all your orders">📦</span>
+          <span class="order-count">{{ getTotalOrders() }} total orders</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-primary" (click)="createNewOrder()">
+          <i class="fas fa-plus"></i>
+          New Order
+        </button>
+        <button class="btn btn-secondary" (click)="exportOrders()">
+          <i class="fas fa-download"></i>
+          Export Orders
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search and Filters -->
+  <div class="search-filters-section">
+    <div class="search-container">
+      <i class="fas fa-search search-icon"></i>
+      <input 
+        type="text" 
+        class="search-input"
+        placeholder="Search orders by number, supplier, or product..."
+        [(ngModel)]="searchQuery"
+        (input)="onSearch()">
+    </div>
+
+    <div class="filters-container">
+      <div class="filter-group">
+        <label>Status:</label>
+        <select [(ngModel)]="statusFilter" (change)="onStatusFilter(statusFilter)" class="filter-select">
+          <option value="all">All Status</option>
+          <option value="pending">Pending</option>
+          <option value="confirmed">Confirmed</option>
+          <option value="shipped">Shipped</option>
+          <option value="delivered">Delivered</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>Date Range:</label>
+        <select [(ngModel)]="dateRange" (change)="onDateRangeChange(dateRange)" class="filter-select">
+          <option value="all">All Time</option>
+          <option value="last-week">Last Week</option>
+          <option value="last-month">Last Month</option>
+          <option value="last-3-months">Last 3 Months</option>
+          <option value="last-year">Last Year</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Order Tabs -->
+  <div class="order-tabs">
+    <button 
+      *ngFor="let tab of orderTabs" 
+      [class.active]="selectedTab === tab.id"
+      (click)="onTabSelect(tab.id)"
+      class="tab-button">
+      <i [class]="tab.icon"></i>
+      <span>{{ tab.name }}</span>
+      <span class="tab-count" *ngIf="tab.count > 0">({{ tab.count }})</span>
+    </button>
+  </div>
+
+  <!-- Past Orders Tab -->
+  <div class="orders-section" *ngIf="selectedTab === 'past-orders'">
+    <div class="section-header">
+      <h2>Past Orders</h2>
+      <div class="section-actions">
+        <button class="btn btn-outline btn-sm" (click)="refreshOrders()">
+          <i class="fas fa-sync"></i>
+          Refresh
+        </button>
+      </div>
+    </div>
+
+    <div class="orders-list">
+      <div *ngFor="let order of pastOrders" class="order-card">
+        <div class="order-header">
+          <div class="order-info">
+            <h3 class="order-number">{{ order.orderNumber }}</h3>
+            <div class="order-meta">
+              <span class="order-date">{{ order.date | date:'MMM dd, yyyy' }}</span>
+              <span class="supplier-name">{{ order.supplier }}</span>
+            </div>
+          </div>
+          
+          <div class="order-status">
+            <span class="status-badge" [class]="getStatusClass(order.status)">
+              {{ getStatusText(order.status) }}
+            </span>
+            <div class="order-amount">{{ formatCurrency(order.totalAmount) }}</div>
+          </div>
+        </div>
+
+        <div class="order-items">
+          <div class="items-header">
+            <span>Items ({{ order.items.length }})</span>
+            <button class="toggle-items-btn" (click)="toggleOrderItems(order.id)">
+              <i class="fas" [class.fa-chevron-down]="!isOrderExpanded(order.id)" [class.fa-chevron-up]="isOrderExpanded(order.id)"></i>
+            </button>
+          </div>
+          
+          <div class="items-list" *ngIf="isOrderExpanded(order.id)">
+            <div *ngFor="let item of order.items" class="order-item">
+              <div class="item-image">
+                <img [src]="item.productImage" [alt]="item.productName">
+              </div>
+              <div class="item-details">
+                <h4>{{ item.productName }}</h4>
+                <div class="item-specs">
+                  <span class="quantity">{{ item.quantity }} {{ item.category }}</span>
+                  <span class="unit-price">{{ formatCurrency(item.unitPrice) }} each</span>
+                </div>
+              </div>
+              <div class="item-total">{{ formatCurrency(item.totalPrice) }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="order-actions">
+          <button class="btn btn-outline btn-sm" (click)="viewOrderDetails(order)">
+            <i class="fas fa-eye"></i>
+            View Details
+          </button>
+          <button class="btn btn-primary btn-sm" (click)="trackOrder(order)" *ngIf="order.trackingNumber">
+            <i class="fas fa-truck"></i>
+            Track Order
+          </button>
+          <button class="btn btn-danger btn-sm" (click)="cancelOrder(order)" *ngIf="order.status === 'pending'">
+            <i class="fas fa-times"></i>
+            Cancel Order
+          </button>
+          <button class="btn btn-success btn-sm" (click)="repeatOrder(order)">
+            <i class="fas fa-redo"></i>
+            Repeat Order
+          </button>
+        </div>
+
+        <div class="order-delivery" *ngIf="order.deliveryDate || order.trackingNumber">
+          <div class="delivery-info">
+            <i class="fas fa-truck"></i>
+            <span *ngIf="order.deliveryDate">Delivered: {{ order.deliveryDate | date:'MMM dd, yyyy' }}</span>
+            <span *ngIf="order.trackingNumber">Tracking: {{ order.trackingNumber }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Purchase Orders Tab -->
+  <div class="purchase-orders-section" *ngIf="selectedTab === 'purchase-orders'">
+    <div class="section-header">
+      <h2>Purchase Orders</h2>
+      <div class="section-actions">
+        <button class="btn btn-primary btn-sm" (click)="createPurchaseOrder()">
+          <i class="fas fa-plus"></i>
+          New Purchase Order
+        </button>
+      </div>
+    </div>
+
+    <div class="purchase-orders-list">
+      <div *ngFor="let po of purchaseOrders" class="purchase-order-card">
+        <div class="po-header">
+          <div class="po-info">
+            <h3 class="po-number">{{ po.poNumber }}</h3>
+            <div class="po-meta">
+              <span class="po-date">{{ po.date | date:'MMM dd, yyyy' }}</span>
+              <span class="supplier-name">{{ po.supplier }}</span>
+            </div>
+          </div>
+          
+          <div class="po-status">
+            <span class="status-badge" [class]="getStatusClass(po.status)">
+              {{ getStatusText(po.status) }}
+            </span>
+            <div class="po-amount">{{ formatCurrency(po.totalAmount) }}</div>
+          </div>
+        </div>
+
+        <div class="po-items">
+          <div class="items-header">
+            <span>Items ({{ po.items.length }})</span>
+            <span class="approval-status" *ngIf="po.approvalRequired">
+              <i class="fas fa-exclamation-triangle"></i>
+              Approval Required
+            </span>
+          </div>
+          
+          <div class="items-list">
+            <div *ngFor="let item of po.items" class="po-item">
+              <div class="item-image">
+                <img [src]="item.productImage" [alt]="item.productName">
+              </div>
+              <div class="item-details">
+                <h4>{{ item.productName }}</h4>
+                <div class="item-specs">
+                  <span class="quantity">{{ item.quantity }} {{ item.category }}</span>
+                  <span class="unit-price">{{ formatCurrency(item.unitPrice) }} each</span>
+                </div>
+              </div>
+              <div class="item-total">{{ formatCurrency(item.totalPrice) }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="po-actions">
+          <button class="btn btn-outline btn-sm" (click)="viewPODetails(po)">
+            <i class="fas fa-eye"></i>
+            View Details
+          </button>
+          <button class="btn btn-success btn-sm" (click)="approvePurchaseOrder(po)" 
+                  *ngIf="po.approvalRequired && po.status === 'sent'">
+            <i class="fas fa-check"></i>
+            Approve
+          </button>
+          <button class="btn btn-primary btn-sm" (click)="editPurchaseOrder(po)" 
+                  *ngIf="po.status === 'draft'">
+            <i class="fas fa-edit"></i>
+            Edit
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Unfulfilled Orders Tab -->
+  <div class="unfulfilled-orders-section" *ngIf="selectedTab === 'unfulfilled'">
+    <div class="section-header">
+      <h2>Unfulfilled Orders</h2>
+      <div class="section-actions">
+        <button class="btn btn-warning btn-sm" (click)="escalateUnfulfilledOrders()">
+          <i class="fas fa-exclamation-triangle"></i>
+          Escalate All
+        </button>
+      </div>
+    </div>
+
+    <div class="unfulfilled-orders-list">
+      <div *ngFor="let order of unfulfilledOrders" class="unfulfilled-order-card">
+        <div class="order-header">
+          <div class="order-info">
+            <h3 class="order-number">{{ order.orderNumber }}</h3>
+            <div class="order-meta">
+              <span class="order-date">{{ order.date | date:'MMM dd, yyyy' }}</span>
+              <span class="supplier-name">{{ order.supplier }}</span>
+            </div>
+          </div>
+          
+          <div class="order-status">
+            <span class="status-badge" [class]="getStatusClass(order.status)">
+              {{ getStatusText(order.status) }}
+            </span>
+            <div class="order-amount">{{ formatCurrency(order.totalAmount) }}</div>
+          </div>
+        </div>
+
+        <div class="order-items">
+          <div class="items-header">
+            <span>Items ({{ order.items.length }})</span>
+          </div>
+          
+          <div class="items-list">
+            <div *ngFor="let item of order.items" class="order-item">
+              <div class="item-image">
+                <img [src]="item.productImage" [alt]="item.productName">
+              </div>
+              <div class="item-details">
+                <h4>{{ item.productName }}</h4>
+                <div class="item-specs">
+                  <span class="quantity">{{ item.quantity }} {{ item.category }}</span>
+                  <span class="unit-price">{{ formatCurrency(item.unitPrice) }} each</span>
+                </div>
+              </div>
+              <div class="item-total">{{ formatCurrency(item.totalPrice) }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="order-actions">
+          <button class="btn btn-outline btn-sm" (click)="viewOrderDetails(order)">
+            <i class="fas fa-eye"></i>
+            View Details
+          </button>
+          <button class="btn btn-warning btn-sm" (click)="escalateOrder(order)">
+            <i class="fas fa-exclamation-triangle"></i>
+            Escalate
+          </button>
+          <button class="btn btn-danger btn-sm" (click)="cancelOrder(order)">
+            <i class="fas fa-times"></i>
+            Cancel Order
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Damaged Products Tab -->
+  <div class="damaged-products-section" *ngIf="selectedTab === 'damaged'">
+    <div class="section-header">
+      <h2>Damaged Products</h2>
+      <div class="section-actions">
+        <button class="btn btn-primary btn-sm" (click)="reportDamagedProduct()">
+          <i class="fas fa-plus"></i>
+          Report Damage
+        </button>
+      </div>
+    </div>
+
+    <div class="damaged-products-list">
+      <div *ngFor="let damaged of damagedProducts" class="damaged-product-card">
+        <div class="damaged-header">
+          <div class="product-info">
+            <div class="product-image">
+              <img [src]="damaged.productImage" [alt]="damaged.productName">
+            </div>
+            <div class="product-details">
+              <h3>{{ damaged.productName }}</h3>
+              <div class="product-meta">
+                <span class="order-ref">Order: {{ damaged.orderId }}</span>
+                <span class="damaged-qty">{{ damaged.quantityDamaged }} units damaged</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="damaged-status">
+            <span class="status-badge" [class]="getStatusClass(damaged.status)">
+              {{ getStatusText(damaged.status) }}
+            </span>
+            <div class="compensation" *ngIf="damaged.compensationAmount">
+              Compensation: {{ formatCurrency(damaged.compensationAmount) }}
+            </div>
+          </div>
+        </div>
+
+        <div class="damaged-details">
+          <div class="reason">
+            <strong>Reason:</strong> {{ damaged.reason }}
+          </div>
+          <div class="reported-date">
+            <strong>Reported:</strong> {{ damaged.reportedDate | date:'MMM dd, yyyy' }}
+          </div>
+        </div>
+
+        <div class="damaged-actions">
+          <button class="btn btn-outline btn-sm" (click)="viewDamagedDetails(damaged)">
+            <i class="fas fa-eye"></i>
+            View Details
+          </button>
+          <button class="btn btn-success btn-sm" (click)="resolveDamagedProduct(damaged)" 
+                  *ngIf="damaged.status !== 'resolved'">
+            <i class="fas fa-check"></i>
+            Mark Resolved
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

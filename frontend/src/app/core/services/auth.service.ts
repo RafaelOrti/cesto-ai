@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, throwError, timer } from 'rxjs';
+import { BehaviorSubject, Observable, throwError, timer, of } from 'rxjs';
 import { map, tap, catchError, switchMap, retry } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { User, ApiResponse } from '../../../shared/types/common.types';
@@ -55,13 +55,12 @@ export class AuthService {
    * Login with email and password
    */
   login(email: string, password: string, rememberMe: boolean = false): Observable<User> {
-    return this.http.post<ApiResponse<{ user: User; tokens: { accessToken: string; refreshToken: string } }>>(
-      '/auth/login',
-      { email, password, rememberMe }
+    return this.http.post<{ access_token: string; refresh_token: string; user: User }>(
+      '/api/v1/auth/login',
+      { email, password }
     ).pipe(
-      map(response => response.data),
-      tap(({ user, tokens }) => {
-        this.setTokens(tokens.accessToken, tokens.refreshToken);
+      tap(({ access_token, refresh_token, user }) => {
+        this.setTokens(access_token, refresh_token);
         this.stateService.setCurrentUser(user);
         this.startTokenRefreshTimer();
         this.notificationService.success(`Bienvenido, ${user.firstName}!`);
@@ -81,7 +80,7 @@ export class AuthService {
     const refreshToken = this.getRefreshToken();
     
     if (refreshToken) {
-      return this.http.post<void>('/auth/logout', { refreshToken }).pipe(
+      return this.http.post<void>('/api/v1/auth/logout', { refreshToken }).pipe(
         tap(() => {
           this.clearAuthData();
           this.notificationService.info('Sesión cerrada correctamente');
@@ -108,8 +107,8 @@ export class AuthService {
     lastName: string;
     role: 'admin' | 'supplier' | 'buyer';
   }): Observable<User> {
-    return this.http.post<ApiResponse<User>>('/auth/register', userData).pipe(
-      map(response => response.data),
+    return this.http.post<{ user: User }>('/api/v1/auth/register', userData).pipe(
+      map(response => response.user),
       tap(user => {
         this.notificationService.success('Cuenta creada correctamente. Por favor, inicia sesión.');
       }),
@@ -183,7 +182,7 @@ export class AuthService {
    * Send email verification
    */
   sendEmailVerification(): Observable<void> {
-    return this.http.post<void>('/auth/send-verification').pipe(
+    return this.http.post<void>('/auth/send-verification', {}).pipe(
       tap(() => {
         this.notificationService.info('Email de verificación enviado');
       }),

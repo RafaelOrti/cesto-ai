@@ -1,5 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { RedisService } from '@nestjs-modules/ioredis';
+import { Injectable, Logger, Inject } from '@nestjs/common';
+import { Redis } from 'ioredis';
 import { Observable, of, throwError } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 
@@ -13,7 +13,7 @@ export class CacheService {
   private readonly DEFAULT_TTL = 300; // 5 minutes
   private readonly MAX_TTL = 86400; // 24 hours
 
-  constructor(private readonly redis: RedisService) {}
+  constructor(@Inject('Redis') private readonly redis: Redis) {}
 
   // ============================================================================
   // BASIC CACHE OPERATIONS

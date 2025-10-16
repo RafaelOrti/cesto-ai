@@ -25,10 +25,10 @@ export async function initializeDefaultCestoTheme(dataSource: DataSource): Promi
     is_default: true,
     color_config: {
       primary: {
-        main: '#008080',      // Dark teal (header background)
-        light: '#20B2AA',     // Lighter teal
-        dark: '#006666',      // Darker teal
-        contrast: '#FFFFFF'   // White text on teal
+        main: '#00C851',      // Bright green (header background)
+        light: '#4CAF50',     // Lighter green
+        dark: '#00A041',      // Darker green
+        contrast: '#FFFFFF'   // White text on green
       },
       secondary: {
         main: '#E0E0E0',      // Light gray (sidebar background)

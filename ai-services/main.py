@@ -5,7 +5,6 @@ from sqlalchemy.orm import Session
 from datetime import datetime
 import logging
 
-# Import our refactored modules
 from config.settings import settings
 from core.database import db_manager
 from core.redis_client import redis_manager
@@ -22,7 +21,6 @@ from models import (
     PriceRecommendationResponse
 )
 
-# Setup logging
 setup_logging()
 logger = get_logger(__name__)
 
@@ -33,7 +31,6 @@ app = FastAPI(
     debug=settings.debug
 )
 
-# CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
@@ -42,15 +39,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Database dependency
 def get_db():
     return db_manager.get_session_dependency()
 
-# Redis dependency
 def get_redis():
     return redis_manager
 
-# Error handlers
 @app.exception_handler(Exception)
 async def global_exception_handler(request, exc):
     logger.error(f"Unhandled exception: {exc}", exc_info=True)
@@ -79,7 +73,6 @@ async def predict_demand(request: DemandForecastRequest, db: Session = Depends(g
     logger.info(f"Generating demand forecast for product {request.product_id}")
     
     try:
-        # Get historical data from database
         from sqlalchemy import text
         result = db.execute(text("""
             SELECT 
@@ -113,20 +106,16 @@ async def predict_demand(request: DemandForecastRequest, db: Session = Depends(g
                 model_used="default"
             )
         
-        # Convert to DataFrame
         import pandas as pd
         df = pd.DataFrame([row._asdict() for row in data])
         
-        # Generate predictions using ML service
         predictions, confidence_score, model_used = await ml_service.predict_demand(
             df, request.forecast_days
         )
         
-        # Get AI insights
         historical_demand = df['quantity'].tolist()
         ai_insights = await ai_service.get_demand_forecast_insights(historical_demand, predictions)
         
-        # Cache the insights
         cache_key = f"demand_insights:{request.product_id}"
         redis_manager.set(cache_key, ai_insights, ttl=settings.ai_model_cache_ttl)
         
@@ -153,7 +142,6 @@ async def optimize_inventory(request: InventoryOptimizationRequest, db: Session 
     logger.info(f"Optimizing inventory for buyer {request.buyer_id}")
     
     try:
-        # Get current inventory data
         from sqlalchemy import text
         result = db.execute(text("""
             SELECT 
@@ -180,7 +168,6 @@ async def optimize_inventory(request: InventoryOptimizationRequest, db: Session 
                 optimization_score=0
             )
         
-        # Use ML service for optimization
         optimization_result = ml_service.optimize_inventory(inventory_data)
         
         logger.info(f"Inventory optimization completed with score {optimization_result['optimization_score']:.2f}")
@@ -204,7 +191,6 @@ async def get_price_recommendations(request: PriceRecommendationRequest, db: Ses
     logger.info(f"Generating price recommendations for product {request.product_id}")
     
     try:
-        # Get market data for similar products
         from sqlalchemy import text
         result = db.execute(text("""
             SELECT 
@@ -228,7 +214,6 @@ async def get_price_recommendations(request: PriceRecommendationRequest, db: Ses
         
         market_data = [row._asdict() for row in result.fetchall()]
         
-        # Get current product price
         current_product_result = db.execute(text("""
             SELECT price FROM products WHERE id = :product_id
         """), {"product_id": request.product_id})
@@ -236,7 +221,6 @@ async def get_price_recommendations(request: PriceRecommendationRequest, db: Ses
         current_price_row = current_product_result.fetchone()
         current_price = float(current_price_row.price) if current_price_row else 0
         
-        # Use ML service for price recommendations
         recommendation_result = ml_service.get_price_recommendations(market_data, current_price)
         
         logger.info(f"Price recommendations generated for product {request.product_id}")
@@ -255,9 +239,7 @@ async def get_price_recommendations(request: PriceRecommendationRequest, db: Ses
 
 @app.get("/ai/cache/clear")
 async def clear_cache():
-    """
-    Clear AI model cache
-    """
+    """Clear AI model cache"""
     logger.info("Clearing AI model cache")
     
     try:
@@ -272,9 +254,7 @@ async def clear_cache():
 
 @app.post("/ai/groq-insights")
 async def get_groq_business_insights(request: dict):
-    """
-    Get AI-powered business insights using Groq
-    """
+    """Get AI-powered business insights using Groq"""
     prompt = request.get("prompt", "")
     context = request.get("context", {})
     
@@ -299,9 +279,7 @@ async def get_groq_business_insights(request: dict):
 
 @app.get("/ai/status")
 async def get_ai_service_status():
-    """
-    Check AI service status
-    """
+    """Check AI service status"""
     return {
         "ai_service_available": ai_service.is_available(),
         "redis_available": redis_manager.health_check(),

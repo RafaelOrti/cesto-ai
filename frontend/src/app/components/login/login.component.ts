@@ -39,10 +39,6 @@ export class LoginComponent implements OnInit, OnDestroy {
   passwordStrength = 0;
   passwordStrengthLabel = '';
   private destroy$ = new Subject<void>();
-  private loginAttempts = 0;
-  private maxLoginAttempts = 5;
-  private lockoutTime = 15 * 60 * 1000; // 15 minutes
-  private lockoutUntil: Date | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -51,7 +47,6 @@ export class LoginComponent implements OnInit, OnDestroy {
     private snackBar: MatSnackBar
   ) {
     this.initializeForms();
-    this.checkLockoutStatus();
   }
 
   ngOnInit(): void {
@@ -77,7 +72,7 @@ export class LoginComponent implements OnInit, OnDestroy {
       password: ['', [Validators.required, Validators.minLength(8), this.passwordStrengthValidator]],
       confirmPassword: ['', [Validators.required]],
       companyName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
-      role: ['buyer', Validators.required],
+      role: ['client', Validators.required],
       termsAccepted: [false, Validators.requiredTrue]
     }, { validators: this.passwordMatchValidator });
   }
@@ -88,59 +83,12 @@ export class LoginComponent implements OnInit, OnDestroy {
       .subscribe(password => this.calculatePasswordStrength(password));
   }
 
-  private checkLockoutStatus(): void {
-    const lockoutData = localStorage.getItem('login_lockout');
-    if (lockoutData) {
-      const { attempts, until } = JSON.parse(lockoutData);
-      this.loginAttempts = attempts;
-      this.lockoutUntil = new Date(until);
-      
-      if (this.lockoutUntil && new Date() < this.lockoutUntil) {
-        this.setLockoutStatus();
-      } else {
-        this.clearLockoutStatus();
-      }
-    }
-  }
-
-  private setLockoutStatus(): void {
-    this.lockoutUntil = new Date(Date.now() + this.lockoutTime);
-    localStorage.setItem('login_lockout', JSON.stringify({
-      attempts: this.loginAttempts,
-      until: this.lockoutUntil.toISOString()
-    }));
-  }
-
-  private clearLockoutStatus(): void {
-    this.lockoutUntil = null;
-    this.loginAttempts = 0;
-    localStorage.removeItem('login_lockout');
-  }
-
-  isLockedOut(): boolean {
-    return this.lockoutUntil !== null && new Date() < this.lockoutUntil;
-  }
-
-  private getRemainingLockoutTime(): string {
-    if (!this.lockoutUntil) return '';
-    const remaining = Math.ceil((this.lockoutUntil.getTime() - Date.now()) / 1000 / 60);
-    return `${remaining} minutes`;
-  }
 
   toggleMode(): void {
     this.isLoginMode = !this.isLoginMode;
     this.clearFormErrors();
   }
 
-  setLoginMode(): void {
-    this.isLoginMode = true;
-    this.clearFormErrors();
-  }
-
-  setRegisterMode(): void {
-    this.isLoginMode = false;
-    this.clearFormErrors();
-  }
 
   setForgotPasswordMode(): void {
     // TODO: Implement forgot password functionality
@@ -159,7 +107,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   async onSubmit(): Promise<void> {
-    if (this.isLoading || this.isLockedOut()) return;
+    if (this.isLoading) return;
 
     if (this.isLoginMode) {
       await this.login();
@@ -182,9 +130,6 @@ export class LoginComponent implements OnInit, OnDestroy {
       };
 
       await this.authService.login(credentials).toPromise();
-      
-      // Reset login attempts on successful login
-      this.clearLockoutStatus();
       
       this.snackBar.open('Welcome back!', 'Close', {
         duration: 3000,
@@ -231,8 +176,6 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   private handleLoginError(error: any): void {
-    this.loginAttempts++;
-    
     let errorMessage = 'Login failed. Please check your credentials.';
     
     if (error.status === 401) {
@@ -241,11 +184,6 @@ export class LoginComponent implements OnInit, OnDestroy {
       errorMessage = 'Too many login attempts. Please try again later.';
     } else if (error.status === 0) {
       errorMessage = 'Unable to connect to server. Please check your internet connection.';
-    }
-
-    if (this.loginAttempts >= this.maxLoginAttempts) {
-      this.setLockoutStatus();
-      errorMessage = `Account temporarily locked due to multiple failed attempts. Please try again in ${this.getRemainingLockoutTime()}.`;
     }
 
     this.snackBar.open(errorMessage, 'Close', {
@@ -407,11 +345,6 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   get isFormDisabled(): boolean {
-    return this.isLoading || this.isLockedOut();
-  }
-
-  get lockoutMessage(): string {
-    if (!this.isLockedOut()) return '';
-    return `Account locked for ${this.getRemainingLockoutTime()} due to multiple failed attempts.`;
+    return this.isLoading;
   }
 }

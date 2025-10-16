@@ -327,6 +327,22 @@ export class ShoppingListComponent implements OnInit {
     return `${Math.round(confidence * 100)}%`;
   }
 
+  getProductName(productId: string): string {
+    const item = this.shoppingListItems.find(i => i.id === productId);
+    return item ? item.productName : 'Unknown Product';
+  }
+
+  getShoppingListItem(productId: string): ShoppingListItem | undefined {
+    return this.shoppingListItems.find(i => i.id === productId);
+  }
+
+  getNextPriority(currentPriority: string): 'low' | 'medium' | 'high' {
+    const priorities = ['low', 'medium', 'high'];
+    const currentIndex = priorities.indexOf(currentPriority);
+    const nextIndex = (currentIndex + 1) % priorities.length;
+    return priorities[nextIndex] as 'low' | 'medium' | 'high';
+  }
+
   private loadShoppingList(): void {
     // Load shopping list from API
   }

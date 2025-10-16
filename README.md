@@ -12,31 +12,59 @@ The application follows a microservices architecture with three main components:
 
 ## 👥 Test Users
 
-The application comes with pre-configured test users for different roles:
+The application comes with pre-configured test users organized by role type:
 
-### Admin Users
+### 🔑 Admin Users
+**Full system access and configuration**
 - **Email**: `admin@cesto.com` | **Password**: `password123`
 - **Email**: `admin@cesto.ai` | **Password**: `password123`
-- **Role**: Administrator with full system access
+- **Email**: `superadmin@cesto.com` | **Password**: `admin123`
+- **Email**: `admin@stockfiller.com` | **Password**: `password123`
 
-### Supplier Users
+### 🏭 Supplier Users
+**Suppliers who can manage products, campaigns, and orders**
 - **Email**: `supplier@cesto.com` | **Password**: `password123`
 - **Email**: `supplier@dairy.com` | **Password**: `password123`
 - **Email**: `supplier@meat.com` | **Password**: `password123`
-- **Role**: Suppliers who can manage products, campaigns, and orders
+- **Email**: `supplier@vegetables.com` | **Password**: `password123`
+- **Email**: `supplier@beverages.com` | **Password**: `password123`
+- **Email**: `supplier@bakery.com` | **Password**: `password123`
+- **Email**: `supplier@seafood.com` | **Password**: `password123`
+- **Email**: `supplier@frozen.com` | **Password**: `password123`
+- **Email**: `supplier@organic.com` | **Password**: `password123`
+- **Email**: `supplier@wholesale.com` | **Password**: `password123`
 
-### Client/Buyer Users
+### 🛒 Client/Buyer Users
+**Clients who can browse products, place orders, and manage their business**
+
+#### Restaurants & Food Service
 - **Email**: `client@cesto.com` | **Password**: `password123`
-- **Email**: `client2@cesto.com` | **Password**: `password123`
-- **Email**: `buyer@cesto.com` | **Password**: `password123`
 - **Email**: `buyer@restaurant.com` | **Password**: `password123`
 - **Email**: `cliente@restaurante.com` | **Password**: `password123`
-- **Email**: `demo@stockfiller.com` | **Password**: `password123`
-- **Role**: Clients who can browse products, place orders, and manage their business
+- **Email**: `restaurant@bistro.com` | **Password**: `password123`
+- **Email**: `cafe@urban.com` | **Password**: `password123`
+- **Email**: `hotel@kitchen.com` | **Password**: `password123`
 
-### Demo User
+#### Retail & Supermarkets
+- **Email**: `client2@cesto.com` | **Password**: `password123`
+- **Email**: `buyer@cesto.com` | **Password**: `password123`
+- **Email**: `supermarket@chain.com` | **Password**: `password123`
+- **Email**: `grocery@store.com` | **Password**: `password123`
+- **Email**: `retail@food.com` | **Password**: `password123`
+- **Email**: `market@fresh.com` | **Password**: `password123`
+
+#### Corporate & Catering
+- **Email**: `catering@corporate.com` | **Password**: `password123`
+- **Email**: `events@catering.com` | **Password**: `password123`
+- **Email**: `corporate@cafe.com` | **Password**: `password123`
+- **Email**: `office@catering.com` | **Password**: `password123`
+
+### 🎯 Demo & Test Users
+**Special users for testing and demonstration purposes**
 - **Email**: `demo@stockfiller.com` | **Password**: `password123`
-- **Role**: Demo user for testing purposes
+- **Email**: `test@cesto.com` | **Password**: `test123`
+- **Email**: `guest@cesto.com` | **Password**: `guest123`
+- **Email**: `demo@client.com` | **Password**: `demo123`
 
 ## 🔐 User Roles & Permissions
 

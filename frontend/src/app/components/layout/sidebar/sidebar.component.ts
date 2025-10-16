@@ -97,6 +97,37 @@ export class SidebarComponent implements OnInit, OnDestroy {
     }
   }
 
+  private getAdminMenuItems(): MenuItem[] {
+    return [
+      {
+        label: 'DASHBOARD',
+        icon: 'dashboard',
+        route: '/admin'
+      },
+      {
+        label: 'USER MANAGEMENT',
+        icon: 'people',
+        route: '/admin/users',
+        subItems: [
+          { label: 'All Users', icon: 'list', route: '/admin/users' },
+          { label: 'Create User', icon: 'person_add', route: '/admin/users/create' },
+          { label: 'User Roles', icon: 'admin_panel_settings', route: '/admin/users/roles' }
+        ]
+      },
+      {
+        label: 'SYSTEM SETTINGS',
+        icon: 'settings',
+        route: '/admin/settings',
+        subItems: [
+          { label: 'General Config', icon: 'tune', route: '/admin/settings/general' },
+          { label: 'Security', icon: 'security', route: '/admin/settings/security' },
+          { label: 'Notifications', icon: 'notifications', route: '/admin/settings/notifications' },
+          { label: 'System Limits', icon: 'speed', route: '/admin/settings/limits' }
+        ]
+      }
+    ];
+  }
+
          private getClientMenuItems(): MenuItem[] {
            return [
              {

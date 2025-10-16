@@ -29,21 +29,20 @@ export class EcommerceController {
     private readonly wishlistService: WishlistService,
   ) {}
 
-  // Shopping Cart Endpoints
   @Get('cart')
-      @Roles(UserRole.CLIENT)
+  @Roles(UserRole.CLIENT)
   async getCart(@Request() req) {
     return this.shoppingCartService.getCart(req.user.id);
   }
 
   @Post('cart/add')
-      @Roles(UserRole.CLIENT)
+  @Roles(UserRole.CLIENT)
   async addToCart(@Request() req, @Body() addToCartDto: any) {
     return this.shoppingCartService.addToCart(req.user.id, addToCartDto);
   }
 
   @Put('cart/update/:productId')
-      @Roles(UserRole.CLIENT)
+  @Roles(UserRole.CLIENT)
   async updateCartItem(
     @Request() req,
     @Param('productId') productId: string,
@@ -57,7 +56,7 @@ export class EcommerceController {
   }
 
   @Delete('cart/remove/:productId')
-      @Roles(UserRole.CLIENT)
+  @Roles(UserRole.CLIENT)
   async removeFromCart(
     @Request() req,
     @Param('productId') productId: string,
@@ -66,12 +65,11 @@ export class EcommerceController {
   }
 
   @Delete('cart/clear')
-      @Roles(UserRole.CLIENT)
+  @Roles(UserRole.CLIENT)
   async clearCart(@Request() req) {
     return this.shoppingCartService.clearCart(req.user.id);
   }
 
-  // Product Reviews Endpoints
   @Get('products/:productId/reviews')
   async getProductReviews(
     @Param('productId') productId: string,
@@ -82,7 +80,7 @@ export class EcommerceController {
   }
 
   @Post('products/:productId/reviews')
-      @Roles(UserRole.CLIENT)
+  @Roles(UserRole.CLIENT)
   async createReview(
     @Request() req,
     @Param('productId') productId: string,
@@ -96,7 +94,7 @@ export class EcommerceController {
   }
 
   @Put('reviews/:reviewId')
-      @Roles(UserRole.CLIENT)
+  @Roles(UserRole.CLIENT)
   async updateReview(
     @Request() req,
     @Param('reviewId') reviewId: string,
@@ -110,7 +108,7 @@ export class EcommerceController {
   }
 
   @Delete('reviews/:reviewId')
-      @Roles(UserRole.CLIENT)
+  @Roles(UserRole.CLIENT)
   async deleteReview(
     @Request() req,
     @Param('reviewId') reviewId: string,
@@ -118,15 +116,14 @@ export class EcommerceController {
     return this.productReviewService.deleteReview(req.user.id, reviewId);
   }
 
-  // Wishlist Endpoints
   @Get('wishlist')
-      @Roles(UserRole.CLIENT)
+  @Roles(UserRole.CLIENT)
   async getWishlist(@Request() req) {
     return this.wishlistService.getWishlist(req.user.id);
   }
 
   @Post('wishlist/add/:productId')
-      @Roles(UserRole.CLIENT)
+  @Roles(UserRole.CLIENT)
   async addToWishlist(
     @Request() req,
     @Param('productId') productId: string,
@@ -135,7 +132,7 @@ export class EcommerceController {
   }
 
   @Delete('wishlist/remove/:productId')
-      @Roles(UserRole.CLIENT)
+  @Roles(UserRole.CLIENT)
   async removeFromWishlist(
     @Request() req,
     @Param('productId') productId: string,
@@ -143,7 +140,6 @@ export class EcommerceController {
     return this.wishlistService.removeFromWishlist(req.user.id, productId);
   }
 
-  // Product Catalog Endpoints
   @Get('products')
   async getProducts(
     @Query('page') page: number = 1,
@@ -191,9 +187,8 @@ export class EcommerceController {
     return this.ecommerceService.getOnSaleProducts(limit);
   }
 
-  // Checkout Endpoints
   @Post('checkout')
-      @Roles(UserRole.CLIENT)
+  @Roles(UserRole.CLIENT)
   async checkout(@Request() req, @Body() checkoutDto: any) {
     return this.ecommerceService.checkout(req.user.id, checkoutDto);
   }

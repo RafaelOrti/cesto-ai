@@ -15,43 +15,16 @@
   <!-- Navigation Sidebar -->
   <div class="sidebar">
     <div class="nav-item" [class.active]="currentView === 'dashboard'" (click)="navigateToView('dashboard')">
+      <i class="material-icons">dashboard</i>
       DASHBOARD
     </div>
-    <div class="nav-item" [class.active]="currentView === 'suppliers'" (click)="navigateToView('suppliers')">
-      SUPPLIERS
-    </div>
-    <div class="nav-item" [class.active]="currentView === 'products'" (click)="navigateToView('products')">
-      PRODUCTS
-    </div>
-    <div class="nav-item" [class.active]="currentView === 'products-on-sale'" (click)="navigateToView('products-on-sale')">
-      ON SALE
-    </div>
-    <div class="nav-item" [class.active]="currentView === 'orders'" (click)="navigateToView('orders')">
-      ORDERS
-    </div>
-    <div class="nav-item" [class.active]="currentView === 'shopping-list'" (click)="navigateToView('shopping-list')">
-      SHOPPING LIST
-    </div>
-    <div class="nav-item" [class.active]="currentView === 'inventory'" (click)="navigateToView('inventory')">
-      INVENTORY
-    </div>
-    <div class="nav-item" [class.active]="currentView === 'analysis'" (click)="navigateToView('analysis')">
-      ANALYSIS
-    </div>
-    <div class="nav-item" [class.active]="currentView === 'team'" (click)="navigateToView('team')">
-      TEAM
-    </div>
-    <div class="nav-item" [class.active]="currentView === 'invoices'" (click)="navigateToView('invoices')">
-      INVOICES
-    </div>
-    <div class="nav-item" [class.active]="currentView === 'ean-code'" (click)="navigateToView('ean-code')">
-      EAN CODE
-    </div>
     <div class="nav-item" [class.active]="currentView === 'users'" (click)="navigateToView('users')">
-      USERS
+      <i class="material-icons">people</i>
+      USER MANAGEMENT
     </div>
-    <div class="nav-item" [class.active]="currentView === 'color-themes'" (click)="navigateToView('color-themes')">
-      COLOR THEMES
+    <div class="nav-item" [class.active]="currentView === 'settings'" (click)="navigateToView('settings')">
+      <i class="material-icons">settings</i>
+      SYSTEM SETTINGS
     </div>
   </div>
 
@@ -378,20 +351,77 @@
     </div>
 
     <!-- System Configuration View -->
-    <div *ngIf="currentView === 'team'" class="system-config-content">
-      <h2>System Configuration</h2>
+    <div *ngIf="currentView === 'settings'" class="system-config-content">
+      <h2>System Settings</h2>
+      <p class="settings-description">Configure general app settings, security parameters, notifications, and system limits.</p>
       
-      <div class="config-list">
-        <div class="config-item" *ngFor="let config of systemConfig">
-          <div class="config-info">
-            <h4>{{ config.key }}</h4>
-            <p>{{ config.description }}</p>
-            <span class="config-category">{{ config.category }}</span>
-          </div>
-          <div class="config-value">
-            <input type="text" [value]="config.value" (change)="updateSystemConfig(config)">
+      <!-- Configuration Categories -->
+      <div class="config-categories">
+        
+        <!-- General Configuration -->
+        <div class="config-category-section">
+          <h3><i class="material-icons">tune</i> General Configuration</h3>
+          <div class="config-list">
+            <div class="config-item" *ngFor="let config of getConfigByCategory('general')">
+              <div class="config-info">
+                <h4>{{ config.key }}</h4>
+                <p>{{ config.description }}</p>
+              </div>
+              <div class="config-value">
+                <input type="text" [value]="config.value" (change)="updateSystemConfig(config)">
+              </div>
+            </div>
           </div>
         </div>
+
+        <!-- Security Configuration -->
+        <div class="config-category-section">
+          <h3><i class="material-icons">security</i> Security Settings</h3>
+          <div class="config-list">
+            <div class="config-item" *ngFor="let config of getConfigByCategory('security')">
+              <div class="config-info">
+                <h4>{{ config.key }}</h4>
+                <p>{{ config.description }}</p>
+              </div>
+              <div class="config-value">
+                <input type="text" [value]="config.value" (change)="updateSystemConfig(config)">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notification Configuration -->
+        <div class="config-category-section">
+          <h3><i class="material-icons">notifications</i> Notification Settings</h3>
+          <div class="config-list">
+            <div class="config-item" *ngFor="let config of getConfigByCategory('notification')">
+              <div class="config-info">
+                <h4>{{ config.key }}</h4>
+                <p>{{ config.description }}</p>
+              </div>
+              <div class="config-value">
+                <input type="text" [value]="config.value" (change)="updateSystemConfig(config)">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- System Limits -->
+        <div class="config-category-section">
+          <h3><i class="material-icons">speed</i> System Limits</h3>
+          <div class="config-list">
+            <div class="config-item" *ngFor="let config of getConfigByCategory('limits')">
+              <div class="config-info">
+                <h4>{{ config.key }}</h4>
+                <p>{{ config.description }}</p>
+              </div>
+              <div class="config-value">
+                <input type="text" [value]="config.value" (change)="updateSystemConfig(config)">
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
 
       <!-- Data Export/Import -->

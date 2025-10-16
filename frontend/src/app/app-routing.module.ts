@@ -106,8 +106,21 @@ const routes: Routes = [
   },
   {
     path: 'admin',
-    component: AdminDashboardComponent,
-    // canActivate: [AuthGuard], // Temporarily disabled for testing
+    children: [
+      {
+        path: '',
+        component: AdminDashboardComponent,
+        // canActivate: [AuthGuard], // Temporarily disabled for testing
+      },
+      {
+        path: 'users',
+        component: AdminDashboardComponent, // Will handle user management views
+      },
+      {
+        path: 'settings',
+        component: AdminDashboardComponent, // Will handle system settings views
+      }
+    ]
   },
   {
     path: '**',

@@ -68,13 +68,13 @@
             <input 
               type="date" 
               [ngModel]="comparisonFilters.dateRange?.from" 
-              (ngModelChange)="comparisonFilters.dateRange = { ...comparisonFilters.dateRange, from: $event }" 
+              (ngModelChange)="onComparisonDateFromChange($event)" 
               class="date-input">
             <label>To:</label>
             <input 
               type="date" 
               [ngModel]="comparisonFilters.dateRange?.to" 
-              (ngModelChange)="comparisonFilters.dateRange = { ...comparisonFilters.dateRange, to: $event }" 
+              (ngModelChange)="onComparisonDateToChange($event)" 
               class="date-input">
           </div>
           <button class="apply-comparison-btn" (click)="applyComparison()">

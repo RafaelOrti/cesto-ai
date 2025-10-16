@@ -45,6 +45,8 @@
 html, body { 
   height: 100%; 
   margin: 0; 
+  padding: 0;
+  overflow-x: hidden;
   font-family: Roboto, "Helvetica Neue", sans-serif;
   background-color: var(--color-background-primary);
   color: var(--color-text-primary);

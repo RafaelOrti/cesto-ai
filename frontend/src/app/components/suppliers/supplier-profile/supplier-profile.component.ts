@@ -243,6 +243,12 @@ export class SupplierProfileComponent implements OnInit, OnDestroy {
       
       // Update in backend
       this.updateSupplierFavorite(this.supplier.id, this.supplier.isFavorite);
+      
+      // Show notification
+      const message = this.supplier.isFavorite 
+        ? `${this.supplier.name} added to favorites` 
+        : `${this.supplier.name} removed from favorites`;
+      this.showNotification(message, 'success');
     }
   }
 
@@ -250,21 +256,512 @@ export class SupplierProfileComponent implements OnInit, OnDestroy {
     try {
       // API call to update favorite status
       console.log(`Updating favorite status for supplier ${supplierId}: ${isFavorite}`);
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
     } catch (error) {
       console.error('Error updating favorite status:', error);
+      this.showNotification('Error updating favorite status', 'error');
     }
   }
 
   showContactInfo(): void {
     if (this.supplier) {
-      // Show contact modal or navigate to contact page
-      console.log('Showing contact info:', this.supplier.contactInfo);
+      // Show contact modal
+      this.showContactModal();
     }
   }
 
   reportError(): void {
-    // Show report error modal
-    console.log('Reporting error for supplier:', this.supplier?.id);
+    if (this.supplier) {
+      // Show report error modal
+      this.showReportErrorModal();
+    }
+  }
+
+  private showContactModal(): void {
+    if (!this.supplier) return;
+
+    const modal = document.createElement('div');
+    modal.className = 'contact-modal-overlay';
+    modal.innerHTML = `
+      <div class="contact-modal">
+        <div class="modal-header">
+          <h2>Contact ${this.supplier.name}</h2>
+          <button class="close-btn" onclick="this.closest('.contact-modal-overlay').remove()">
+            <i class="icon-close"></i>
+          </button>
+        </div>
+        
+        <div class="modal-body">
+          <div class="contact-info">
+            <div class="contact-item">
+              <i class="fas fa-envelope"></i>
+              <div class="contact-details">
+                <h4>Email</h4>
+                <p>${this.supplier.contactInfo.email}</p>
+                <button class="btn btn-sm btn-primary" onclick="window.sendEmail('${this.supplier.contactInfo.email}')">
+                  Send Email
+                </button>
+              </div>
+            </div>
+            
+            <div class="contact-item">
+              <i class="fas fa-phone"></i>
+              <div class="contact-details">
+                <h4>Phone</h4>
+                <p>${this.supplier.contactInfo.phone}</p>
+                <button class="btn btn-sm btn-primary" onclick="window.callNumber('${this.supplier.contactInfo.phone}')">
+                  Call Now
+                </button>
+              </div>
+            </div>
+            
+            <div class="contact-item">
+              <i class="fas fa-map-marker-alt"></i>
+              <div class="contact-details">
+                <h4>Address</h4>
+                <p>${this.supplier.contactInfo.address}</p>
+                <button class="btn btn-sm btn-primary" onclick="window.openMaps('${this.supplier.contactInfo.address}')">
+                  View on Map
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <div class="quick-actions">
+            <h4>Quick Actions</h4>
+            <div class="action-buttons">
+              <button class="btn btn-secondary" onclick="window.sendInquiry('${this.supplier.id}')">
+                <i class="fas fa-comment"></i> Send Inquiry
+              </button>
+              <button class="btn btn-secondary" onclick="window.requestQuote('${this.supplier.id}')">
+                <i class="fas fa-file-invoice"></i> Request Quote
+              </button>
+              <button class="btn btn-secondary" onclick="window.scheduleMeeting('${this.supplier.id}')">
+                <i class="fas fa-calendar"></i> Schedule Meeting
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Add global functions for contact modal
+    (window as any).sendEmail = (email: string) => {
+      const subject = encodeURIComponent(`Business Inquiry - ${this.supplier?.name}`);
+      const body = encodeURIComponent(`
+Hello,
+
+I am interested in discussing business opportunities with your company.
+
+Best regards,
+[Your Name]
+      `);
+      window.open(`mailto:${email}?subject=${subject}&body=${body}`);
+      modal.remove();
+    };
+
+    (window as any).callNumber = (phone: string) => {
+      window.open(`tel:${phone}`);
+      modal.remove();
+    };
+
+    (window as any).openMaps = (address: string) => {
+      const encodedAddress = encodeURIComponent(address);
+      window.open(`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`);
+    };
+
+    (window as any).sendInquiry = (supplierId: string) => {
+      modal.remove();
+      this.sendInquiry();
+    };
+
+    (window as any).requestQuote = (supplierId: string) => {
+      modal.remove();
+      this.requestQuote();
+    };
+
+    (window as any).scheduleMeeting = (supplierId: string) => {
+      modal.remove();
+      this.scheduleMeeting();
+    };
+
+    // Close modal when clicking overlay
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.remove();
+      }
+    });
+  }
+
+  private showReportErrorModal(): void {
+    if (!this.supplier) return;
+
+    const modal = document.createElement('div');
+    modal.className = 'report-error-modal-overlay';
+    modal.innerHTML = `
+      <div class="report-error-modal">
+        <div class="modal-header">
+          <h2>Report Issue - ${this.supplier.name}</h2>
+          <button class="close-btn" onclick="this.closest('.report-error-modal-overlay').remove()">
+            <i class="icon-close"></i>
+          </button>
+        </div>
+        
+        <div class="modal-body">
+          <form class="report-error-form">
+            <div class="form-group">
+              <label>Issue Type *</label>
+              <select id="issue-type" required>
+                <option value="">Select issue type</option>
+                <option value="delivery">Delivery Issue</option>
+                <option value="product">Product Quality</option>
+                <option value="pricing">Pricing Problem</option>
+                <option value="communication">Communication Issue</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label>Order Number (if applicable)</label>
+              <input type="text" id="order-number" placeholder="Enter order number">
+            </div>
+            
+            <div class="form-group">
+              <label>Description *</label>
+              <textarea id="issue-description" rows="4" placeholder="Describe the issue in detail" required></textarea>
+            </div>
+            
+            <div class="form-group">
+              <label>Priority</label>
+              <select id="issue-priority">
+                <option value="low">Low</option>
+                <option value="medium" selected>Medium</option>
+                <option value="high">High</option>
+                <option value="urgent">Urgent</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label>Contact Information</label>
+              <input type="email" id="reporter-email" placeholder="Your email" required>
+              <input type="tel" id="reporter-phone" placeholder="Your phone number">
+            </div>
+            
+            <div class="modal-actions">
+              <button type="submit" class="btn btn-primary" onclick="window.submitErrorReport('${this.supplier.id}')">
+                <i class="fas fa-exclamation-triangle"></i> Submit Report
+              </button>
+              <button type="button" class="btn btn-outline" onclick="this.closest('.report-error-modal-overlay').remove()">
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    (window as any).submitErrorReport = (supplierId: string) => {
+      const issueType = (document.getElementById('issue-type') as HTMLSelectElement)?.value;
+      const orderNumber = (document.getElementById('order-number') as HTMLInputElement)?.value;
+      const description = (document.getElementById('issue-description') as HTMLTextAreaElement)?.value;
+      const priority = (document.getElementById('issue-priority') as HTMLSelectElement)?.value;
+      const email = (document.getElementById('reporter-email') as HTMLInputElement)?.value;
+      const phone = (document.getElementById('reporter-phone') as HTMLInputElement)?.value;
+
+      if (!issueType || !description || !email) {
+        this.showNotification('Please fill in all required fields', 'error');
+        return;
+      }
+
+      modal.remove();
+      this.showNotification('Issue report submitted successfully!', 'success');
+    };
+
+    // Close modal when clicking overlay
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.remove();
+      }
+    });
+  }
+
+  private sendInquiry(): void {
+    if (!this.supplier) return;
+
+    const modal = document.createElement('div');
+    modal.className = 'inquiry-modal-overlay';
+    modal.innerHTML = `
+      <div class="inquiry-modal">
+        <div class="modal-header">
+          <h2>Send Inquiry - ${this.supplier.name}</h2>
+          <button class="close-btn" onclick="this.closest('.inquiry-modal-overlay').remove()">
+            <i class="icon-close"></i>
+          </button>
+        </div>
+        
+        <div class="modal-body">
+          <form class="inquiry-form">
+            <div class="form-group">
+              <label>Subject *</label>
+              <input type="text" id="inquiry-subject" placeholder="Enter inquiry subject" required>
+            </div>
+            
+            <div class="form-group">
+              <label>Message *</label>
+              <textarea id="inquiry-message" rows="5" placeholder="Enter your inquiry message" required></textarea>
+            </div>
+            
+            <div class="form-group">
+              <label>Contact Information</label>
+              <input type="email" id="inquiry-email" placeholder="Your email" required>
+              <input type="tel" id="inquiry-phone" placeholder="Your phone number">
+            </div>
+            
+            <div class="modal-actions">
+              <button type="submit" class="btn btn-primary" onclick="window.submitInquiry('${this.supplier.id}')">
+                <i class="fas fa-paper-plane"></i> Send Inquiry
+              </button>
+              <button type="button" class="btn btn-outline" onclick="this.closest('.inquiry-modal-overlay').remove()">
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    (window as any).submitInquiry = (supplierId: string) => {
+      const subject = (document.getElementById('inquiry-subject') as HTMLInputElement)?.value;
+      const message = (document.getElementById('inquiry-message') as HTMLTextAreaElement)?.value;
+      const email = (document.getElementById('inquiry-email') as HTMLInputElement)?.value;
+      const phone = (document.getElementById('inquiry-phone') as HTMLInputElement)?.value;
+
+      if (!subject || !message || !email) {
+        this.showNotification('Please fill in all required fields', 'error');
+        return;
+      }
+
+      modal.remove();
+      this.showNotification('Inquiry sent successfully!', 'success');
+    };
+
+    // Close modal when clicking overlay
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.remove();
+      }
+    });
+  }
+
+  private requestQuote(): void {
+    if (!this.supplier) return;
+
+    const modal = document.createElement('div');
+    modal.className = 'quote-modal-overlay';
+    modal.innerHTML = `
+      <div class="quote-modal">
+        <div class="modal-header">
+          <h2>Request Quote - ${this.supplier.name}</h2>
+          <button class="close-btn" onclick="this.closest('.quote-modal-overlay').remove()">
+            <i class="icon-close"></i>
+          </button>
+        </div>
+        
+        <div class="modal-body">
+          <form class="quote-form">
+            <div class="form-group">
+              <label>Products of Interest *</label>
+              <select id="quote-products" multiple required>
+                ${this.supplier.products.slice(0, 10).map(product => 
+                  `<option value="${product.id}">${product.name} - ${product.pricePerUnit}</option>`
+                ).join('')}
+              </select>
+              <small>Hold Ctrl/Cmd to select multiple products</small>
+            </div>
+            
+            <div class="form-group">
+              <label>Quantity *</label>
+              <input type="number" id="quote-quantity" placeholder="Enter quantity" min="1" required>
+            </div>
+            
+            <div class="form-group">
+              <label>Delivery Requirements</label>
+              <textarea id="quote-delivery" rows="3" placeholder="Specify delivery requirements"></textarea>
+            </div>
+            
+            <div class="form-group">
+              <label>Additional Notes</label>
+              <textarea id="quote-notes" rows="3" placeholder="Any additional requirements or notes"></textarea>
+            </div>
+            
+            <div class="modal-actions">
+              <button type="submit" class="btn btn-primary" onclick="window.submitQuoteRequest('${this.supplier.id}')">
+                <i class="fas fa-file-invoice"></i> Request Quote
+              </button>
+              <button type="button" class="btn btn-outline" onclick="this.closest('.quote-modal-overlay').remove()">
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    (window as any).submitQuoteRequest = (supplierId: string) => {
+      const products = Array.from((document.getElementById('quote-products') as HTMLSelectElement)?.selectedOptions || [])
+        .map(option => option.value);
+      const quantity = (document.getElementById('quote-quantity') as HTMLInputElement)?.value;
+      const delivery = (document.getElementById('quote-delivery') as HTMLTextAreaElement)?.value;
+      const notes = (document.getElementById('quote-notes') as HTMLTextAreaElement)?.value;
+
+      if (!products.length || !quantity) {
+        this.showNotification('Please select products and quantity', 'error');
+        return;
+      }
+
+      modal.remove();
+      this.showNotification('Quote request sent successfully!', 'success');
+    };
+
+    // Close modal when clicking overlay
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.remove();
+      }
+    });
+  }
+
+  private scheduleMeeting(): void {
+    if (!this.supplier) return;
+
+    const modal = document.createElement('div');
+    modal.className = 'meeting-modal-overlay';
+    modal.innerHTML = `
+      <div class="meeting-modal">
+        <div class="modal-header">
+          <h2>Schedule Meeting - ${this.supplier.name}</h2>
+          <button class="close-btn" onclick="this.closest('.meeting-modal-overlay').remove()">
+            <i class="icon-close"></i>
+          </button>
+        </div>
+        
+        <div class="modal-body">
+          <form class="meeting-form">
+            <div class="form-group">
+              <label>Meeting Type *</label>
+              <select id="meeting-type" required>
+                <option value="">Select meeting type</option>
+                <option value="video">Video Call</option>
+                <option value="phone">Phone Call</option>
+                <option value="in-person">In-Person Meeting</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label>Preferred Date *</label>
+              <input type="date" id="meeting-date" required>
+            </div>
+            
+            <div class="form-group">
+              <label>Preferred Time *</label>
+              <input type="time" id="meeting-time" required>
+            </div>
+            
+            <div class="form-group">
+              <label>Duration</label>
+              <select id="meeting-duration">
+                <option value="30">30 minutes</option>
+                <option value="60" selected>1 hour</option>
+                <option value="90">1.5 hours</option>
+                <option value="120">2 hours</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label>Meeting Purpose *</label>
+              <textarea id="meeting-purpose" rows="3" placeholder="Describe the purpose of the meeting" required></textarea>
+            </div>
+            
+            <div class="form-group">
+              <label>Contact Information</label>
+              <input type="email" id="meeting-email" placeholder="Your email" required>
+              <input type="tel" id="meeting-phone" placeholder="Your phone number">
+            </div>
+            
+            <div class="modal-actions">
+              <button type="submit" class="btn btn-primary" onclick="window.submitMeetingRequest('${this.supplier.id}')">
+                <i class="fas fa-calendar"></i> Schedule Meeting
+              </button>
+              <button type="button" class="btn btn-outline" onclick="this.closest('.meeting-modal-overlay').remove()">
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    (window as any).submitMeetingRequest = (supplierId: string) => {
+      const type = (document.getElementById('meeting-type') as HTMLSelectElement)?.value;
+      const date = (document.getElementById('meeting-date') as HTMLInputElement)?.value;
+      const time = (document.getElementById('meeting-time') as HTMLInputElement)?.value;
+      const duration = (document.getElementById('meeting-duration') as HTMLSelectElement)?.value;
+      const purpose = (document.getElementById('meeting-purpose') as HTMLTextAreaElement)?.value;
+      const email = (document.getElementById('meeting-email') as HTMLInputElement)?.value;
+      const phone = (document.getElementById('meeting-phone') as HTMLInputElement)?.value;
+
+      if (!type || !date || !time || !purpose || !email) {
+        this.showNotification('Please fill in all required fields', 'error');
+        return;
+      }
+
+      modal.remove();
+      this.showNotification('Meeting request sent successfully!', 'success');
+    };
+
+    // Close modal when clicking overlay
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.remove();
+      }
+    });
+  }
+
+  private showNotification(message: string, type: 'success' | 'error' | 'info'): void {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.innerHTML = `
+      <div class="notification-content">
+        <i class="icon-${type === 'success' ? 'check' : type === 'error' ? 'error' : 'info'}"></i>
+        <span>${message}</span>
+      </div>
+    `;
+
+    // Add to page
+    document.body.appendChild(notification);
+
+    // Show notification
+    setTimeout(() => notification.classList.add('show'), 100);
+
+    // Remove notification after 3 seconds
+    setTimeout(() => {
+      notification.classList.remove('show');
+      setTimeout(() => document.body.removeChild(notification), 300);
+    }, 3000);
   }
 
   decreaseQuantity(product: Product): void {

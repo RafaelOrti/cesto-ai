@@ -248,6 +248,20 @@ export class DashboardComponent implements OnInit, OnDestroy {
     return item.color;
   }
 
+  onComparisonDateFromChange(date: string): void {
+    if (!this.comparisonFilters.dateRange) {
+      this.comparisonFilters.dateRange = { from: '', to: '' };
+    }
+    this.comparisonFilters.dateRange.from = date;
+  }
+
+  onComparisonDateToChange(date: string): void {
+    if (!this.comparisonFilters.dateRange) {
+      this.comparisonFilters.dateRange = { from: '', to: '' };
+    }
+    this.comparisonFilters.dateRange.to = date;
+  }
+
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: Event): void {
     const target = event.target as HTMLElement;

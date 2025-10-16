@@ -223,26 +223,107 @@ export class AdminDashboardComponent implements OnInit {
   loadSystemConfig(): void {
     // Load system configuration
     this.systemConfig = [
+      // General Configuration
       {
         id: '1',
-        key: 'max_file_upload_size',
-        value: '10MB',
-        category: 'system',
-        description: 'Maximum file upload size'
+        key: 'app_name',
+        value: 'CESTO',
+        category: 'general',
+        description: 'Application name'
       },
       {
         id: '2',
+        key: 'app_version',
+        value: '1.0.0',
+        category: 'general',
+        description: 'Application version'
+      },
+      {
+        id: '3',
+        key: 'maintenance_mode',
+        value: 'false',
+        category: 'general',
+        description: 'Enable maintenance mode'
+      },
+      {
+        id: '4',
+        key: 'default_language',
+        value: 'en',
+        category: 'general',
+        description: 'Default application language'
+      },
+      // Security Configuration
+      {
+        id: '5',
         key: 'session_timeout',
         value: '3600',
         category: 'security',
         description: 'Session timeout in seconds'
       },
       {
-        id: '3',
+        id: '6',
+        key: 'max_login_attempts',
+        value: '5',
+        category: 'security',
+        description: 'Maximum login attempts before lockout'
+      },
+      {
+        id: '7',
+        key: 'password_min_length',
+        value: '8',
+        category: 'security',
+        description: 'Minimum password length'
+      },
+      {
+        id: '8',
+        key: 'enable_2fa',
+        value: 'true',
+        category: 'security',
+        description: 'Enable two-factor authentication'
+      },
+      // Notification Configuration
+      {
+        id: '9',
         key: 'enable_notifications',
         value: 'true',
         category: 'notification',
         description: 'Enable system notifications'
+      },
+      {
+        id: '10',
+        key: 'email_notifications',
+        value: 'true',
+        category: 'notification',
+        description: 'Enable email notifications'
+      },
+      {
+        id: '11',
+        key: 'push_notifications',
+        value: 'true',
+        category: 'notification',
+        description: 'Enable push notifications'
+      },
+      // System Limits
+      {
+        id: '12',
+        key: 'max_file_upload_size',
+        value: '10MB',
+        category: 'limits',
+        description: 'Maximum file upload size'
+      },
+      {
+        id: '13',
+        key: 'max_users_per_company',
+        value: '50',
+        category: 'limits',
+        description: 'Maximum users per company'
+      },
+      {
+        id: '14',
+        key: 'api_rate_limit',
+        value: '1000',
+        category: 'limits',
+        description: 'API requests per hour per user'
       }
     ];
   }
@@ -452,6 +533,10 @@ export class AdminDashboardComponent implements OnInit {
       pages.push(i);
     }
     return pages;
+  }
+
+  getConfigByCategory(category: string): SystemConfigItem[] {
+    return this.systemConfig.filter(config => config.category === category);
   }
 
   updateSystemConfig(config: any): void {

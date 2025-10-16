@@ -168,7 +168,8 @@ export interface CartItem {
         <div class="suppliers-grid">
           <div *ngFor="let supplier of filteredSuppliers" 
                class="supplier-card" 
-               [class.inquiry-sent]="supplier.inquirySent">
+               [class.inquiry-sent]="supplier.inquirySent"
+               [attr.data-supplier-id]="supplier.id">
             
             <!-- Supplier Image -->
             <div class="supplier-image">
@@ -228,7 +229,7 @@ export interface CartItem {
             <!-- Supplier Actions -->
             <div class="supplier-actions">
               <button *ngIf="!supplier.inquirySent" 
-                      class="btn btn-primary" 
+                      class="btn btn-primary inquiry-btn" 
                       (click)="onSendInquiry(supplier)">
                 <mat-icon>send</mat-icon>
                 Skicka förfrågan
@@ -613,17 +614,238 @@ export class SuppliersEnhancedComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Send inquiry logic
-    supplier.inquirySent = true;
-    console.log('Inquiry sent to:', supplier.name);
+    console.log('Sending inquiry to:', supplier.name);
+    
+    // Show loading state
+    const inquiryButton = document.querySelector(`[data-supplier-id="${supplier.id}"] .inquiry-btn`) as HTMLButtonElement;
+    if (inquiryButton) {
+      inquiryButton.disabled = true;
+      inquiryButton.innerHTML = '<mat-icon>hourglass_empty</mat-icon> Sending...';
+    }
+
+    // Simulate sending inquiry
+    setTimeout(() => {
+      supplier.inquirySent = true;
+      
+      // Reset button state
+      if (inquiryButton) {
+        inquiryButton.disabled = false;
+        inquiryButton.innerHTML = '<mat-icon>check</mat-icon> Förfrågan skickad';
+        inquiryButton.classList.add('sent');
+      }
+      
+      this.showNotification(`Inquiry sent to ${supplier.name} successfully!`, 'success');
+    }, 2000);
   }
 
   onAddSupplier(): void {
-    console.log('Add supplier functionality');
+    console.log('Adding new supplier');
+    
+    // Show add supplier modal
+    this.showAddSupplierModal();
   }
 
   showMoreCategories(): void {
-    console.log('Show more categories');
+    console.log('Showing more categories');
+    
+    // Show more categories modal
+    this.showMoreCategoriesModal();
+  }
+
+  private showAddSupplierModal(): void {
+    const modal = document.createElement('div');
+    modal.className = 'add-supplier-modal-overlay';
+    modal.innerHTML = `
+      <div class="add-supplier-modal">
+        <div class="modal-header">
+          <h2>Add New Supplier</h2>
+          <button class="close-btn" onclick="this.closest('.add-supplier-modal-overlay').remove()">
+            <i class="icon-close"></i>
+          </button>
+        </div>
+        
+        <div class="modal-body">
+          <form class="add-supplier-form">
+            <div class="form-group">
+              <label>Supplier Name *</label>
+              <input type="text" id="supplier-name" placeholder="Enter supplier name" required>
+            </div>
+            
+            <div class="form-group">
+              <label>Company Name *</label>
+              <input type="text" id="company-name" placeholder="Enter company name" required>
+            </div>
+            
+            <div class="form-group">
+              <label>Category *</label>
+              <select id="supplier-category" required>
+                <option value="">Select category</option>
+                ${this.categories.map(cat => `<option value="${cat.id}">${this.getCategoryName(cat)}</option>`).join('')}
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label>Description</label>
+              <textarea id="supplier-description" rows="3" placeholder="Enter supplier description"></textarea>
+            </div>
+            
+            <div class="form-group">
+              <label>Contact Email *</label>
+              <input type="email" id="supplier-email" placeholder="Enter contact email" required>
+            </div>
+            
+            <div class="form-group">
+              <label>Contact Phone</label>
+              <input type="tel" id="supplier-phone" placeholder="Enter contact phone">
+            </div>
+            
+            <div class="form-group">
+              <label>Address</label>
+              <textarea id="supplier-address" rows="2" placeholder="Enter supplier address"></textarea>
+            </div>
+            
+            <div class="form-group">
+              <label>Website</label>
+              <input type="url" id="supplier-website" placeholder="Enter website URL">
+            </div>
+            
+            <div class="form-group">
+              <label>Special Features</label>
+              <div class="checkbox-group">
+                <label><input type="checkbox" id="free-delivery"> Free Delivery</label>
+                <label><input type="checkbox" id="co-delivery"> Co-Delivery</label>
+                <label><input type="checkbox" id="on-sale"> Currently on Sale</label>
+              </div>
+            </div>
+            
+            <div class="modal-actions">
+              <button type="submit" class="btn btn-primary" onclick="window.submitAddSupplier()">
+                <mat-icon>add</mat-icon> Add Supplier
+              </button>
+              <button type="button" class="btn btn-outline" onclick="this.closest('.add-supplier-modal-overlay').remove()">
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    (window as any).submitAddSupplier = () => {
+      const name = (document.getElementById('supplier-name') as HTMLInputElement)?.value;
+      const companyName = (document.getElementById('company-name') as HTMLInputElement)?.value;
+      const category = (document.getElementById('supplier-category') as HTMLSelectElement)?.value;
+      const description = (document.getElementById('supplier-description') as HTMLTextAreaElement)?.value;
+      const email = (document.getElementById('supplier-email') as HTMLInputElement)?.value;
+      const phone = (document.getElementById('supplier-phone') as HTMLInputElement)?.value;
+      const address = (document.getElementById('supplier-address') as HTMLTextAreaElement)?.value;
+      const website = (document.getElementById('supplier-website') as HTMLInputElement)?.value;
+      const freeDelivery = (document.getElementById('free-delivery') as HTMLInputElement)?.checked;
+      const coDelivery = (document.getElementById('co-delivery') as HTMLInputElement)?.checked;
+      const onSale = (document.getElementById('on-sale') as HTMLInputElement)?.checked;
+
+      if (!name || !companyName || !category || !email) {
+        this.showNotification('Please fill in all required fields', 'error');
+        return;
+      }
+
+      // Add new supplier to the list
+      const newSupplier: Supplier = {
+        id: Date.now().toString(),
+        name: name,
+        description: description || `Supplier: ${name}`,
+        category: category,
+        onSale: onSale || false,
+        freeDelivery: freeDelivery || false,
+        coDelivery: coDelivery || false,
+        recentlyAdded: true,
+        popular: false,
+        inquirySent: false,
+        rating: 0,
+        hasCampaign: false,
+        hasNewProducts: false,
+        isFavorite: false,
+        orderHistory: []
+      };
+
+      this.suppliers.unshift(newSupplier);
+      this.applyFilters();
+
+      modal.remove();
+      this.showNotification('Supplier added successfully!', 'success');
+    };
+
+    // Close modal when clicking overlay
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.remove();
+      }
+    });
+  }
+
+  private showMoreCategoriesModal(): void {
+    const modal = document.createElement('div');
+    modal.className = 'more-categories-modal-overlay';
+    modal.innerHTML = `
+      <div class="more-categories-modal">
+        <div class="modal-header">
+          <h2>All Categories</h2>
+          <button class="close-btn" onclick="this.closest('.more-categories-modal-overlay').remove()">
+            <i class="icon-close"></i>
+          </button>
+        </div>
+        
+        <div class="modal-body">
+          <div class="categories-grid">
+            ${this.categories.map(category => `
+              <div class="category-item ${category.active ? 'active' : ''}" 
+                   onclick="window.toggleCategoryFromModal('${category.id}')">
+                <span class="category-icon">${category.icon}</span>
+                <span class="category-name">${this.getCategoryName(category)}</span>
+                <span class="category-count">${Math.floor(Math.random() * 50) + 10} suppliers</span>
+              </div>
+            `).join('')}
+          </div>
+          
+          <div class="modal-actions">
+            <button class="btn btn-primary" onclick="window.applyCategorySelection()">
+              Apply Selection
+            </button>
+            <button class="btn btn-outline" onclick="this.closest('.more-categories-modal-overlay').remove()">
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    (window as any).toggleCategoryFromModal = (categoryId: string) => {
+      const category = this.categories.find(c => c.id === categoryId);
+      if (category) {
+        category.active = !category.active;
+        const categoryElement = document.querySelector(`[onclick="window.toggleCategoryFromModal('${categoryId}')"]`);
+        if (categoryElement) {
+          categoryElement.classList.toggle('active');
+        }
+      }
+    };
+
+    (window as any).applyCategorySelection = () => {
+      modal.remove();
+      this.applyFilters();
+      this.showNotification('Category filters applied!', 'success');
+    };
+
+    // Close modal when clicking overlay
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.remove();
+      }
+    });
   }
 
   clearAllFilters(): void {
@@ -735,5 +957,29 @@ export class SuppliersEnhancedComponent implements OnInit, OnDestroy {
       day: 'numeric',
       year: 'numeric'
     });
+  }
+
+  public showNotification(message: string, type: 'success' | 'error' | 'info'): void {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.innerHTML = `
+      <div class="notification-content">
+        <i class="icon-${type === 'success' ? 'check' : type === 'error' ? 'error' : 'info'}"></i>
+        <span>${message}</span>
+      </div>
+    `;
+
+    // Add to page
+    document.body.appendChild(notification);
+
+    // Show notification
+    setTimeout(() => notification.classList.add('show'), 100);
+
+    // Remove notification after 3 seconds
+    setTimeout(() => {
+      notification.classList.remove('show');
+      setTimeout(() => document.body.removeChild(notification), 300);
+    }, 3000);
   }
 }

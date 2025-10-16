@@ -5,7 +5,6 @@ from pydantic_settings import BaseSettings
 from pydantic import validator
 from dotenv import load_dotenv
 
-# Load .env file
 load_dotenv()
 
 
@@ -77,13 +76,10 @@ class Settings(BaseSettings):
         return v.upper()
     
     class Config:
-        # env_file = ".env"  # Load from local .env file - temporarily disabled
         env_file_encoding = "utf-8"
         case_sensitive = False
         protected_namespaces = ('settings_',)
         env_ignore_empty = True
 
-
-# Global settings instance
 settings = Settings()
 

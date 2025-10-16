@@ -1,5 +1,5 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
-import { ValidationError } from '../../../shared/types/common.types';
+import { ValidationError } from '../../../../shared/types/common.types';
 
 /**
  * Advanced validation service for backend
@@ -7,9 +7,6 @@ import { ValidationError } from '../../../shared/types/common.types';
  */
 @Injectable()
 export class ValidationService {
-  // ============================================================================
-  // BASIC VALIDATION METHODS
-  // ============================================================================
 
   /**
    * Validate email format
@@ -136,9 +133,6 @@ export class ValidationService {
     return regex.test(code);
   }
 
-  // ============================================================================
-  // DATA VALIDATION
-  // ============================================================================
 
   /**
    * Validate required fields
@@ -266,9 +260,6 @@ export class ValidationService {
     return errors;
   }
 
-  // ============================================================================
-  // BUSINESS RULE VALIDATION
-  // ============================================================================
 
   /**
    * Validate date ranges

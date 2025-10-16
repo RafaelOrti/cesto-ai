@@ -10,6 +10,7 @@ import { Campaign } from './entities/campaign.entity';
 import { ProductSupplier } from './entities/product-supplier.entity';
 import { Invoice } from './entities/invoice.entity';
 import { Product } from '../products/entities/product.entity';
+import { User } from '../users/entities/user.entity';
 
 @Module({
   imports: [
@@ -18,7 +19,8 @@ import { Product } from '../products/entities/product.entity';
       Campaign,
       ProductSupplier,
       Invoice,
-      Product
+      Product,
+      User
     ])
   ],
   controllers: [SuppliersController, SuppliersPublicController],

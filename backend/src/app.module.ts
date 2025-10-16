@@ -7,6 +7,7 @@ import { EdiModule } from './edi/edi.module';
 import { SuppliersModule } from './suppliers/suppliers.module';
 import { AdminModule } from './admin/admin.module';
 import { UsersModule } from './users/users.module';
+import { EcommerceModule } from './ecommerce/ecommerce.module';
 import { SharedModule } from './shared/shared.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -38,6 +39,7 @@ import redisConfig from './config/redis.config';
     SuppliersModule,
     AdminModule,
     UsersModule,
+    EcommerceModule,
   ],
   controllers: [AppController],
   providers: [AppService],

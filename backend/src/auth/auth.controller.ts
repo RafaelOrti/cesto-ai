@@ -32,14 +32,14 @@ export class AuthController {
   @Post('logout')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
-  async logout(@Request() req, @Body('refresh_token') refreshToken?: string) {
+  async logout(@Request() req: any, @Body('refresh_token') refreshToken?: string) {
     return this.authService.logout(req.user.userId, refreshToken);
   }
 
   @Post('change-password')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
-  async changePassword(@Request() req, @Body() changePasswordDto: ChangePasswordDto) {
+  async changePassword(@Request() req: any, @Body() changePasswordDto: ChangePasswordDto) {
     return this.authService.changePassword(
       req.user.userId,
       changePasswordDto.currentPassword,
@@ -61,7 +61,7 @@ export class AuthController {
 
   @Get('profile')
   @UseGuards(JwtAuthGuard)
-  async getProfile(@Request() req) {
+  async getProfile(@Request() req: any) {
     return this.authService.getProfile(req.user.userId);
   }
 

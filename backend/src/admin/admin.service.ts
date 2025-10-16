@@ -143,10 +143,11 @@ export class AdminService {
       let user: User;
       
       if (isUpdate) {
-        user = await this.userRepository.findOne({ where: { id: userData.id } });
-        if (!user) {
+        const existingUser = await this.userRepository.findOne({ where: { id: userData.id } });
+        if (!existingUser) {
           throw new Error('User not found');
         }
+        user = existingUser;
         Object.assign(user, userData);
         const savedUser = await this.userRepository.save(user);
         

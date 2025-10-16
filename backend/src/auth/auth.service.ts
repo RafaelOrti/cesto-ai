@@ -1,7 +1,7 @@
-import { Injectable, UnauthorizedException, ConflictException, BadRequestException, TooManyRequestsException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ConflictException, BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, MoreThan } from 'typeorm';
+import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { User, UserRole } from '../users/entities/user.entity';
 import { Supplier } from '../suppliers/entities/supplier.entity';
@@ -67,7 +67,7 @@ export class AuthService {
       if (lockoutTime) {
         const remainingTime = parseInt(lockoutTime) - Date.now();
         if (remainingTime > 0) {
-          throw new TooManyRequestsException(
+          throw new BadRequestException(
             `Account locked due to multiple failed attempts. Please try again in ${Math.ceil(remainingTime / 60000)} minutes.`
           );
         }

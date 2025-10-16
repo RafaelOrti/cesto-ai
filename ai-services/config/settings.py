@@ -1,7 +1,12 @@
 """Application configuration settings."""
 import os
 from typing import List, Optional
-from pydantic import BaseSettings, validator
+from pydantic_settings import BaseSettings
+from pydantic import validator
+from dotenv import load_dotenv
+
+# Load .env file
+load_dotenv()
 
 
 class Settings(BaseSettings):
@@ -44,8 +49,24 @@ class Settings(BaseSettings):
     
     @validator('cors_origins', pre=True)
     def parse_cors_origins(cls, v):
+        if v is None or v == '':
+            return [
+                "http://localhost:4400",
+                "http://localhost:3400",
+            ]
         if isinstance(v, str):
-            return [origin.strip() for origin in v.split(',')]
+            if not v or v.strip() == '':
+                return [
+                    "http://localhost:4400",
+                    "http://localhost:3400",
+                ]
+            try:
+                # Try to parse as JSON first
+                import json
+                return json.loads(v)
+            except (json.JSONDecodeError, TypeError):
+                # If not JSON, split by comma
+                return [origin.strip() for origin in v.split(',') if origin.strip()]
         return v
     
     @validator('log_level')
@@ -56,9 +77,11 @@ class Settings(BaseSettings):
         return v.upper()
     
     class Config:
-        env_file = ".env"
+        # env_file = ".env"  # Load from local .env file - temporarily disabled
         env_file_encoding = "utf-8"
         case_sensitive = False
+        protected_namespaces = ('settings_',)
+        env_ignore_empty = True
 
 
 # Global settings instance

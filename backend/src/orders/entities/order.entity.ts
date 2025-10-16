@@ -1,7 +1,16 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
-import { Buyer } from '../../buyers/entities/buyer.entity';
-import { Supplier } from '../../suppliers/entities/supplier.entity';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  ManyToOne,
+  OneToMany,
+  JoinColumn,
+} from 'typeorm';
+import { User } from '../../users/entities/user.entity';
 import { OrderItem } from './order-item.entity';
+import { OrderStatus } from '../enums/order-status.enum';
 
 @Entity('orders')
 export class Order {
@@ -11,34 +20,51 @@ export class Order {
   @Column()
   orderNumber: string;
 
-  @ManyToOne(() => Buyer, buyer => buyer.orders)
-  @JoinColumn({ name: 'buyerId' })
-  buyer: Buyer;
-
   @Column()
   buyerId: string;
-
-  @ManyToOne(() => Supplier, supplier => supplier.orders)
-  @JoinColumn({ name: 'supplierId' })
-  supplier: Supplier;
 
   @Column()
   supplierId: string;
 
-  @Column({ type: 'decimal', precision: 12, scale: 2 })
+  @ManyToOne(() => User, { eager: true })
+  @JoinColumn({ name: 'buyerId' })
+  buyer: User;
+
+  @ManyToOne(() => User, { eager: true })
+  @JoinColumn({ name: 'supplierId' })
+  supplier: User;
+
+  @Column({
+    type: 'enum',
+    enum: OrderStatus,
+    default: OrderStatus.PENDING,
+  })
+  status: OrderStatus;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
   totalAmount: number;
 
-  @Column({ default: 'pending' })
-  status: string;
+  @Column({ type: 'text', nullable: true })
+  notes: string;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  orderDate: Date;
+  @Column({ type: 'text', nullable: true })
+  supplierNotes: string;
 
   @Column({ type: 'timestamp', nullable: true })
-  deliveryDate: Date;
+  requestedDeliveryDate: Date;
 
-  @OneToMany(() => OrderItem, orderItem => orderItem.order)
+  @Column({ type: 'timestamp', nullable: true })
+  confirmedDeliveryDate: Date;
+
+  @Column({ type: 'timestamp', nullable: true })
+  actualDeliveryDate: Date;
+
+  @OneToMany(() => OrderItem, (item) => item.order, { cascade: true })
   items: OrderItem[];
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 }
-
-

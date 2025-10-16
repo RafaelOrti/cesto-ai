@@ -29,14 +29,23 @@ export class Product {
   @Column({ type: 'text', nullable: true })
   description: string;
 
+  @Column({ nullable: true })
+  shortDescription: string;
+
   @Column({
     type: 'enum',
     enum: ProductCategory,
   })
   category: ProductCategory;
 
+  @Column({ nullable: true })
+  subcategory: string;
+
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   price: number;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  originalPrice: number;
 
   @Column()
   unit: string;
@@ -50,14 +59,77 @@ export class Product {
   @Column({ nullable: true })
   imageUrl: string;
 
+  @Column({ type: 'text', array: true, default: '{}' })
+  imageUrls: string[];
+
+  @Column({ type: 'decimal', precision: 8, scale: 3, nullable: true })
+  weight: number;
+
+  @Column({ nullable: true })
+  dimensions: string;
+
   @Column({ default: 1 })
   minOrderQuantity: number;
+
+  @Column({ nullable: true })
+  maxOrderQuantity: number;
+
+  @Column({ default: 0 })
+  stockQuantity: number;
 
   @Column({ default: 7 })
   leadTimeDays: number;
 
   @Column({ default: true })
   isActive: boolean;
+
+  @Column({ default: false })
+  isFeatured: boolean;
+
+  @Column({ default: false })
+  isOnSale: boolean;
+
+  @Column({ nullable: true })
+  saleStartDate: Date;
+
+  @Column({ nullable: true })
+  saleEndDate: Date;
+
+  @Column({ type: 'text', array: true, default: '{}' })
+  tags: string[];
+
+  @Column({ type: 'jsonb', nullable: true })
+  specifications: any;
+
+  @Column({ type: 'jsonb', nullable: true })
+  nutritionalInfo: any;
+
+  @Column({ type: 'text', array: true, default: '{}' })
+  allergens: string[];
+
+  @Column({ nullable: true })
+  originCountry: string;
+
+  @Column({ nullable: true })
+  brand: string;
+
+  @Column({ nullable: true })
+  model: string;
+
+  @Column({ nullable: true })
+  warrantyPeriod: number; // in months
+
+  @Column({ type: 'decimal', precision: 3, scale: 2, default: 0.00 })
+  rating: number;
+
+  @Column({ default: 0 })
+  reviewCount: number;
+
+  @Column({ default: 0 })
+  viewCount: number;
+
+  @Column({ default: 0 })
+  salesCount: number;
 
   @CreateDateColumn()
   createdAt: Date;

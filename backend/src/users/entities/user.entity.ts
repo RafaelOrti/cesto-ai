@@ -66,6 +66,9 @@ export class User {
   @Column({ default: false })
   emailVerified: boolean;
 
+  @Column({ type: 'timestamp', nullable: true })
+  lastLoginAt: Date;
+
   @CreateDateColumn()
   createdAt: Date;
 

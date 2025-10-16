@@ -1,7 +1,7 @@
 import { registerAs } from '@nestjs/config';
 
 export default registerAs('app', () => ({
-  port: parseInt(process.env.PORT, 10) || 3400,
+  port: parseInt(process.env.PORT || '3400', 10),
   nodeEnv: process.env.NODE_ENV || 'development',
   apiPrefix: process.env.API_PREFIX || 'api/v1',
   cors: {
@@ -16,14 +16,14 @@ export default registerAs('app', () => ({
     expiresIn: process.env.JWT_EXPIRES_IN || '24h',
   },
   bcrypt: {
-    rounds: parseInt(process.env.BCRYPT_ROUNDS, 10) || 12,
+    rounds: parseInt(process.env.BCRYPT_ROUNDS || '12', 10),
   },
   pagination: {
-    defaultLimit: parseInt(process.env.PAGINATION_DEFAULT_LIMIT, 10) || 10,
-    maxLimit: parseInt(process.env.PAGINATION_MAX_LIMIT, 10) || 100,
+    defaultLimit: parseInt(process.env.PAGINATION_DEFAULT_LIMIT || '10', 10),
+    maxLimit: parseInt(process.env.PAGINATION_MAX_LIMIT || '100', 10),
   },
   fileUpload: {
-    maxSize: parseInt(process.env.MAX_FILE_SIZE, 10) || 10 * 1024 * 1024, // 10MB
+    maxSize: parseInt(process.env.MAX_FILE_SIZE || '10485760', 10), // 10MB
     uploadPath: process.env.UPLOAD_PATH || './uploads',
     supportedImageTypes: [
       'image/jpeg',
@@ -41,8 +41,8 @@ export default registerAs('app', () => ({
     ],
   },
   ai: {
-    modelCacheTtl: parseInt(process.env.AI_MODEL_CACHE_TTL, 10) || 3600,
-    predictionConfidenceThreshold: parseFloat(process.env.AI_PREDICTION_CONFIDENCE_THRESHOLD) || 0.7,
+    modelCacheTtl: parseInt(process.env.AI_MODEL_CACHE_TTL || '3600', 10),
+    predictionConfidenceThreshold: parseFloat(process.env.AI_PREDICTION_CONFIDENCE_THRESHOLD || '0.7'),
   },
   logging: {
     level: process.env.LOG_LEVEL || 'info',

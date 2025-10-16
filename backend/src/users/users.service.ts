@@ -11,11 +11,13 @@ export class UsersService {
   ) {}
 
   async findByEmail(email: string): Promise<User | undefined> {
-    return this.usersRepository.findOne({ where: { email } }) || undefined;
+    const user = await this.usersRepository.findOne({ where: { email } });
+    return user || undefined;
   }
 
   async findById(id: string): Promise<User | undefined> {
-    return this.usersRepository.findOne({ where: { id } }) || undefined;
+    const user = await this.usersRepository.findOne({ where: { id } });
+    return user || undefined;
   }
 
   async create(userData: Partial<User>): Promise<User> {

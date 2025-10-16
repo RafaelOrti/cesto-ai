@@ -3,6 +3,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
+import { RedisModule } from '@nestjs-modules/ioredis';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
@@ -17,6 +18,23 @@ import { Buyer } from '../buyers/entities/buyer.entity';
     TypeOrmModule.forFeature([User, Supplier, Buyer]),
     UsersModule,
     PassportModule,
+    RedisModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        type: 'single',
+        url: configService.get('redis.url') || `redis://${configService.get('redis.host')}:${configService.get('redis.port')}`,
+        options: {
+          password: configService.get('redis.password'),
+          db: configService.get('redis.db'),
+          retryDelayOnFailover: configService.get('redis.retryDelayOnFailover'),
+          maxRetriesPerRequest: configService.get('redis.maxRetriesPerRequest'),
+          lazyConnect: configService.get('redis.lazyConnect'),
+          keepAlive: configService.get('redis.keepAlive'),
+          connectTimeout: configService.get('redis.connectTimeout'),
+          commandTimeout: configService.get('redis.commandTimeout'),
+        },
+      }),
+    }),
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({

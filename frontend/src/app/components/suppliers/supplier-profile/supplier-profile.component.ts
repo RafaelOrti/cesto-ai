@@ -205,9 +205,6 @@ export class SupplierProfileComponent implements OnInit, OnDestroy {
     });
   }
 
-  sortProducts(): void {
-    this.filterProducts();
-  }
 
   private applyProductPagination(): void {
     const startIndex = (this.currentProductPage - 1) * this.productsPerPage;
@@ -271,17 +268,20 @@ export class SupplierProfileComponent implements OnInit, OnDestroy {
   }
 
   decreaseQuantity(product: Product): void {
-    if (product.quantity > 0) {
-      product.quantity--;
+    const qty = parseInt(product.quantity.toString());
+    if (qty > 0) {
+      product.quantity = (qty - 1).toString();
     }
   }
 
   increaseQuantity(product: Product): void {
-    product.quantity++;
+    const qty = parseInt(product.quantity.toString());
+    product.quantity = (qty + 1).toString();
   }
 
   addToCart(product: Product): void {
-    if (product.quantity > 0) {
+    const qty = parseInt(product.quantity.toString());
+    if (qty > 0) {
       console.log('Adding to cart:', product.name, 'Quantity:', product.quantity);
       // Add to cart logic
     }

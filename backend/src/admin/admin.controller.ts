@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, Query } from '@nestjs/common';
 import { AdminService } from './admin.service';
 
 @Controller('admin')
@@ -45,7 +45,11 @@ export class AdminController {
     @Query('status') status?: string,
     @Query('search') search?: string
   ) {
-    return this.adminService.getAllUsers({ role, status, search });
+    return this.adminService.getAllUsers({ 
+      role: role, 
+      status: status, 
+      search: search 
+    });
   }
 
   /**

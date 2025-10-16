@@ -1,147 +1,418 @@
-<div class="my-suppliers">
+<div class="my-suppliers-container">
+  <!-- Header Section -->
   <div class="page-header">
-    <h1>My Suppliers</h1>
-    <div class="header-actions">
-      <div class="search-bar">
-        <input 
-          type="text" 
-          [(ngModel)]="searchQuery" 
-          (input)="onSearch()"
-          placeholder="Search suppliers and products..."
-          class="search-input"
-        >
-        <button class="search-btn">
-          <i class="icon-search"></i>
+    <div class="header-content">
+      <div class="title-section">
+        <h1>Mis Proveedores</h1>
+        <div class="header-info">
+          <span class="info-icon" title="Gestiona tus proveedores conectados y solicitudes">ℹ️</span>
+          <span class="supplier-count">{{ totalItems }} proveedores</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-primary" (click)="openAddModal()">
+          <i class="fas fa-plus"></i>
+          Añadir Proveedor
+        </button>
+        <button class="btn btn-secondary" (click)="exportSuppliers()">
+          <i class="fas fa-download"></i>
+          Exportar
         </button>
       </div>
     </div>
   </div>
 
-  <div class="welcome-section">
-    <h2>Discover a selection of suppliers</h2>
-    <p>Your trusted suppliers with personalized product recommendations</p>
-  </div>
-
-  <div class="category-tabs">
-    <div 
-      class="tab-item" 
-      *ngFor="let category of supplierCategories"
-      [class.active]="selectedCategory === category.id"
-      (click)="onCategorySelect(category.id)"
-    >
-      <span class="tab-name">{{ category.name }}</span>
-      <span class="tab-count">{{ category.count }}</span>
+  <!-- Search Bar -->
+  <div class="search-section">
+    <div class="search-container">
+      <i class="fas fa-search search-icon"></i>
+      <input 
+        type="text" 
+        class="search-input"
+        placeholder="Busca por proveedor..."
+        [(ngModel)]="searchTerm"
+        (input)="onSearch(searchTerm)">
     </div>
   </div>
 
-  <div class="filters-section">
-    <h3>Additional Filters</h3>
-    <div class="filters-grid">
-      <label class="filter-item" *ngFor="let filter of filterOptions">
-        <input 
-          type="checkbox" 
-          [checked]="getFilterValue(filter.key)"
-          (change)="onFilterChange(filter.key)"
-        >
-        <span class="filter-label">{{ filter.label }}</span>
-      </label>
+  <!-- Quick Access Buttons -->
+  <div class="quick-access-section">
+    <h3>Recomendado para ti</h3>
+    <div class="quick-access-buttons">
+      <button class="quick-btn" [class.active]="selectedFilters.includes('connected')" (click)="onFilterToggle('connected')">
+        <i class="fas fa-link"></i>
+        Conectados
+      </button>
+      <button class="quick-btn" [class.active]="selectedFilters.includes('highRating')" (click)="onFilterToggle('highRating')">
+        <i class="fas fa-star"></i>
+        Alta valoración
+      </button>
+      <button class="quick-btn" [class.active]="selectedCategory === ''" (click)="onCategoryChange('')">
+        <i class="fas fa-list"></i>
+        Todos los proveedores
+      </button>
+      <button class="quick-btn" (click)="openAddModal()">
+        <i class="fas fa-plus"></i>
+        Añadir proveedor
+      </button>
     </div>
   </div>
 
+  <!-- Category Filters -->
+  <div class="category-section">
+    <h3>Filtrar por categoría</h3>
+    <div class="category-carousel">
+      <button 
+        class="category-btn" 
+        [class.active]="selectedCategory === ''"
+        (click)="onCategoryChange('')">
+        <i class="fas fa-th"></i>
+        Todas
+      </button>
+      <button 
+        *ngFor="let category of categories" 
+        class="category-btn"
+        [class.active]="selectedCategory === category.id"
+        (click)="onCategoryChange(category.id)"
+        [title]="category.name + ' (' + category.count + ')'">
+        <i class="fas fa-{{ category.icon }}"></i>
+        {{ category.name }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Advanced Filters -->
+  <div class="advanced-filters-section">
+    <div class="filter-chips">
+      <span class="filter-label">Filtros:</span>
+      <button 
+        *ngFor="let option of filterOptions" 
+        class="filter-chip"
+        [class.active]="selectedFilters.includes(option.key)"
+        (click)="onFilterToggle(option.key)">
+        <i class="fas fa-{{ option.icon }}"></i>
+        {{ option.label }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Suppliers List -->
   <div class="suppliers-section">
-    <div class="suppliers-list">
-      <div class="supplier-card" *ngFor="let supplier of filteredSuppliers">
+    <div class="section-header">
+      <h2>Proveedores</h2>
+      <div class="list-controls">
+        <div class="filter-summary">
+          <span *ngIf="selectedFilters.length > 0" class="active-filters">
+            {{ selectedFilters.length }} filtros activos
+          </span>
+          <span *ngIf="searchTerm" class="search-summary">
+            Buscando: "{{ searchTerm }}"
+          </span>
+        </div>
+        <div class="sort-controls">
+          <select [(ngModel)]="sortBy" (change)="onSortChange(sortBy)" class="sort-select">
+            <option *ngFor="let option of sortOptions" [value]="option.key">
+              Ordenar por {{ option.label }}
+            </option>
+          </select>
+          <button class="sort-order-btn" (click)="onSortChange(sortBy)">
+            <i class="fas" [class.fa-sort-amount-up]="sortOrder === 'asc'" [class.fa-sort-amount-down]="sortOrder === 'desc'"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading-state">
+      <div class="spinner"></div>
+      <p>Cargando proveedores...</p>
+    </div>
+
+    <!-- No Results State -->
+    <div *ngIf="!loading && filteredSuppliers.length === 0" class="no-results">
+      <i class="fas fa-search"></i>
+      <h3>No se encontraron proveedores</h3>
+      <p>Intenta ajustar los filtros o términos de búsqueda</p>
+      <button class="btn btn-primary" (click)="onCategoryChange(''); searchTerm = ''; selectedFilters = []">
+        Limpiar filtros
+      </button>
+    </div>
+
+    <!-- Suppliers Grid -->
+    <div *ngIf="!loading && filteredSuppliers.length > 0" class="suppliers-grid">
+      <div *ngFor="let supplier of filteredSuppliers" class="supplier-card">
+        <!-- Supplier Header -->
         <div class="supplier-header">
+          <div class="supplier-logo">
+            <img *ngIf="supplier.logo" [src]="supplier.logo" [alt]="supplier.name">
+            <div *ngIf="!supplier.logo" class="logo-placeholder">
+              <i class="fas fa-building"></i>
+            </div>
+          </div>
           <div class="supplier-info">
-            <div class="supplier-logo">
-              <img [src]="supplier.logo" [alt]="supplier.name" class="logo-image">
-            </div>
-            <div class="supplier-details">
-              <h3>{{ supplier.name }}</h3>
-              <p class="supplier-description">{{ supplier.description }}</p>
-              <div class="supplier-stats">
-                <span class="stat">
-                  <i class="icon-orders"></i>
-                  {{ supplier.orderCount }} orders
-                </span>
-                <span class="stat">
-                  <i class="icon-money"></i>
-                  {{ formatCurrency(supplier.totalSpent) }}
-                </span>
-                <span class="stat">
-                  <i class="icon-date"></i>
-                  Last order: {{ formatDate(supplier.lastOrderDate) }}
-                </span>
-              </div>
+            <h3 class="supplier-name">
+              {{ supplier.name }}
+              <i *ngIf="supplier.verified" class="fas fa-check-circle verified-badge" title="Proveedor verificado"></i>
+            </h3>
+            <div class="supplier-meta">
+              <span class="category-badge">
+                <i class="fas fa-{{ getCategoryIcon(supplier.category) }}"></i>
+                {{ getCategoryName(supplier.category) }}
+              </span>
+              <span class="status-badge" [class]="getSupplierStatusClass(supplier)">
+                {{ getSupplierStatus(supplier) }}
+              </span>
             </div>
           </div>
-          <div class="supplier-status">
-            <span class="status-badge" [class]="getStatusClass(supplier)">
-              {{ getSupplierStatus(supplier) }}
-            </span>
-            <div class="supplier-badges">
-              <span class="badge new-badge" *ngIf="supplier.hasNewProducts">New Products</span>
-              <span class="badge campaign-badge" *ngIf="supplier.hasCampaigns">Active Campaigns</span>
+          <div class="supplier-actions">
+            <button 
+              class="btn btn-primary btn-sm"
+              *ngIf="!supplier.requestSent && !supplier.isConnected"
+              (click)="sendRequest(supplier)">
+              <i class="fas fa-paper-plane"></i>
+              Enviar solicitud
+            </button>
+            <button 
+              class="btn btn-success btn-sm"
+              *ngIf="supplier.requestSent && !supplier.isConnected"
+              (click)="cancelRequest(supplier)">
+              <i class="fas fa-clock"></i>
+              Solicitud enviada
+            </button>
+            <button 
+              class="btn btn-outline btn-sm"
+              *ngIf="supplier.isConnected"
+              (click)="toggleConnection(supplier)">
+              <i class="fas fa-unlink"></i>
+              Desconectar
+            </button>
+          </div>
+        </div>
+
+        <!-- Supplier Description -->
+        <div class="supplier-description">
+          <p>{{ supplier.description }}</p>
+        </div>
+
+        <!-- Supplier Details -->
+        <div class="supplier-details">
+          <div class="detail-row">
+            <div class="detail-item">
+              <i class="fas fa-star"></i>
+              <span class="rating">
+                {{ supplier.rating }}
+                <small>({{ supplier.reviewCount }} reseñas)</small>
+              </span>
+            </div>
+            <div class="detail-item">
+              <i class="fas fa-shopping-cart"></i>
+              <span>{{ supplier.totalOrders }} pedidos</span>
+            </div>
+            <div class="detail-item">
+              <i class="fas fa-euro-sign"></i>
+              <span>{{ supplier.averageOrderValue }}€ promedio</span>
+            </div>
+          </div>
+          
+          <div class="detail-row">
+            <div class="detail-item">
+              <i class="fas fa-clock"></i>
+              <span>{{ supplier.responseTime }} respuesta</span>
+            </div>
+            <div class="detail-item" *ngIf="supplier.lastOrderDate">
+              <i class="fas fa-calendar"></i>
+              <span>Último pedido: {{ supplier.lastOrderDate | date:'dd/MM/yyyy' }}</span>
             </div>
           </div>
         </div>
 
-        <div class="products-section" *ngIf="supplier.products.length > 0">
-          <h4>Available Products</h4>
-          <div class="products-table">
-            <table>
-              <thead>
-                <tr>
-                  <th>Product Pic</th>
-                  <th>Description</th>
-                  <th>MOQ</th>
-                  <th>Price</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let product of supplier.products">
-                  <td class="product-image">
-                    <img [src]="product.image" [alt]="product.name" class="product-img">
-                  </td>
-                  <td class="product-description">
-                    <div class="product-name">{{ product.name }}</div>
-                    <div class="product-desc">{{ product.description }}</div>
-                    <div class="order-history" *ngIf="product.hasOrdered">
-                      <small class="order-info" (click)="viewOrderHistory(product)">
-                        Last ordered: {{ formatDate(product.lastOrderDate!) }} ({{ product.orderCount }} times)
-                      </small>
-                    </div>
-                  </td>
-                  <td class="product-moq">{{ product.moq }}</td>
-                  <td class="product-price">{{ product.price }} {{ product.unit }}</td>
-                  <td class="product-actions">
-                    <button class="btn-add-to-list" (click)="addToShoppingList(product)">
-                      Add to List
-                    </button>
-                    <button class="btn-add-to-cart" (click)="addToCart(product)">
-                      Add to Cart
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+        <!-- Supplier Features -->
+        <div class="supplier-features">
+          <span *ngIf="supplier.freeDelivery" class="feature-badge free-delivery">
+            <i class="fas fa-truck"></i>
+            Envío gratis
+          </span>
+          <span *ngIf="supplier.coDelivery" class="feature-badge co-delivery">
+            <i class="fas fa-users"></i>
+            Co-entrega
+          </span>
+          <span *ngIf="supplier.onSale" class="feature-badge on-sale">
+            <i class="fas fa-percent"></i>
+            En oferta
+          </span>
         </div>
 
-        <div class="no-products" *ngIf="supplier.products.length === 0">
-          <p>No products available from this supplier at the moment.</p>
-          <button class="btn-contact-supplier">Contact Supplier</button>
+        <!-- Supplier Actions -->
+        <div class="supplier-footer">
+          <div class="contact-info">
+            <a *ngIf="supplier.website" [href]="supplier.website" target="_blank" class="contact-link">
+              <i class="fas fa-globe"></i>
+              Web
+            </a>
+            <a [href]="'mailto:' + supplier.contactEmail" class="contact-link">
+              <i class="fas fa-envelope"></i>
+              Email
+            </a>
+            <a [href]="'tel:' + supplier.contactPhone" class="contact-link">
+              <i class="fas fa-phone"></i>
+              Teléfono
+            </a>
+          </div>
+          <div class="action-buttons">
+            <button class="btn btn-outline btn-sm" (click)="openEditModal(supplier)">
+              <i class="fas fa-edit"></i>
+              Editar
+            </button>
+            <button class="btn btn-danger btn-sm" (click)="deleteSupplier(supplier)">
+              <i class="fas fa-trash"></i>
+              Eliminar
+            </button>
+          </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div *ngIf="!loading && totalItems > pageSize" class="pagination-section">
+      <div class="pagination-info">
+        <span>Mostrando {{ (currentPage - 1) * pageSize + 1 }} - {{ Math.min(currentPage * pageSize, totalItems) }} de {{ totalItems }} proveedores</span>
+        <select [(ngModel)]="pageSize" (change)="onPageSizeChange(pageSize)" class="page-size-select">
+          <option value="5">5 por página</option>
+          <option value="10">10 por página</option>
+          <option value="20">20 por página</option>
+          <option value="50">50 por página</option>
+        </select>
+      </div>
+      <div class="pagination-buttons">
+        <button 
+          class="btn btn-outline btn-sm"
+          [disabled]="currentPage === 1"
+          (click)="onPageChange(currentPage - 1)">
+          <i class="fas fa-chevron-left"></i>
+          Anterior
+        </button>
+        <span class="page-numbers">
+          <button 
+            *ngFor="let page of getPageNumbers()" 
+            class="btn btn-sm"
+            [class.btn-primary]="page === currentPage"
+            [class.btn-outline]="page !== currentPage"
+            (click)="onPageChange(page)">
+            {{ page }}
+          </button>
+        </span>
+        <button 
+          class="btn btn-outline btn-sm"
+          [disabled]="currentPage >= getTotalPages()"
+          (click)="onPageChange(currentPage + 1)">
+          Siguiente
+          <i class="fas fa-chevron-right"></i>
+        </button>
       </div>
     </div>
   </div>
 
-  <div class="help-popup">
-    <div class="popup-content">
-      <h3>Hey! We hope you will find and connect with new external suppliers in the same place.</h3>
-      <p>Use our AI-powered recommendations to discover suppliers that match your business needs.</p>
-      <button class="popup-close">Got it!</button>
+  <!-- Add/Edit Supplier Modal -->
+  <div *ngIf="showAddModal || showEditModal" class="modal-overlay" (click)="closeModals()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ editingSupplier ? 'Editar Proveedor' : 'Añadir Proveedor' }}</h3>
+        <button class="close-btn" (click)="closeModals()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <form [formGroup]="supplierForm" (ngSubmit)="saveSupplier()" class="modal-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="name">Nombre del proveedor *</label>
+            <input type="text" id="name" formControlName="name" placeholder="Nombre del proveedor">
+          </div>
+          <div class="form-group">
+            <label for="category">Categoría *</label>
+            <select id="category" formControlName="category">
+              <option value="">Seleccionar categoría</option>
+              <option *ngFor="let category of categories" [value]="category.id">
+                {{ category.name }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="description">Descripción *</label>
+          <textarea id="description" formControlName="description" rows="3" placeholder="Descripción del proveedor..."></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="contactEmail">Email de contacto *</label>
+            <input type="email" id="contactEmail" formControlName="contactEmail" placeholder="email@proveedor.com">
+          </div>
+          <div class="form-group">
+            <label for="contactPhone">Teléfono *</label>
+            <input type="tel" id="contactPhone" formControlName="contactPhone" placeholder="+34 123 456 789">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="website">Sitio web</label>
+            <input type="url" id="website" formControlName="website" placeholder="www.proveedor.com">
+          </div>
+          <div class="form-group">
+            <label for="establishedYear">Año de fundación</label>
+            <input type="number" id="establishedYear" formControlName="establishedYear" min="1800" [max]="new Date().getFullYear()">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="address">Dirección *</label>
+          <input type="text" id="address" formControlName="address" placeholder="Dirección completa del proveedor">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="minimumOrder">Pedido mínimo (€)</label>
+            <input type="number" id="minimumOrder" formControlName="minimumOrder" min="0" step="0.01">
+          </div>
+          <div class="form-group">
+            <label for="paymentTerms">Términos de pago</label>
+            <input type="text" id="paymentTerms" formControlName="paymentTerms" placeholder="Ej: 30 días">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Características especiales</label>
+          <div class="checkbox-group">
+            <label class="checkbox-label">
+              <input type="checkbox" formControlName="freeDelivery">
+              <span class="checkmark"></span>
+              Envío gratis
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" formControlName="coDelivery">
+              <span class="checkmark"></span>
+              Co-entrega
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" formControlName="onSale">
+              <span class="checkmark"></span>
+              En oferta
+            </label>
+          </div>
+        </div>
+      </form>
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" (click)="closeModals()">
+          Cancelar
+        </button>
+        <button type="button" class="btn btn-primary" (click)="saveSupplier()" [disabled]="!supplierForm.valid">
+          <i class="fas fa-save"></i>
+          {{ editingSupplier ? 'Actualizar' : 'Crear' }} Proveedor
+        </button>
+      </div>
     </div>
   </div>
 </div>

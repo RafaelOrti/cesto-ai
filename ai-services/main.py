@@ -289,7 +289,7 @@ async def get_groq_business_insights(request: dict):
         return {
             "insights": insights,
             "timestamp": datetime.now().isoformat(),
-            "model_used": "llama-3.1-70b-versatile",
+            "model_used": "llama-3.3-70b-versatile",
             "ai_service_available": ai_service.is_available()
         }
         

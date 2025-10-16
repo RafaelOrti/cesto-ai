@@ -1,47 +1,46 @@
-import { Component, OnInit } from '@angular/core';
-
-interface Product {
-  id: string;
-  name: string;
-  description: string;
-  image: string;
-  moq: number;
-  price: number;
-  unit: string;
-  hasOrdered: boolean;
-  lastOrderDate?: string;
-  orderCount?: number;
-}
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
 
 interface Supplier {
   id: string;
   name: string;
   description: string;
-  logo: string;
-  status: 'active' | 'stopped' | 'inactive';
-  lastOrderDate: string;
-  orderCount: number;
-  totalSpent: number;
-  categories: string[];
-  hasNewProducts: boolean;
-  hasCampaigns: boolean;
-  deliveryOptions: string[];
-  products: Product[];
+  logo?: string;
+  category: string;
+  verified: boolean;
+  freeDelivery: boolean;
+  coDelivery: boolean;
+  onSale: boolean;
+  rating: number;
+  reviewCount: number;
+  isConnected: boolean;
+  requestSent: boolean;
+  requestDate?: Date;
+  lastOrderDate?: Date;
+  totalOrders: number;
+  averageOrderValue: number;
+  responseTime: string;
+  contactEmail: string;
+  contactPhone: string;
+  website?: string;
+  address: string;
+  deliveryAreas: string[];
+  specialties: string[];
+  certifications: string[];
+  minimumOrder: number;
+  paymentTerms: string;
+  establishedYear: number;
+  employeeCount: string;
+  annualRevenue: string;
+  languages: string[];
 }
 
-interface SupplierCategory {
+interface Category {
   id: string;
   name: string;
+  icon: string;
   count: number;
-}
-
-interface SupplierFilters {
-  mayNeedToBuy: boolean;
-  stoppedBuying: boolean;
-  coDelivery: boolean;
-  freeShipping: boolean;
-  campaigns: boolean;
-  newProducts: boolean;
 }
 
 @Component({
@@ -49,294 +48,484 @@ interface SupplierFilters {
   templateUrl: './my-suppliers.component.html',
   styleUrls: ['./my-suppliers.component.scss']
 })
-export class MySuppliersComponent implements OnInit {
-  searchQuery = '';
+export class MySuppliersComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+
+  // Data
+  suppliers: Supplier[] = [];
+  filteredSuppliers: Supplier[] = [];
+  categories: Category[] = [];
+  loading = false;
+  error: string | null = null;
+
+  // Search and Filters
+  searchTerm = '';
   selectedCategory = '';
-  selectedFilters: SupplierFilters = {
-    mayNeedToBuy: false,
-    stoppedBuying: false,
-    coDelivery: false,
-    freeShipping: false,
-    campaigns: false,
-    newProducts: false
-  };
+  selectedFilters: string[] = [];
+  sortBy = 'name';
+  sortOrder: 'asc' | 'desc' = 'asc';
 
+  // Pagination
+  currentPage = 1;
+  pageSize = 10;
+  totalItems = 0;
+
+  // Forms
+  supplierForm: FormGroup;
+  showAddModal = false;
+  showEditModal = false;
+  editingSupplier: Supplier | null = null;
+
+  // Filter options
   filterOptions = [
-    { key: 'mayNeedToBuy', label: 'Suppliers I may need to buy from' },
-    { key: 'stoppedBuying', label: 'Suppliers I have stopped buying from' },
-    { key: 'coDelivery', label: 'Co-delivery' },
-    { key: 'freeShipping', label: 'Free shipping' },
-    { key: 'campaigns', label: 'Campaigns' },
-    { key: 'newProducts', label: 'New products' }
+    { key: 'freeDelivery', label: 'Envío gratis', icon: 'truck' },
+    { key: 'coDelivery', label: 'Co-entrega', icon: 'users' },
+    { key: 'onSale', label: 'En oferta', icon: 'percent' },
+    { key: 'verified', label: 'Verificados', icon: 'check-circle' },
+    { key: 'connected', label: 'Conectados', icon: 'link' },
+    { key: 'highRating', label: 'Alta valoración', icon: 'star' }
   ];
 
-  supplierCategories: SupplierCategory[] = [
-    { id: 'favorites', name: 'My Favorites', count: 8 },
-    { id: 'active', name: 'Active Suppliers', count: 12 },
-    { id: 'new', name: 'New Suppliers', count: 3 }
+  // Sort options
+  sortOptions = [
+    { key: 'name', label: 'Nombre' },
+    { key: 'category', label: 'Categoría' },
+    { key: 'rating', label: 'Valoración' },
+    { key: 'lastOrderDate', label: 'Último pedido' },
+    { key: 'totalOrders', label: 'Total pedidos' },
+    { key: 'averageOrderValue', label: 'Valor promedio' },
+    { key: 'responseTime', label: 'Tiempo de respuesta' }
   ];
 
-  private mySuppliersData: Supplier[] = [
-    {
-      id: '1',
-      name: 'Luntgårdens Mejeri',
-      description: 'Happy cows that satiate happy stomachs',
-      logo: 'assets/images/luntgardens-logo.png',
-      status: 'active',
-      lastOrderDate: '2024-01-15',
-      orderCount: 45,
-      totalSpent: 12500,
-      categories: ['dairy'],
-      hasNewProducts: true,
-      hasCampaigns: true,
-      deliveryOptions: ['free-shipping'],
-      products: [
-        {
-          id: 'p1',
-          name: 'Organic Whole Milk',
-          description: 'Fresh organic milk from happy cows',
-          image: 'assets/images/milk.jpg',
-          moq: 24,
-          price: 200,
-          unit: 'kr',
-          hasOrdered: true,
-          lastOrderDate: '2024-01-10',
-          orderCount: 12
-        },
-        {
-          id: 'p2',
-          name: 'Artisan Cheese Selection',
-          description: 'Premium cheese varieties',
-          image: 'assets/images/cheese.jpg',
-          moq: 12,
-          price: 450,
-          unit: 'kr',
-          hasOrdered: false
-        }
-      ]
-    },
-    {
-      id: '2',
-      name: 'Fresh Garden Produce',
-      description: 'Farm-fresh vegetables and fruits',
-      logo: 'assets/images/fresh-garden-logo.png',
-      status: 'active',
-      lastOrderDate: '2024-01-12',
-      orderCount: 23,
-      totalSpent: 8900,
-      categories: ['vegetables', 'fruits'],
-      hasNewProducts: false,
-      hasCampaigns: true,
-      deliveryOptions: ['co-delivery'],
-      products: [
-        {
-          id: 'p3',
-          name: 'Organic Tomatoes',
-          description: 'Fresh organic tomatoes',
-          image: 'assets/images/tomatoes.jpg',
-          moq: 20,
-          price: 150,
-          unit: 'kr',
-          hasOrdered: true,
-          lastOrderDate: '2024-01-08',
-          orderCount: 8
-        }
-      ]
-    },
-    {
-      id: '3',
-      name: 'Ocean Fresh Seafood',
-      description: 'Premium seafood products',
-      logo: 'assets/images/ocean-fresh-logo.png',
-      status: 'stopped',
-      lastOrderDate: '2023-12-20',
-      orderCount: 15,
-      totalSpent: 5600,
-      categories: ['seafood'],
-      hasNewProducts: true,
-      hasCampaigns: false,
-      deliveryOptions: [],
-      products: []
-    }
-  ];
-
-  filteredSuppliers: Supplier[] = this.mySuppliersData;
+  constructor(private fb: FormBuilder) {
+    this.supplierForm = this.createSupplierForm();
+    this.initializeData();
+  }
 
   ngOnInit(): void {
-    this.loadMySuppliers();
+    this.loadSuppliers();
+    this.setupSearch();
   }
 
-  onSearch(): void {
-    this.filterSuppliers();
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
-  onCategorySelect(category: string): void {
-    this.selectedCategory = category;
-    this.filterSuppliers();
-  }
-
-  onFilterChange(filter: string): void {
-    if (filter === 'mayNeedToBuy') {
-      this.selectedFilters.mayNeedToBuy = !this.selectedFilters.mayNeedToBuy;
-    } else if (filter === 'stoppedBuying') {
-      this.selectedFilters.stoppedBuying = !this.selectedFilters.stoppedBuying;
-    } else if (filter === 'coDelivery') {
-      this.selectedFilters.coDelivery = !this.selectedFilters.coDelivery;
-    } else if (filter === 'freeShipping') {
-      this.selectedFilters.freeShipping = !this.selectedFilters.freeShipping;
-    } else if (filter === 'campaigns') {
-      this.selectedFilters.campaigns = !this.selectedFilters.campaigns;
-    } else if (filter === 'newProducts') {
-      this.selectedFilters.newProducts = !this.selectedFilters.newProducts;
-    }
-    this.filterSuppliers();
-  }
-
-  addToCart(product: Product): void {
-    // Implementation for adding to cart
-  }
-
-  addToShoppingList(product: Product): void {
-    // Implementation for adding to shopping list
-  }
-
-  viewOrderHistory(product: Product): void {
-    // Show order history modal
-  }
-
-  getSupplierStatus(supplier: Supplier): string {
-    const statusMap: Record<string, string> = {
-      'active': 'Active',
-      'stopped': 'Stopped Buying',
-      'inactive': 'Inactive'
-    };
-    return statusMap[supplier.status] || 'Unknown';
-  }
-
-  getStatusClass(supplier: Supplier): string {
-    return supplier.status;
-  }
-
-  getCategoryName(categoryId: string): string {
-    const category = this.supplierCategories.find(cat => cat.id === categoryId);
-    return category ? category.name : categoryId;
-  }
-
-  formatDate(dateString: string): string {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric' 
+  private createSupplierForm(): FormGroup {
+    return this.fb.group({
+      name: ['', [Validators.required, Validators.minLength(2)]],
+      description: ['', [Validators.required, Validators.minLength(10)]],
+      category: ['', Validators.required],
+      contactEmail: ['', [Validators.required, Validators.email]],
+      contactPhone: ['', Validators.required],
+      website: [''],
+      address: ['', Validators.required],
+      minimumOrder: [0, [Validators.min(0)]],
+      paymentTerms: [''],
+      establishedYear: [new Date().getFullYear(), [Validators.min(1800), Validators.max(new Date().getFullYear())]],
+      employeeCount: [''],
+      annualRevenue: [''],
+      languages: [[]],
+      specialties: [[]],
+      certifications: [[]],
+      deliveryAreas: [[]],
+      freeDelivery: [false],
+      coDelivery: [false],
+      onSale: [false]
     });
   }
 
-  formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('sv-SE', {
-      style: 'currency',
-      currency: 'SEK'
-    }).format(amount);
+  private initializeData(): void {
+    // Initialize categories
+    this.categories = [
+      { id: 'dairy', name: 'Lácteos', icon: 'milk', count: 45 },
+      { id: 'fruits-vegetables', name: 'Frutas y Verduras', icon: 'carrot', count: 32 },
+      { id: 'delicatessen', name: 'Delicatessen, Embutidos', icon: 'sausage', count: 28 },
+      { id: 'health-beauty', name: 'Salud y Belleza', icon: 'lotion', count: 15 },
+      { id: 'frozen', name: 'Congelados', icon: 'snowflake', count: 22 },
+      { id: 'seafood', name: 'Fresco del mar', icon: 'fish', count: 18 },
+      { id: 'meat', name: 'Productos frescos envasados, Carne...', icon: 'package', count: 35 },
+      { id: 'beverages', name: 'Bebidas', icon: 'bottle', count: 25 },
+      { id: 'bakery', name: 'Panadería', icon: 'bread', count: 20 },
+      { id: 'organic', name: 'Orgánico', icon: 'leaf', count: 12 }
+    ];
   }
 
-  getFilterLabel(filter: string): string {
-    switch (filter) {
-      case 'mayNeedToBuy': return 'Suppliers I may need to buy from';
-      case 'stoppedBuying': return 'Suppliers I have stopped buying from';
-      case 'coDelivery': return 'Co-delivery';
-      case 'freeShipping': return 'Free shipping';
-      case 'campaigns': return 'Campaigns';
-      case 'newProducts': return 'New products';
-      default: return filter;
-    }
-  }
-
-  getFilterValue(filterKey: string): boolean {
-    switch (filterKey) {
-      case 'mayNeedToBuy': return this.selectedFilters.mayNeedToBuy;
-      case 'stoppedBuying': return this.selectedFilters.stoppedBuying;
-      case 'coDelivery': return this.selectedFilters.coDelivery;
-      case 'freeShipping': return this.selectedFilters.freeShipping;
-      case 'campaigns': return this.selectedFilters.campaigns;
-      case 'newProducts': return this.selectedFilters.newProducts;
-      default: return false;
-    }
-  }
-
-  private loadMySuppliers(): void {
-    // Load client's suppliers and their products
-  }
-
-  private filterSuppliers(): void {
-    let suppliers = [...this.mySuppliersData];
-
-    suppliers = this.applySearchFilter(suppliers);
-    suppliers = this.applyCategoryFilter(suppliers);
-    suppliers = this.applyStatusFilters(suppliers);
-    suppliers = this.applyDeliveryFilters(suppliers);
-    suppliers = this.applySpecialFilters(suppliers);
-
-    this.filteredSuppliers = suppliers;
-  }
-
-  private applySearchFilter(suppliers: Supplier[]): Supplier[] {
-    if (!this.searchQuery.trim()) return suppliers;
+  private loadSuppliers(): void {
+    this.loading = true;
     
-    const query = this.searchQuery.toLowerCase();
-    return suppliers.filter(supplier =>
-      supplier.name.toLowerCase().includes(query) ||
-      supplier.description.toLowerCase().includes(query)
-    );
+    // Mock data - in real app this would come from API
+    setTimeout(() => {
+      this.suppliers = [
+        {
+          id: '1',
+          name: 'Engelmanns',
+          description: 'Tenemos todo para la tabla de embutidos perfecta. ¡Bienvenido a descubrir sabores fantásticos con nosotros!',
+          category: 'delicatessen',
+          verified: true,
+          freeDelivery: true,
+          coDelivery: false,
+          onSale: false,
+          rating: 4.8,
+          reviewCount: 156,
+          isConnected: true,
+          requestSent: false,
+          totalOrders: 45,
+          averageOrderValue: 1250,
+          responseTime: '2 horas',
+          contactEmail: 'contacto@engelmanns.com',
+          contactPhone: '+34 91 123 4567',
+          website: 'www.engelmanns.com',
+          address: 'Madrid, España',
+          deliveryAreas: ['Madrid', 'Barcelona', 'Valencia'],
+          specialties: ['Embutidos', 'Quesos', 'Vinos'],
+          certifications: ['ISO 9001', 'HACCP'],
+          minimumOrder: 100,
+          paymentTerms: '30 días',
+          establishedYear: 1985,
+          employeeCount: '50-100',
+          annualRevenue: '5M-10M',
+          languages: ['Español', 'Inglés', 'Alemán']
+        },
+        {
+          id: '2',
+          name: 'Gastro Import',
+          description: 'Tenemos más de 25 años de experiencia en la importación de especialidades gourmet de la región mediterránea que vendemos a restaurantes, tiendas de delicatessen y tiendas minoristas. La empresa fue fundada en 1988 y...',
+          category: 'delicatessen',
+          verified: true,
+          freeDelivery: false,
+          coDelivery: true,
+          onSale: true,
+          rating: 4.6,
+          reviewCount: 89,
+          isConnected: false,
+          requestSent: true,
+          requestDate: new Date('2024-01-15'),
+          lastOrderDate: new Date('2024-01-10'),
+          totalOrders: 23,
+          averageOrderValue: 2100,
+          responseTime: '4 horas',
+          contactEmail: 'ventas@gastroimport.es',
+          contactPhone: '+34 93 987 6543',
+          website: 'www.gastroimport.es',
+          address: 'Barcelona, España',
+          deliveryAreas: ['Barcelona', 'Girona', 'Tarragona'],
+          specialties: ['Productos mediterráneos', 'Aceites', 'Conservas'],
+          certifications: ['ISO 9001', 'IFS'],
+          minimumOrder: 200,
+          paymentTerms: '15 días',
+          establishedYear: 1988,
+          employeeCount: '20-50',
+          annualRevenue: '2M-5M',
+          languages: ['Español', 'Catalán', 'Inglés']
+        },
+        {
+          id: '3',
+          name: 'Fresh Produce Co',
+          description: 'Especialistas en productos frescos de temporada, cultivados localmente con los más altos estándares de calidad.',
+          category: 'fruits-vegetables',
+          verified: true,
+          freeDelivery: true,
+          coDelivery: true,
+          onSale: false,
+          rating: 4.9,
+          reviewCount: 234,
+          isConnected: true,
+          requestSent: false,
+          lastOrderDate: new Date('2024-01-20'),
+          totalOrders: 67,
+          averageOrderValue: 850,
+          responseTime: '1 hora',
+          contactEmail: 'pedidos@freshproduce.com',
+          contactPhone: '+34 96 555 1234',
+          address: 'Valencia, España',
+          deliveryAreas: ['Valencia', 'Alicante', 'Castellón'],
+          specialties: ['Verduras de temporada', 'Frutas locales', 'Hierbas aromáticas'],
+          certifications: ['Agricultura ecológica', 'GlobalGAP'],
+          minimumOrder: 50,
+          paymentTerms: '7 días',
+          establishedYear: 1995,
+          employeeCount: '10-20',
+          annualRevenue: '1M-2M',
+          languages: ['Español', 'Valenciano']
+        }
+      ];
+
+      this.applyFilters();
+      this.loading = false;
+    }, 1000);
   }
 
-  private applyCategoryFilter(suppliers: Supplier[]): Supplier[] {
-    if (!this.selectedCategory) return suppliers;
-    
-    return suppliers.filter(supplier => supplier.status === this.selectedCategory);
+  private setupSearch(): void {
+    // This would be connected to a search input with debouncing
+    // For now, we'll implement it in the search method
   }
 
-  private applyStatusFilters(suppliers: Supplier[]): Supplier[] {
-    let filtered = suppliers;
+  // Search and Filter Methods
+  onSearch(searchTerm: string): void {
+    this.searchTerm = searchTerm;
+    this.currentPage = 1;
+    this.applyFilters();
+  }
 
-    if (this.selectedFilters.mayNeedToBuy) {
-      filtered = filtered.filter(supplier => supplier.status === 'active');
+  onCategoryChange(categoryId: string): void {
+    this.selectedCategory = categoryId;
+    this.currentPage = 1;
+    this.applyFilters();
+  }
+
+  onFilterToggle(filterKey: string): void {
+    const index = this.selectedFilters.indexOf(filterKey);
+    if (index > -1) {
+      this.selectedFilters.splice(index, 1);
+    } else {
+      this.selectedFilters.push(filterKey);
     }
-
-    if (this.selectedFilters.stoppedBuying) {
-      filtered = filtered.filter(supplier => supplier.status === 'stopped');
-    }
-
-    return filtered;
+    this.currentPage = 1;
+    this.applyFilters();
   }
 
-  private applyDeliveryFilters(suppliers: Supplier[]): Supplier[] {
-    let filtered = suppliers;
+  onSortChange(sortBy: string): void {
+    if (this.sortBy === sortBy) {
+      this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortBy = sortBy;
+      this.sortOrder = 'asc';
+    }
+    this.applyFilters();
+  }
 
-    if (this.selectedFilters.coDelivery) {
-      filtered = filtered.filter(supplier =>
-        supplier.deliveryOptions.includes('co-delivery')
+  private applyFilters(): void {
+    let filtered = [...this.suppliers];
+
+    // Search filter
+    if (this.searchTerm) {
+      const term = this.searchTerm.toLowerCase();
+      filtered = filtered.filter(supplier => 
+        supplier.name.toLowerCase().includes(term) ||
+        supplier.description.toLowerCase().includes(term) ||
+        supplier.specialties.some(s => s.toLowerCase().includes(term))
       );
     }
 
-    if (this.selectedFilters.freeShipping) {
-      filtered = filtered.filter(supplier =>
-        supplier.deliveryOptions.includes('free-shipping')
-      );
+    // Category filter
+    if (this.selectedCategory) {
+      filtered = filtered.filter(supplier => supplier.category === this.selectedCategory);
     }
 
-    return filtered;
+    // Additional filters
+    this.selectedFilters.forEach(filter => {
+      switch (filter) {
+        case 'freeDelivery':
+          filtered = filtered.filter(s => s.freeDelivery);
+          break;
+        case 'coDelivery':
+          filtered = filtered.filter(s => s.coDelivery);
+          break;
+        case 'onSale':
+          filtered = filtered.filter(s => s.onSale);
+          break;
+        case 'verified':
+          filtered = filtered.filter(s => s.verified);
+          break;
+        case 'connected':
+          filtered = filtered.filter(s => s.isConnected);
+          break;
+        case 'highRating':
+          filtered = filtered.filter(s => s.rating >= 4.5);
+          break;
+      }
+    });
+
+    // Sort
+    filtered.sort((a, b) => {
+      let aValue: any = a[this.sortBy as keyof Supplier];
+      let bValue: any = b[this.sortBy as keyof Supplier];
+
+      if (typeof aValue === 'string') {
+        aValue = aValue.toLowerCase();
+        bValue = bValue.toLowerCase();
+      }
+
+      if (this.sortOrder === 'asc') {
+        return aValue > bValue ? 1 : -1;
+      } else {
+        return aValue < bValue ? 1 : -1;
+      }
+    });
+
+    this.filteredSuppliers = filtered;
+    this.totalItems = filtered.length;
+    this.updatePagination();
   }
 
-  private applySpecialFilters(suppliers: Supplier[]): Supplier[] {
-    let filtered = suppliers;
-
-    if (this.selectedFilters.campaigns) {
-      filtered = filtered.filter(supplier => supplier.hasCampaigns);
-    }
-
-    if (this.selectedFilters.newProducts) {
-      filtered = filtered.filter(supplier => supplier.hasNewProducts);
-    }
-
-    return filtered;
+  private updatePagination(): void {
+    const startIndex = (this.currentPage - 1) * this.pageSize;
+    const endIndex = startIndex + this.pageSize;
+    this.filteredSuppliers = this.filteredSuppliers.slice(startIndex, endIndex);
   }
+
+  // Pagination Methods
+  onPageChange(page: number): void {
+    this.currentPage = page;
+    this.applyFilters();
+  }
+
+  onPageSizeChange(size: number): void {
+    this.pageSize = size;
+    this.currentPage = 1;
+    this.applyFilters();
+  }
+
+  // CRUD Methods
+  openAddModal(): void {
+    this.supplierForm.reset();
+    this.showAddModal = true;
+  }
+
+  openEditModal(supplier: Supplier): void {
+    this.editingSupplier = supplier;
+    this.supplierForm.patchValue({
+      ...supplier,
+      languages: supplier.languages || [],
+      specialties: supplier.specialties || [],
+      certifications: supplier.certifications || [],
+      deliveryAreas: supplier.deliveryAreas || []
+    });
+    this.showEditModal = true;
+  }
+
+  saveSupplier(): void {
+    if (this.supplierForm.valid) {
+      const formData = this.supplierForm.value;
+      
+      if (this.editingSupplier) {
+        // Update existing supplier
+        const index = this.suppliers.findIndex(s => s.id === this.editingSupplier!.id);
+        if (index > -1) {
+          this.suppliers[index] = { ...this.editingSupplier, ...formData };
+        }
+        this.showEditModal = false;
+      } else {
+        // Add new supplier
+        const newSupplier: Supplier = {
+          id: Date.now().toString(),
+          ...formData,
+          verified: false,
+          rating: 0,
+          reviewCount: 0,
+          isConnected: false,
+          requestSent: false,
+          totalOrders: 0,
+          averageOrderValue: 0,
+          responseTime: 'No disponible'
+        };
+        this.suppliers.unshift(newSupplier);
+        this.showAddModal = false;
+      }
+      
+      this.applyFilters();
+      this.editingSupplier = null;
+    }
+  }
+
+  deleteSupplier(supplier: Supplier): void {
+    if (confirm(`¿Estás seguro de que quieres eliminar a ${supplier.name}?`)) {
+      this.suppliers = this.suppliers.filter(s => s.id !== supplier.id);
+      this.applyFilters();
+    }
+  }
+
+  toggleConnection(supplier: Supplier): void {
+    supplier.isConnected = !supplier.isConnected;
+    if (!supplier.isConnected) {
+      supplier.requestSent = false;
+    }
+  }
+
+  sendRequest(supplier: Supplier): void {
+    supplier.requestSent = true;
+    supplier.requestDate = new Date();
+    // In real app, this would make an API call
+  }
+
+  cancelRequest(supplier: Supplier): void {
+    supplier.requestSent = false;
+    supplier.requestDate = undefined;
+  }
+
+  // Utility Methods
+  getSupplierStatus(supplier: Supplier): string {
+    if (supplier.isConnected) return 'Conectado';
+    if (supplier.requestSent) return 'Solicitud enviada';
+    return 'Disponible';
+  }
+
+  getSupplierStatusClass(supplier: Supplier): string {
+    if (supplier.isConnected) return 'status-connected';
+    if (supplier.requestSent) return 'status-pending';
+    return 'status-available';
+  }
+
+  getCategoryName(categoryId: string): string {
+    const category = this.categories.find(c => c.id === categoryId);
+    return category ? category.name : categoryId;
+  }
+
+  getCategoryIcon(categoryId: string): string {
+    const category = this.categories.find(c => c.id === categoryId);
+    return category ? category.icon : 'package';
+  }
+
+  getStars(rating: number): number[] {
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 !== 0;
+    return Array(fullStars).fill(1).concat(hasHalfStar ? [0.5] : []);
+  }
+
+  closeModals(): void {
+    this.showAddModal = false;
+    this.showEditModal = false;
+    this.editingSupplier = null;
+  }
+
+  // Export functionality
+  exportSuppliers(): void {
+    // Implementation for exporting supplier data
+    console.log('Exporting suppliers...');
+  }
+
+  // Bulk actions
+  bulkAction(action: string): void {
+    // Implementation for bulk actions like bulk delete, bulk export, etc.
+    console.log(`Bulk action: ${action}`);
+  }
+
+  // Pagination helpers
+  getPageNumbers(): number[] {
+    const totalPages = this.getTotalPages();
+    const pages: number[] = [];
+    const maxVisiblePages = 5;
+    
+    let startPage = Math.max(1, this.currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+    
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+    
+    return pages;
+  }
+
+  getTotalPages(): number {
+    return Math.ceil(this.totalItems / this.pageSize);
+  }
+
+  // Math utility for template
+  Math = Math;
 }

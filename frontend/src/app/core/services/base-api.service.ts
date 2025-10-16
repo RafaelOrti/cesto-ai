@@ -59,7 +59,7 @@ export class BaseApiService {
     return this.http.get<ApiResponse<T>>(`${this.baseUrl}${endpoint}`, {
       headers: this.getHeaders(),
       ...options
-    }).pipe(
+    } as any).pipe(
       retry(2),
       catchError(this.handleError)
     );
@@ -70,7 +70,7 @@ export class BaseApiService {
     return this.http.post<ApiResponse<T>>(`${this.baseUrl}${endpoint}`, data, {
       headers: this.getHeaders(),
       ...options
-    }).pipe(
+    } as any).pipe(
       catchError(this.handleError)
     );
   }
@@ -80,7 +80,7 @@ export class BaseApiService {
     return this.http.put<ApiResponse<T>>(`${this.baseUrl}${endpoint}`, data, {
       headers: this.getHeaders(),
       ...options
-    }).pipe(
+    } as any).pipe(
       catchError(this.handleError)
     );
   }
@@ -90,7 +90,7 @@ export class BaseApiService {
     return this.http.delete<ApiResponse<T>>(`${this.baseUrl}${endpoint}`, {
       headers: this.getHeaders(),
       ...options
-    }).pipe(
+    } as any).pipe(
       catchError(this.handleError)
     );
   }
@@ -100,7 +100,7 @@ export class BaseApiService {
     return this.http.patch<ApiResponse<T>>(`${this.baseUrl}${endpoint}`, data, {
       headers: this.getHeaders(),
       ...options
-    }).pipe(
+    } as any).pipe(
       catchError(this.handleError)
     );
   }

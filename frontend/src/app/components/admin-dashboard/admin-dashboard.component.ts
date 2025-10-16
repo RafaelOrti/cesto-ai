@@ -406,6 +406,11 @@ export class AdminDashboardComponent implements OnInit {
     this.loadUsers();
   }
 
+  onPageSizeChangeEvent(event: Event): void {
+    const target = event.target as HTMLSelectElement;
+    this.onPageSizeChange(Number(target.value));
+  }
+
   // Sorting methods
   onSort(field: string): void {
     if (this.sortField === field) {

@@ -233,12 +233,12 @@ export class EdiService {
     // Implement PO processing logic
   }
 
-  private async processInvoice(content: any, document: EdiDocument): Promise<void> {
+  private async processInvoice(_content: any, _document: EdiDocument): Promise<void> {
     this.logger.log('Processing invoice');
     // Implement invoice processing logic
   }
 
-  private async processProductCatalog(content: any, document: EdiDocument): Promise<void> {
+  private async processProductCatalog(_content: any, _document: EdiDocument): Promise<void> {
     this.logger.log('Processing product catalog');
     // Implement catalog processing logic
   }

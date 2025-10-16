@@ -35,7 +35,6 @@ import { LoginComponent } from './components/login/login.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { ClientInsightsComponent } from './components/clients/client-insights/client-insights.component';
 import { ExploreSuppliersComponent } from './components/clients/explore-suppliers/explore-suppliers.component';
-import { MySuppliersComponent } from './components/clients/my-suppliers/my-suppliers.component';
 import { SuppliersModule } from './components/suppliers/suppliers.module';
 import { ProductsComponent } from './components/products/products.component';
 import { OrdersComponent } from './components/orders/orders.component';
@@ -48,11 +47,14 @@ import { SupplierDashboardComponent } from './components/supplier-dashboard/supp
 import { EdiComponent } from './components/edi/edi.component';
 import { AdminDashboardComponent } from './components/admin-dashboard/admin-dashboard.component';
 import { ColorThemeConfigComponent } from './components/admin-dashboard/color-theme-config/color-theme-config.component';
+import { ProductsListComponent } from './components/products/products-list/products-list.component';
+import { ProductsOnSaleComponent } from './components/products/products-on-sale/products-on-sale.component';
 
 import { AuthService } from './services/auth.service';
 import { SupplierService } from './services/supplier.service';
 import { ColorThemeService } from './services/color-theme.service';
 import { UserManagementService } from './services/user-management.service';
+import { ProductsService } from './services/products.service';
 import { ThemeInitializerService } from './core/services/theme-initializer.service';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
 import { LayoutComponent } from './components/layout/layout.component';
@@ -66,7 +68,6 @@ import { HeaderComponent } from './components/layout/header/header.component';
     DashboardComponent,
     ClientInsightsComponent,
     ExploreSuppliersComponent,
-    MySuppliersComponent,
     ProductsComponent,
     OrdersComponent,
     ShoppingListComponent,
@@ -81,6 +82,8 @@ import { HeaderComponent } from './components/layout/header/header.component';
     EdiComponent,
     AdminDashboardComponent,
     ColorThemeConfigComponent,
+    ProductsListComponent,
+    ProductsOnSaleComponent,
   ],
   imports: [
     BrowserModule,
@@ -114,14 +117,13 @@ import { HeaderComponent } from './components/layout/header/header.component';
     MatMenuModule,
     MatExpansionModule,
     MatStepperModule,
-    // Feature Modules
-    SuppliersModule,
   ],
   providers: [
     AuthService,
     SupplierService,
     ColorThemeService,
     UserManagementService,
+    ProductsService,
     ThemeInitializerService,
     {
       provide: HTTP_INTERCEPTORS,

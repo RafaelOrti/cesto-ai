@@ -24,12 +24,14 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Create necessary directories
+RUN mkdir -p logs models_cache
+
 # Copy application code
 COPY . .
 
-# Create necessary directories
-RUN mkdir -p logs models_cache && \
-    chown -R appuser:appuser /app
+# Set ownership
+RUN chown -R appuser:appuser /app
 
 # Switch to non-root user
 USER appuser

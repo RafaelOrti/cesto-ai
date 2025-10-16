@@ -12,7 +12,12 @@ def setup_logging():
     
     # Create logs directory if it doesn't exist
     log_dir = Path("logs")
-    log_dir.mkdir(exist_ok=True)
+    try:
+        log_dir.mkdir(exist_ok=True)
+    except PermissionError:
+        # Fallback to a writable directory
+        log_dir = Path("/tmp/logs")
+        log_dir.mkdir(exist_ok=True)
     
     logging_config = {
         "version": 1,
@@ -42,7 +47,7 @@ def setup_logging():
                 "level": settings.log_level,
                 "class": "logging.handlers.RotatingFileHandler",
                 "formatter": "detailed",
-                "filename": "logs/ai-services.log",
+                "filename": str(log_dir / "ai-services.log"),
                 "maxBytes": 10485760,  # 10MB
                 "backupCount": 5,
             },
@@ -50,7 +55,7 @@ def setup_logging():
                 "level": "ERROR",
                 "class": "logging.handlers.RotatingFileHandler",
                 "formatter": "detailed",
-                "filename": "logs/ai-services-error.log",
+                "filename": str(log_dir / "ai-services-error.log"),
                 "maxBytes": 10485760,  # 10MB
                 "backupCount": 5,
             },

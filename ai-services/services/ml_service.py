@@ -23,7 +23,12 @@ class MLService:
         self.model_cache = {}
         self.scaler_cache = {}
         self.cache_dir = "models_cache"
-        os.makedirs(self.cache_dir, exist_ok=True)
+        try:
+            os.makedirs(self.cache_dir, exist_ok=True)
+        except PermissionError:
+            # Fallback to a writable directory
+            self.cache_dir = "/tmp/models_cache"
+            os.makedirs(self.cache_dir, exist_ok=True)
     
     async def predict_demand(
         self, 

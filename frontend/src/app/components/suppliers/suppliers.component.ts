@@ -1,358 +1,523 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { FormControl } from '@angular/forms';
-import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
-import { SupplierService } from '../../services/supplier.service';
-import { NotificationService } from '../../core/services/notification.service';
-import { I18nService } from '../../core/services/i18n.service';
+import { Component, OnInit } from '@angular/core';
 
-export interface SupplierCategory {
+interface SupplierCategory {
   id: string;
   name: string;
   nameSwedish: string;
   nameSpanish: string;
-  icon: string;
+  nameEnglish: string;
   active: boolean;
 }
 
-export interface SupplierFilter {
-  recommendation: 'recently_added' | 'popular' | 'all' | null;
-  category: string | null;
-  onSale: boolean;
-  freeDelivery: boolean;
-  coDelivery: boolean;
-  search: string;
-}
-
-export interface RecommendationType {
+interface SupplierCampaign {
   id: string;
   name: string;
-  nameSwedish: string;
-  icon: string;
+  discount: number;
+  startDate: string;
+  endDate: string;
   active: boolean;
+}
+
+interface SupplierProduct {
+  id: string;
+  name: string;
+  price: number;
+  originalPrice?: number;
+  isNew: boolean;
+  isOnSale: boolean;
+  category: string;
+}
+
+interface MySupplier {
+  id: string;
+  companyName: string;
+  supplierName: string;
+  logo?: string;
+  categories: SupplierCategory[];
+  activeCampaigns: SupplierCampaign[];
+  newProducts: SupplierProduct[];
+  deliveryInfo: {
+    combinedDelivery: boolean;
+    freeShipping: boolean;
+  };
+  status: 'active' | 'stopped' | 'potential';
+  lastOrderDate?: string;
+  totalOrders: number;
+  rating: number;
 }
 
 @Component({
   selector: 'app-suppliers',
-  templateUrl: './suppliers.component.html',
+  template: `
+    <div class="my-suppliers-container">
+      <!-- Header -->
+      <div class="page-header">
+        <div class="header-content">
+          <h1>My Suppliers</h1>
+          <p>Manage and view information about your current suppliers</p>
+        </div>
+      </div>
+
+      <!-- Filters and Actions -->
+      <div class="filters-section">
+        <div class="filter-group">
+          <label>Filter by Status:</label>
+          <select [(ngModel)]="selectedStatus" (change)="applyFilters()">
+            <option value="">All Suppliers</option>
+            <option value="potential">Suppliers I may need to buy from</option>
+            <option value="active">Current Suppliers</option>
+            <option value="stopped">Suppliers I have stopped buying from</option>
+          </select>
+        </div>
+        
+        <div class="filter-group">
+          <label>Filter by Category:</label>
+          <select [(ngModel)]="selectedCategory" (change)="applyFilters()">
+            <option value="">All Categories</option>
+            <option *ngFor="let category of availableCategories" [value]="category.id">
+              {{category.nameSpanish}}
+            </option>
+          </select>
+        </div>
+
+        <div class="actions-group">
+          <button class="btn btn-primary" routerLink="/suppliers/search">
+            <i class="fas fa-search"></i>
+            Search New Suppliers
+          </button>
+        </div>
+      </div>
+
+      <!-- Suppliers Table -->
+      <div class="suppliers-table-container">
+        <div class="table-header">
+          <h3>My Suppliers ({{filteredSuppliers.length}})</h3>
+          <div class="view-options">
+            <button class="view-btn" [class.active]="viewMode === 'table'" (click)="setViewMode('table')">
+              <i class="fas fa-table"></i>
+            </button>
+            <button class="view-btn" [class.active]="viewMode === 'cards'" (click)="setViewMode('cards')">
+              <i class="fas fa-th-large"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Table View -->
+        <div *ngIf="viewMode === 'table'" class="table-view">
+          <table class="suppliers-table">
+            <thead>
+              <tr>
+                <th>Supplier</th>
+                <th>Active Categories</th>
+                <th>Delivery Options</th>
+                <th>Active Campaigns</th>
+                <th>New Products</th>
+                <th>Status</th>
+                <th>Last Order</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let supplier of filteredSuppliers; trackBy: trackBySupplierId" class="supplier-row">
+                <!-- Supplier Info -->
+                <td class="supplier-cell">
+                  <div class="supplier-info">
+                    <div class="supplier-logo">
+                      <img *ngIf="supplier.logo" [src]="supplier.logo" [alt]="supplier.supplierName">
+                      <div *ngIf="!supplier.logo" class="logo-placeholder">
+                        {{supplier.supplierName.charAt(0)}}
+                      </div>
+                    </div>
+                    <div class="supplier-details">
+                      <h4>{{supplier.supplierName}}</h4>
+                      <p>{{supplier.companyName}}</p>
+                      <div class="rating">
+                        <span class="stars">{{getStars(supplier.rating)}}</span>
+                        <span class="rating-text">({{supplier.rating}}/5)</span>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+
+                <!-- Active Categories -->
+                <td class="categories-cell">
+                  <div class="categories-list">
+                    <span *ngFor="let category of supplier.categories; let last = last" 
+                          class="category-badge" 
+                          [title]="getCategoryFullName(category)">
+                      {{category.nameSpanish}}
+                    </span>
+                    <span *ngIf="supplier.categories.length === 0" class="no-categories">
+                      No active categories
+                    </span>
+                  </div>
+                </td>
+
+                <!-- Delivery Options -->
+                <td class="delivery-cell">
+                  <div class="delivery-options">
+                    <div class="delivery-option" *ngIf="supplier.deliveryInfo.combinedDelivery">
+                      <i class="fas fa-truck"></i>
+                      <span>Combined delivery</span>
+                    </div>
+                    <div class="delivery-option" *ngIf="supplier.deliveryInfo.freeShipping">
+                      <i class="fas fa-shipping-fast"></i>
+                      <span>Free shipping</span>
+                    </div>
+                    <span *ngIf="!supplier.deliveryInfo.combinedDelivery && !supplier.deliveryInfo.freeShipping" 
+                          class="no-delivery-options">
+                      Standard delivery
+                    </span>
+                  </div>
+                </td>
+
+                <!-- Active Campaigns -->
+                <td class="campaigns-cell">
+                  <div class="campaigns-list">
+                    <div *ngFor="let campaign of supplier.activeCampaigns" class="campaign-item">
+                      <div class="campaign-badge">
+                        <span class="campaign-name">{{campaign.name}}</span>
+                        <span class="campaign-discount">-{{campaign.discount}}%</span>
+                      </div>
+                      <div class="campaign-dates">
+                        {{formatDate(campaign.startDate)}} - {{formatDate(campaign.endDate)}}
+                      </div>
+                    </div>
+                    <span *ngIf="supplier.activeCampaigns.length === 0" class="no-campaigns">
+                      No active campaigns
+                    </span>
+                  </div>
+                </td>
+
+                <!-- New Products -->
+                <td class="products-cell">
+                  <div class="products-list">
+                    <div *ngFor="let product of supplier.newProducts.slice(0, 2)" class="product-item">
+                      <div class="product-info">
+                        <span class="product-name">{{product.name}}</span>
+                        <div class="product-price">
+                          <span *ngIf="product.isOnSale && product.originalPrice" class="original-price">
+                            €{{product.originalPrice}}
+                          </span>
+                          <span class="current-price">€{{product.price}}</span>
+                        </div>
+                      </div>
+                      <div class="product-badges">
+                        <span *ngIf="product.isNew" class="badge new">New</span>
+                        <span *ngIf="product.isOnSale" class="badge sale">Sale</span>
+                      </div>
+                    </div>
+                    <div *ngIf="supplier.newProducts.length > 2" class="more-products">
+                      +{{supplier.newProducts.length - 2}} more products
+                    </div>
+                    <span *ngIf="supplier.newProducts.length === 0" class="no-products">
+                      No new products
+                    </span>
+                  </div>
+                </td>
+
+                <!-- Status -->
+                <td class="status-cell">
+                  <div class="status-badge" [ngClass]="'status-' + supplier.status">
+                    {{getStatusText(supplier.status)}}
+                  </div>
+                </td>
+
+                <!-- Last Order -->
+                <td class="last-order-cell">
+                  <div *ngIf="supplier.lastOrderDate" class="last-order-info">
+                    <span class="order-date">{{formatDate(supplier.lastOrderDate)}}</span>
+                    <span class="total-orders">{{supplier.totalOrders}} orders</span>
+                  </div>
+                  <span *ngIf="!supplier.lastOrderDate" class="no-orders">
+                    No orders yet
+                  </span>
+                </td>
+
+                <!-- Actions -->
+                <td class="actions-cell">
+                  <div class="action-buttons">
+                    <button class="btn btn-sm btn-primary" 
+                            (click)="viewSupplier(supplier.id)"
+                            title="View Supplier">
+                      <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="btn btn-sm btn-secondary" 
+                            (click)="placeOrder(supplier.id)"
+                            title="Place Order">
+                      <i class="fas fa-shopping-cart"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline" 
+                            (click)="contactSupplier(supplier.id)"
+                            title="Contact Supplier">
+                      <i class="fas fa-envelope"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Cards View -->
+        <div *ngIf="viewMode === 'cards'" class="cards-view">
+          <div class="suppliers-grid">
+            <div *ngFor="let supplier of filteredSuppliers; trackBy: trackBySupplierId" 
+                 class="supplier-card">
+              <div class="card-header">
+                <div class="supplier-logo">
+                  <img *ngIf="supplier.logo" [src]="supplier.logo" [alt]="supplier.supplierName">
+                  <div *ngIf="!supplier.logo" class="logo-placeholder">
+                    {{supplier.supplierName.charAt(0)}}
+                  </div>
+                </div>
+                <div class="status-badge" [ngClass]="'status-' + supplier.status">
+                  {{getStatusText(supplier.status)}}
+                </div>
+              </div>
+
+              <div class="card-content">
+                <h4>{{supplier.supplierName}}</h4>
+                <p>{{supplier.companyName}}</p>
+                
+                <div class="rating">
+                  <span class="stars">{{getStars(supplier.rating)}}</span>
+                  <span class="rating-text">({{supplier.rating}}/5)</span>
+                </div>
+
+                <div class="categories-section">
+                  <h5>Active Categories:</h5>
+                  <div class="categories-list">
+                    <span *ngFor="let category of supplier.categories" 
+                          class="category-badge">
+                      {{category.nameSpanish}}
+                    </span>
+                  </div>
+                </div>
+
+                <div class="campaigns-section" *ngIf="supplier.activeCampaigns.length > 0">
+                  <h5>Active Campaigns:</h5>
+                  <div class="campaigns-list">
+                    <div *ngFor="let campaign of supplier.activeCampaigns" class="campaign-item">
+                      <span class="campaign-name">{{campaign.name}}</span>
+                      <span class="campaign-discount">-{{campaign.discount}}%</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="delivery-section">
+                  <div class="delivery-options">
+                    <span *ngIf="supplier.deliveryInfo.combinedDelivery" class="delivery-option">
+                      <i class="fas fa-truck"></i> Combined delivery
+                    </span>
+                    <span *ngIf="supplier.deliveryInfo.freeShipping" class="delivery-option">
+                      <i class="fas fa-shipping-fast"></i> Free shipping
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card-footer">
+                <div class="action-buttons">
+                  <button class="btn btn-sm btn-primary" (click)="viewSupplier(supplier.id)">
+                    View Details
+                  </button>
+                  <button class="btn btn-sm btn-secondary" (click)="placeOrder(supplier.id)">
+                    Order
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div *ngIf="filteredSuppliers.length === 0" class="empty-state">
+          <div class="empty-icon">
+            <i class="fas fa-users"></i>
+          </div>
+          <h3>No suppliers found</h3>
+          <p>No suppliers match your current filters. Try adjusting your search criteria.</p>
+          <button class="btn btn-primary" (click)="clearFilters()">
+            Clear Filters
+          </button>
+        </div>
+      </div>
+    </div>
+  `,
   styleUrls: ['./suppliers.component.scss']
 })
-export class SuppliersComponent implements OnInit, OnDestroy {
-  private destroy$ = new Subject<void>();
+export class SuppliersComponent implements OnInit {
 
-  // Search controls
-  mainSearchControl = new FormControl('');
-  secondarySearchControl = new FormControl('');
+  // Data properties
+  suppliers: MySupplier[] = [];
+  filteredSuppliers: MySupplier[] = [];
+  availableCategories: SupplierCategory[] = [];
+  
+  // Filter properties
+  selectedStatus: string = '';
+  selectedCategory: string = '';
+  
+  // View properties
+  viewMode: 'table' | 'cards' = 'table';
 
-  // Data
-  suppliers: any[] = [];
-  filteredSuppliers: any[] = [];
-  loading = false;
-  pagination = { page: 1, limit: 20 };
-
-  // Filters
-  currentFilter: SupplierFilter = {
-    recommendation: null,
-    category: null,
-    onSale: false,
-    freeDelivery: false,
-    coDelivery: false,
-    search: ''
-  };
-
-  // Categories (based on the image)
-  categories: SupplierCategory[] = [
-    { id: 'dairy', name: 'Dairy', nameSwedish: 'Mejeri', nameSpanish: 'Lácteos', icon: '🥛', active: false },
-    { id: 'fruits-vegetables', name: 'Fruits & Vegetables', nameSwedish: 'Frukt & Grönt', nameSpanish: 'Frutas y Verduras', icon: '🥬', active: false },
-    { id: 'deli', name: 'Deli', nameSwedish: 'Chark', nameSpanish: 'Charcutería', icon: '🥩', active: false },
-    { id: 'health-beauty', name: 'Health & Beauty', nameSwedish: 'Hälsa & Skönhet', nameSpanish: 'Salud y Belleza', icon: '💄', active: false },
-    { id: 'frozen', name: 'Frozen', nameSwedish: 'Djupfryst', nameSpanish: 'Congelados', icon: '🧊', active: false },
-    { id: 'fresh-meat', name: 'Fresh Meat', nameSwedish: 'Färskvaror, Ko', nameSpanish: 'Carne Fresca', icon: '🥩', active: false },
-    { id: 'packaged', name: 'Packaged', nameSwedish: 'Packade', nameSpanish: 'Empaquetados', icon: '📦', active: false }
-  ];
-
-  // Recommendation types
-  recommendations: RecommendationType[] = [
-    { id: 'recently_added', name: 'Recently Added', nameSwedish: 'Nyligen Tillagd', icon: '🔔', active: false },
-    { id: 'popular', name: 'Popular', nameSwedish: 'Popular', icon: '⭐', active: false },
-    { id: 'all', name: 'All Suppliers', nameSwedish: 'Alla Leverantörer', icon: '📋', active: true }
-  ];
-
-  // Special filters (from the image)
-  specialFilters = [
-    { id: 'free-delivery', label: 'FREE DELIVERY', active: false },
-    { id: 'co-delivery', label: 'CO-DELIVERY', active: false },
-    { id: 'on-sale', label: 'ON SALE', active: false },
-    { id: 'suppliers-etc', label: 'SUPPLIERS ETC', active: false }
-  ];
-
-  // Sample suppliers (based on the image)
-  sampleSuppliers = [
-    {
-      id: '1',
-      name: "Engelman's",
-      description: "Vi har allt för den perfekta delibrickan. Välkommen att upptäcka fantastiska smaker tillsammans med oss!",
-      category: 'deli',
-      onSale: true,
-      freeDelivery: true,
-      coDelivery: false,
-      recentlyAdded: false,
-      popular: true,
-      inquirySent: false,
-      rating: 4.5,
-      imageUrl: '/assets/images/suppliers/engelman.jpg'
-    },
-    {
-      id: '2',
-      name: "Gastro Import",
-      description: "Vi har drygt 25 års erfarenhet av att importera gourmetspecialiteter från Medelhavsområdet vilka vi säljer till restauranger, delikatessbutiker och detaljhandelsbutiker. Företaget grundades 1988 och ä...",
-      category: 'packaged',
-      onSale: false,
-      freeDelivery: false,
-      coDelivery: true,
-      recentlyAdded: false,
-      popular: false,
-      inquirySent: true,
-      rating: 4.2,
-      imageUrl: '/assets/images/suppliers/gastro-import.jpg'
-    }
-  ];
-
-  constructor(
-    private supplierService: SupplierService,
-    private notificationService: NotificationService,
-    private i18nService: I18nService
-  ) {}
+  constructor() { }
 
   ngOnInit(): void {
-    this.initializeSearch();
     this.loadSuppliers();
-    this.setupSampleData();
-  }
-
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
-
-  private initializeSearch(): void {
-    // Main search
-    this.mainSearchControl.valueChanges
-      .pipe(
-        debounceTime(300),
-        distinctUntilChanged(),
-        takeUntil(this.destroy$)
-      )
-      .subscribe(searchTerm => {
-        this.currentFilter.search = searchTerm || '';
-        this.applyFilters();
-      });
-
-    // Secondary search
-    this.secondarySearchControl.valueChanges
-      .pipe(
-        debounceTime(300),
-        distinctUntilChanged(),
-        takeUntil(this.destroy$)
-      )
-      .subscribe(searchTerm => {
-        this.currentFilter.search = searchTerm || '';
-        this.applyFilters();
-      });
+    this.loadCategories();
   }
 
   private loadSuppliers(): void {
-    this.loading = true;
-    this.supplierService.getSuppliers(this.pagination)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response) => {
-          this.suppliers = response.data || [];
-          this.applyFilters();
-          this.loading = false;
+    // Mock data - replace with actual API call
+    this.suppliers = [
+      {
+        id: '1',
+        companyName: 'ICA Sverige AB',
+        supplierName: 'ICA',
+        logo: '/assets/images/suppliers/ica-logo.png',
+        categories: [
+          { id: '1', name: 'Groceries', nameSwedish: 'Livsmedel', nameSpanish: 'Comestibles', nameEnglish: 'Groceries', active: true },
+          { id: '2', name: 'Dairy', nameSwedish: 'Mejeri', nameSpanish: 'Lácteos', nameEnglish: 'Dairy', active: true }
+        ],
+        activeCampaigns: [
+          { id: '1', name: 'Summer Sale', discount: 15, startDate: '2024-06-01', endDate: '2024-08-31', active: true }
+        ],
+        newProducts: [
+          { id: '1', name: 'Organic Milk 1L', price: 12.50, originalPrice: 15.00, isNew: true, isOnSale: true, category: 'Dairy' },
+          { id: '2', name: 'Fresh Bread', price: 25.00, isNew: true, isOnSale: false, category: 'Bakery' }
+        ],
+        deliveryInfo: {
+          combinedDelivery: true,
+          freeShipping: false
         },
-        error: (error) => {
-          console.error('Error loading suppliers:', error);
-          this.notificationService.error('Error loading suppliers');
-          this.loading = false;
-        }
-      });
-  }
-
-  private setupSampleData(): void {
-    // Use sample data if no real data is available
-    if (this.suppliers.length === 0) {
-      this.suppliers = this.sampleSuppliers;
-      this.applyFilters();
-    }
-  }
-
-  onRecommendationSelect(recommendation: RecommendationType): void {
-    // Deactivate all recommendations
-    this.recommendations.forEach(rec => rec.active = false);
-    
-    // Activate selected recommendation
-    recommendation.active = true;
-    this.currentFilter.recommendation = recommendation.id as any;
-    
-    this.applyFilters();
-  }
-
-  onCategorySelect(category: SupplierCategory): void {
-    // Toggle category selection
-    category.active = !category.active;
-    
-    // Update filter
-    if (category.active) {
-      this.currentFilter.category = category.id;
-    } else {
-      this.currentFilter.category = null;
-    }
-    
-    this.applyFilters();
-  }
-
-  onSpecialFilterToggle(filter: any): void {
-    filter.active = !filter.active;
-    
-    // Update filter based on type
-    switch (filter.id) {
-      case 'free-delivery':
-        this.currentFilter.freeDelivery = filter.active;
-        break;
-      case 'co-delivery':
-        this.currentFilter.coDelivery = filter.active;
-        break;
-      case 'on-sale':
-        this.currentFilter.onSale = filter.active;
-        break;
-    }
-    
-    this.applyFilters();
-  }
-
-  private applyFilters(): void {
-    let filtered = [...this.suppliers];
-
-    // Apply search filter
-    if (this.currentFilter.search) {
-      const searchTerm = this.currentFilter.search.toLowerCase();
-      filtered = filtered.filter(supplier => 
-        supplier.name.toLowerCase().includes(searchTerm) ||
-        supplier.description?.toLowerCase().includes(searchTerm)
-      );
-    }
-
-    // Apply category filter
-    if (this.currentFilter.category) {
-      filtered = filtered.filter(supplier => supplier.category === this.currentFilter.category);
-    }
-
-    // Apply recommendation filter
-    if (this.currentFilter.recommendation) {
-      switch (this.currentFilter.recommendation) {
-        case 'recently_added':
-          filtered = filtered.filter(supplier => supplier.recentlyAdded);
-          break;
-        case 'popular':
-          filtered = filtered.filter(supplier => supplier.popular);
-          break;
-        case 'all':
-          // No additional filtering needed
-          break;
+        status: 'active',
+        lastOrderDate: '2024-01-15',
+        totalOrders: 45,
+        rating: 4.5
+      },
+      {
+        id: '2',
+        companyName: 'Coop Sverige',
+        supplierName: 'Coop',
+        categories: [
+          { id: '3', name: 'Meat', nameSwedish: 'Kött', nameSpanish: 'Carnes', nameEnglish: 'Meat', active: true },
+          { id: '4', name: 'Vegetables', nameSwedish: 'Grönsaker', nameSpanish: 'Verduras', nameEnglish: 'Vegetables', active: true }
+        ],
+        activeCampaigns: [],
+        newProducts: [
+          { id: '3', name: 'Organic Chicken', price: 85.00, isNew: true, isOnSale: false, category: 'Meat' }
+        ],
+        deliveryInfo: {
+          combinedDelivery: true,
+          freeShipping: true
+        },
+        status: 'potential',
+        totalOrders: 0,
+        rating: 4.2
+      },
+      {
+        id: '3',
+        companyName: 'Axfood AB',
+        supplierName: 'Willys',
+        categories: [
+          { id: '1', name: 'Groceries', nameSwedish: 'Livsmedel', nameSpanish: 'Comestibles', nameEnglish: 'Groceries', active: true }
+        ],
+        activeCampaigns: [
+          { id: '2', name: 'Weekly Special', discount: 20, startDate: '2024-01-01', endDate: '2024-01-31', active: true }
+        ],
+        newProducts: [],
+        deliveryInfo: {
+          combinedDelivery: false,
+          freeShipping: false
+        },
+        status: 'stopped',
+        lastOrderDate: '2023-11-20',
+        totalOrders: 12,
+        rating: 3.8
       }
-    }
+    ];
 
-    // Apply special filters
-    if (this.currentFilter.onSale) {
-      filtered = filtered.filter(supplier => supplier.onSale);
-    }
-
-    if (this.currentFilter.freeDelivery) {
-      filtered = filtered.filter(supplier => supplier.freeDelivery);
-    }
-
-    if (this.currentFilter.coDelivery) {
-      filtered = filtered.filter(supplier => supplier.coDelivery);
-    }
-
-    this.filteredSuppliers = filtered;
+    this.filteredSuppliers = [...this.suppliers];
   }
 
-  onSendInquiry(supplier: any): void {
-    if (supplier.inquirySent) {
-      this.notificationService.info('Inquiry already sent to this supplier');
-      return;
-    }
-
-    this.supplierService.sendInquiry(supplier.id)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: () => {
-          supplier.inquirySent = true;
-          this.notificationService.success(`Inquiry sent to ${supplier.name}`);
-        },
-        error: (error) => {
-          console.error('Error sending inquiry:', error);
-          this.notificationService.error('Error sending inquiry');
-        }
-      });
+  private loadCategories(): void {
+    // Mock categories - replace with actual API call
+    this.availableCategories = [
+      { id: '1', name: 'Groceries', nameSwedish: 'Livsmedel', nameSpanish: 'Comestibles', nameEnglish: 'Groceries', active: true },
+      { id: '2', name: 'Dairy', nameSwedish: 'Mejeri', nameSpanish: 'Lácteos', nameEnglish: 'Dairy', active: true },
+      { id: '3', name: 'Meat', nameSwedish: 'Kött', nameSpanish: 'Carnes', nameEnglish: 'Meat', active: true },
+      { id: '4', name: 'Vegetables', nameSwedish: 'Grönsaker', nameSpanish: 'Verduras', nameEnglish: 'Vegetables', active: true },
+      { id: '5', name: 'Bakery', nameSwedish: 'Bageri', nameSpanish: 'Panadería', nameEnglish: 'Bakery', active: true }
+    ];
   }
 
-  onAddSupplier(): void {
-    // Navigate to add supplier page or open modal
-    this.notificationService.info('Add supplier functionality will be implemented');
+  applyFilters(): void {
+    this.filteredSuppliers = this.suppliers.filter(supplier => {
+      const statusMatch = !this.selectedStatus || supplier.status === this.selectedStatus;
+      const categoryMatch = !this.selectedCategory || 
+        supplier.categories.some(cat => cat.id === this.selectedCategory);
+      
+      return statusMatch && categoryMatch;
+    });
   }
 
-  clearAllFilters(): void {
-    // Reset all filters
-    this.currentFilter = {
-      recommendation: null,
-      category: null,
-      onSale: false,
-      freeDelivery: false,
-      coDelivery: false,
-      search: ''
+  clearFilters(): void {
+    this.selectedStatus = '';
+    this.selectedCategory = '';
+    this.filteredSuppliers = [...this.suppliers];
+  }
+
+  setViewMode(mode: 'table' | 'cards'): void {
+    this.viewMode = mode;
+  }
+
+  trackBySupplierId(index: number, supplier: MySupplier): string {
+    return supplier.id;
+  }
+
+  getStars(rating: number): string {
+    const fullStars = Math.floor(rating);
+    const halfStar = rating % 1 >= 0.5;
+    const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
+    
+    return '★'.repeat(fullStars) + (halfStar ? '☆' : '') + '☆'.repeat(emptyStars);
+  }
+
+  getCategoryFullName(category: SupplierCategory): string {
+    return `${category.nameSpanish} / ${category.nameSwedish} / ${category.nameEnglish}`;
+  }
+
+  getStatusText(status: string): string {
+    const statusMap = {
+      'potential': 'May need to buy from',
+      'active': 'Current supplier',
+      'stopped': 'Stopped buying from'
     };
-
-    // Reset UI states
-    this.recommendations.forEach(rec => rec.active = rec.id === 'all');
-    this.categories.forEach(cat => cat.active = false);
-    this.specialFilters.forEach(filter => filter.active = false);
-    this.mainSearchControl.setValue('');
-    this.secondarySearchControl.setValue('');
-
-    this.applyFilters();
+    return statusMap[status] || status;
   }
 
-  getActiveFiltersCount(): number {
-    let count = 0;
-    if (this.currentFilter.category) count++;
-    if (this.currentFilter.onSale) count++;
-    if (this.currentFilter.freeDelivery) count++;
-    if (this.currentFilter.coDelivery) count++;
-    if (this.currentFilter.search) count++;
-    return count;
+  formatDate(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric',
+      year: 'numeric'
+    });
   }
 
-  // Translation methods
-  getTranslation(key: string): string {
-    return this.i18nService.translate(key);
+  viewSupplier(supplierId: string): void {
+    // Navigate to supplier details
+    console.log('View supplier:', supplierId);
   }
 
-  getCategoryName(category: SupplierCategory): string {
-    const currentLang = this.i18nService.getCurrentLanguage();
-    switch (currentLang) {
-      case 'sv': return category.nameSwedish;
-      case 'es': return category.nameSpanish;
-      default: return category.name;
-    }
+  placeOrder(supplierId: string): void {
+    // Navigate to order page
+    console.log('Place order for supplier:', supplierId);
   }
 
-  getRecommendationName(recommendation: RecommendationType): string {
-    const currentLang = this.i18nService.getCurrentLanguage();
-    switch (currentLang) {
-      case 'sv': return recommendation.nameSwedish;
-      default: return recommendation.name;
-    }
+  contactSupplier(supplierId: string): void {
+    // Open contact modal or navigate to contact page
+    console.log('Contact supplier:', supplierId);
   }
 }

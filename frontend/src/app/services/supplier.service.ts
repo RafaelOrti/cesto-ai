@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { BaseApiService } from '../core/services/base-api.service';
@@ -32,12 +32,32 @@ export interface SupplierFilter {
   rating?: number;
 }
 
+export interface SupplierRelationshipRequest {
+  id: string;
+  buyerId: string;
+  clientId: string;
+  supplierId: string;
+  requestType: 'partnership' | 'collaboration' | 'general';
+  status: 'pending' | 'approved' | 'rejected';
+  requestedAt: string;
+  respondedAt?: string;
+  message?: string;
+}
+
+export interface SupplierRelationshipResponse {
+  success: boolean;
+  relationshipId?: string;
+  status: 'pending' | 'approved' | 'rejected' | 'suspended';
+  message: string;
+  requiresApproval: boolean;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class SupplierService extends BaseApiService<Supplier> {
-  constructor(http: HttpClient) {
-    super(http, 'http://localhost:3400/api', '/suppliers');
+  constructor(http: HttpClient, @Inject('API_BASE_URL') private apiBaseUrl: string) {
+    super(http, apiBaseUrl, '/suppliers');
   }
 
   /**
@@ -299,6 +319,50 @@ export class SupplierService extends BaseApiService<Supplier> {
     campaigns: number;
   }> {
     return this.http.get<ApiResponse<any>>(`${this.baseUrl}/${supplierId}/analytics`)
+      .pipe(map(response => response.data));
+  }
+
+  /**
+   * Get my approved suppliers
+   */
+  getMySuppliers(): Observable<Supplier[]> {
+    return this.http.get<ApiResponse<Supplier[]>>(`${this.baseUrl}/my-suppliers`)
+      .pipe(map(response => response.data));
+  }
+
+  /**
+   * Request supplier relationship
+   */
+  requestSupplierRelationship(request: SupplierRelationshipRequest): Observable<SupplierRelationshipResponse> {
+    return this.http.post<ApiResponse<SupplierRelationshipResponse>>(`${this.baseUrl}/relationships/request`, request)
+      .pipe(map(response => response.data));
+  }
+
+  /**
+   * Get approved buyers for supplier
+   */
+  getApprovedBuyers(): Observable<Supplier[]> {
+    return this.http.get<ApiResponse<Supplier[]>>(`${this.baseUrl}/approved-buyers`)
+      .pipe(map(response => response.data));
+  }
+
+  /**
+   * Get pending relationship requests
+   */
+  getPendingRequests(): Observable<any[]> {
+    return this.http.get<ApiResponse<any[]>>(`${this.baseUrl}/pending-requests`)
+      .pipe(map(response => response.data));
+  }
+
+  /**
+   * Get relationship status with specific supplier
+   */
+  getRelationshipStatus(supplierId: string): Observable<{
+    exists: boolean;
+    status?: string;
+    relationshipId?: string;
+  }> {
+    return this.http.get<ApiResponse<any>>(`${this.baseUrl}/relationships/status/${supplierId}`)
       .pipe(map(response => response.data));
   }
 

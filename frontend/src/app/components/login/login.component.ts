@@ -1,7 +1,8 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, AbstractControl } from '@angular/forms';
 import { Router } from '@angular/router';
-import { AuthService } from '../../services/auth.service';
+import { AuthService } from '../../core/services/auth.service';
+import { RoleRedirectService } from '../../core/services/role-redirect.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { trigger, state, style, transition, animate } from '@angular/animations';
 import { Subject } from 'rxjs';
@@ -38,11 +39,16 @@ export class LoginComponent implements OnInit, OnDestroy {
   showConfirmPassword = false;
   passwordStrength = 0;
   passwordStrengthLabel = '';
+  hasMinLength = false;
+  hasUppercase = false;
+  hasLowercase = false;
+  hasNumber = false;
   private destroy$ = new Subject<void>();
 
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
+    private roleRedirectService: RoleRedirectService,
     private router: Router,
     private snackBar: MatSnackBar
   ) {
@@ -80,7 +86,10 @@ export class LoginComponent implements OnInit, OnDestroy {
   private setupPasswordStrengthMonitoring(): void {
     this.registerForm.get('password')?.valueChanges
       .pipe(takeUntil(this.destroy$), debounceTime(300), distinctUntilChanged())
-      .subscribe(password => this.calculatePasswordStrength(password));
+      .subscribe(password => {
+        this.calculatePasswordStrength(password);
+        this.checkPasswordRequirements(password);
+      });
   }
 
 
@@ -122,25 +131,37 @@ export class LoginComponent implements OnInit, OnDestroy {
       return;
     }
 
+    if (this.isLoading) {
+      console.log('[LOGIN] Login already in progress, ignoring duplicate request');
+      return;
+    }
+
     this.isLoading = true;
+    console.log('[LOGIN] Starting login process');
+    
     try {
       const credentials = {
         email: this.loginForm.get('email')?.value?.toLowerCase().trim(),
         password: this.loginForm.get('password')?.value
       };
 
-      await this.authService.login(credentials).toPromise();
+      console.log('[LOGIN] Attempting login for:', credentials.email);
+      await this.authService.login(credentials.email, credentials.password).toPromise();
       
+      console.log('[LOGIN] Login successful');
       this.snackBar.open('Welcome back!', 'Close', {
         duration: 3000,
         panelClass: ['success-snackbar']
       });
       
-      this.router.navigate(['/dashboard']);
+      // Redirect to role-specific dashboard
+      this.roleRedirectService.redirectToRoleDashboard();
     } catch (error: any) {
+      console.error('[LOGIN] Login error:', error);
       this.handleLoginError(error);
     } finally {
       this.isLoading = false;
+      console.log('[LOGIN] Login process completed');
     }
   }
 
@@ -176,16 +197,20 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   private handleLoginError(error: any): void {
+    console.log('[LOGIN] Handling error:', error);
     let errorMessage = 'Login failed. Please check your credentials.';
     
     if (error.status === 401) {
       errorMessage = 'Invalid email or password.';
     } else if (error.status === 429) {
-      errorMessage = 'Too many login attempts. Please try again later.';
+      errorMessage = 'Too many login attempts. Please wait a moment before trying again.';
     } else if (error.status === 0) {
       errorMessage = 'Unable to connect to server. Please check your internet connection.';
+    } else if (error.status >= 500) {
+      errorMessage = 'Server error. Please try again in a moment.';
     }
 
+    console.log('[LOGIN] Showing error message:', errorMessage);
     this.snackBar.open(errorMessage, 'Close', {
       duration: 5000,
       panelClass: ['error-snackbar']
@@ -311,6 +336,21 @@ export class LoginComponent implements OnInit, OnDestroy {
     }
 
     this.passwordStrengthLabel = label;
+  }
+
+  private checkPasswordRequirements(password: string): void {
+    if (!password) {
+      this.hasMinLength = false;
+      this.hasUppercase = false;
+      this.hasLowercase = false;
+      this.hasNumber = false;
+      return;
+    }
+
+    this.hasMinLength = password.length >= 8;
+    this.hasUppercase = /[A-Z]/.test(password);
+    this.hasLowercase = /[a-z]/.test(password);
+    this.hasNumber = /[0-9]/.test(password);
   }
 
   private passwordStrengthValidator(control: AbstractControl): { [key: string]: any } | null {

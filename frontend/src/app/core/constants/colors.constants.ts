@@ -1,30 +1,30 @@
 export const COLORS = {
-  // Primary colors
+  // Primary colors - Green theme
   PRIMARY: {
-    50: '#e3f2fd',
-    100: '#bbdefb',
-    200: '#90caf9',
-    300: '#64b5f6',
-    400: '#42a5f5',
-    500: '#2196f3',
-    600: '#1e88e5',
-    700: '#1976d2',
-    800: '#1565c0',
-    900: '#0d47a1'
+    50: '#e8f5e8',
+    100: '#c8e6c9',
+    200: '#a5d6a7',
+    300: '#81c784',
+    400: '#66bb6a',
+    500: '#4caf50',
+    600: '#43a047',
+    700: '#388e3c',
+    800: '#2e7d32',
+    900: '#1b5e20'
   },
 
-  // Secondary colors
+  // Secondary colors - Light green theme
   SECONDARY: {
-    50: '#f3e5f5',
-    100: '#e1bee7',
-    200: '#ce93d8',
-    300: '#ba68c8',
-    400: '#ab47bc',
-    500: '#9c27b0',
-    600: '#8e24aa',
-    700: '#7b1fa2',
-    800: '#6a1b9a',
-    900: '#4a148c'
+    50: '#f1f8e9',
+    100: '#e8f5e8',
+    200: '#c8e6c9',
+    300: '#a5d6a7',
+    400: '#81c784',
+    500: '#66bb6a',
+    600: '#4caf50',
+    700: '#43a047',
+    800: '#388e3c',
+    900: '#2e7d32'
   },
 
   // Success colors
@@ -41,46 +41,46 @@ export const COLORS = {
     900: '#1b5e20'
   },
 
-  // Warning colors
+  // Warning colors - Green tones
   WARNING: {
-    50: '#fff8e1',
-    100: '#ffecb3',
-    200: '#ffe082',
-    300: '#ffd54f',
-    400: '#ffca28',
-    500: '#ffc107',
-    600: '#ffb300',
-    700: '#ffa000',
-    800: '#ff8f00',
-    900: '#ff6f00'
+    50: '#f1f8e9',
+    100: '#e8f5e8',
+    200: '#c8e6c9',
+    300: '#a5d6a7',
+    400: '#81c784',
+    500: '#8BC34A',
+    600: '#66BB6A',
+    700: '#4CAF50',
+    800: '#388E3C',
+    900: '#2E7D32'
   },
 
-  // Error colors
+  // Error colors - Dark green tones
   ERROR: {
-    50: '#ffebee',
-    100: '#ffcdd2',
-    200: '#ef9a9a',
-    300: '#e57373',
-    400: '#ef5350',
-    500: '#f44336',
-    600: '#e53935',
-    700: '#d32f2f',
-    800: '#c62828',
-    900: '#b71c1c'
+    50: '#e8f5e8',
+    100: '#c8e6c9',
+    200: '#a5d6a7',
+    300: '#81c784',
+    400: '#66bb6a',
+    500: '#2E7D32',
+    600: '#1B5E20',
+    700: '#0D4B0D',
+    800: '#003300',
+    900: '#001a00'
   },
 
-  // Info colors
+  // Info colors - Medium green tones
   INFO: {
-    50: '#e1f5fe',
-    100: '#b3e5fc',
-    200: '#81d4fa',
-    300: '#4fc3f7',
-    400: '#29b6f6',
-    500: '#03a9f4',
-    600: '#039be5',
-    700: '#0288d1',
-    800: '#0277bd',
-    900: '#01579b'
+    50: '#f1f8e9',
+    100: '#e8f5e8',
+    200: '#c8e6c9',
+    300: '#a5d6a7',
+    400: '#81c784',
+    500: '#66BB6A',
+    600: '#4CAF50',
+    700: '#388E3C',
+    800: '#2E7D32',
+    900: '#1B5E20'
   },
 
   // Neutral colors
@@ -97,36 +97,36 @@ export const COLORS = {
     900: '#212121'
   },
 
-  // Supplier category colors
+  // Supplier category colors - Green/Gray tones only
   SUPPLIER_CATEGORIES: {
     DAIRY: '#e8f5e8',
     FRUITS_VEGETABLES: '#c8e6c9',
-    DELI: '#ffcdd2',
-    HEALTH_BEAUTY: '#f3e5f5',
-    FROZEN: '#e1f5fe',
-    FRESH_MEAT: '#ffebee',
-    PACKAGED: '#fff8e1'
+    DELI: '#a5d6a7',
+    HEALTH_BEAUTY: '#81c784',
+    FROZEN: '#66bb6a',
+    FRESH_MEAT: '#4caf50',
+    PACKAGED: '#f1f8e9'
   },
 
-  // Status colors
+  // Status colors - Green/Gray tones only
   STATUS: {
     ACTIVE: '#4caf50',
     INACTIVE: '#9e9e9e',
-    PENDING: '#ff9800',
+    PENDING: '#8BC34A',
     APPROVED: '#4caf50',
-    REJECTED: '#f44336',
+    REJECTED: '#2E7D32',
     CANCELLED: '#9e9e9e',
-    COMPLETED: '#2196f3',
-    IN_PROGRESS: '#ff9800'
+    COMPLETED: '#66BB6A',
+    IN_PROGRESS: '#8BC34A'
   },
 
-  // Feature colors
+  // Feature colors - Green/Gray tones only
   FEATURES: {
     FREE_DELIVERY: '#4caf50',
-    CO_DELIVERY: '#2196f3',
-    ON_SALE: '#ff9800',
-    RECENTLY_ADDED: '#9c27b0',
-    POPULAR: '#ffc107'
+    CO_DELIVERY: '#66BB6A',
+    ON_SALE: '#8BC34A',
+    RECENTLY_ADDED: '#4CAF50',
+    POPULAR: '#8BC34A'
   },
 
   // Background colors
@@ -153,10 +153,10 @@ export const COLORS = {
     LIGHT: '#e0e0e0',
     MEDIUM: '#bdbdbd',
     DARK: '#757575',
-    FOCUS: '#2196f3',
-    ERROR: '#f44336',
+    FOCUS: '#4CAF50',
+    ERROR: '#2E7D32',
     SUCCESS: '#4caf50',
-    WARNING: '#ff9800'
+    WARNING: '#8BC34A'
   },
 
   // Shadow colors
@@ -164,7 +164,7 @@ export const COLORS = {
     LIGHT: 'rgba(0, 0, 0, 0.1)',
     MEDIUM: 'rgba(0, 0, 0, 0.2)',
     DARK: 'rgba(0, 0, 0, 0.3)',
-    COLORED: 'rgba(33, 150, 243, 0.2)'
+    COLORED: 'rgba(76, 175, 80, 0.2)'
   }
 };
 

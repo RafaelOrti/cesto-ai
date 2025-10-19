@@ -1,16 +1,21 @@
-<div class="layout-container">
-  <!-- Header -->
+<div class="layout-container" fullscreen>
+  <!-- Top Header Bar - Above everything -->
   <app-header (logout)="logout()" [currentUser]="currentUser"></app-header>
   
-  <div class="layout-body">
+  <div class="content-wrapper">
     <!-- Sidebar -->
-    <div class="sidebar">
-      <app-sidebar></app-sidebar>
-    </div>
+    <mat-sidenav-container class="sidebar-container">
+      <mat-sidenav #sidenav mode="side" opened class="sidebar" disableClose>
+        <app-role-based-sidebar></app-role-based-sidebar>
+      </mat-sidenav>
 
-    <!-- Main Content -->
-    <main class="main-content">
-      <router-outlet></router-outlet>
-    </main>
+      <!-- Main Content Area -->
+      <mat-sidenav-content class="main-content">
+        <!-- Page Content -->
+        <div class="page-content">
+          <router-outlet></router-outlet>
+        </div>
+      </mat-sidenav-content>
+    </mat-sidenav-container>
   </div>
 </div>

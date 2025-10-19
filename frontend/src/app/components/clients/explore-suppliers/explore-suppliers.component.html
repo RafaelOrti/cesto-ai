@@ -1,13 +1,13 @@
 <div class="explore-suppliers">
   <div class="page-header">
-    <h1>Explore Suppliers</h1>
+    <h1>{{ i18n.translate('suppliers.exploreSuppliers') }}</h1>
     <div class="header-actions">
       <div class="search-bar">
         <input 
           type="text" 
-          [(ngModel)]="searchQuery" 
+          [(ngModel)]="searchQuery" (ngModelChange)="onSearchChange()" 
           (input)="onSearch()"
-          placeholder="Search suppliers..."
+          [placeholder]="i18n.translate('suppliers.searchPlaceholder')"
           class="search-input"
         >
         <button class="search-btn">
@@ -18,8 +18,8 @@
   </div>
 
   <div class="recommended-section">
-    <h2>Recommended for You</h2>
-    <p class="section-description">Suppliers that match your buying patterns and preferences</p>
+    <h2>{{ i18n.translate('suppliers.recommendedForYou') }}</h2>
+    <p class="section-description">{{ i18n.translate('suppliers.suppliersMatchPatterns') }}</p>
     
     <div class="recommended-grid">
       <div class="supplier-card recommended" *ngFor="let supplier of recommendedSuppliersList" [attr.data-supplier-id]="supplier.id">
@@ -36,24 +36,24 @@
           </div>
           <div class="supplier-actions">
             <button class="add-btn" (click)="addSupplier(supplier)">
-              <i class="icon-plus"></i> Add Supplier
+              <i class="icon-plus"></i> {{ i18n.translate('suppliers.addSupplier') }}
             </button>
             <button class="view-btn" (click)="viewSupplier(supplier)">
-              <i class="icon-eye"></i> View
+              <i class="icon-eye"></i> {{ i18n.translate('common.view') }}
             </button>
           </div>
         </div>
         <div class="supplier-tags">
-          <span class="tag recommended-tag" *ngIf="supplier.isRecommended">Recommended</span>
-          <span class="tag new-tag" *ngIf="supplier.isNew">New</span>
-          <span class="tag offer-tag" *ngIf="supplier.hasSpecialOffer">Special Offer</span>
+          <span class="tag recommended-tag" *ngIf="supplier.isRecommended">{{ i18n.translate('common.recommended') }}</span>
+          <span class="tag new-tag" *ngIf="supplier.isNew">{{ i18n.translate('common.new') }}</span>
+          <span class="tag offer-tag" *ngIf="supplier.hasSpecialOffer">{{ i18n.translate('common.specialOffer') }}</span>
         </div>
       </div>
     </div>
   </div>
 
   <div class="category-section">
-    <h3>Filter by Category</h3>
+    <h3>{{ i18n.translate('common.filterByCategory') }}</h3>
     <div class="category-grid">
       <div 
         class="category-item" 
@@ -68,7 +68,7 @@
   </div>
 
   <div class="filters-section">
-    <h3>Additional Filters</h3>
+    <h3>{{ i18n.translate('common.additionalFilters') }}</h3>
     <div class="filters-grid">
       <label class="filter-item">
         <input 
@@ -76,7 +76,7 @@
           [ngModel]="selectedFilters.freeDelivery"
           (ngModelChange)="onFilterChange('freeDelivery')"
         >
-        <span class="filter-label">Free Delivery</span>
+        <span class="filter-label">{{ i18n.translate('common.freeDelivery') }}</span>
       </label>
       <label class="filter-item">
         <input 
@@ -84,7 +84,7 @@
           [ngModel]="selectedFilters.coDelivery"
           (ngModelChange)="onFilterChange('coDelivery')"
         >
-        <span class="filter-label">Co-Delivery</span>
+        <span class="filter-label">{{ i18n.translate('common.coDelivery') }}</span>
       </label>
       <label class="filter-item">
         <input 
@@ -92,7 +92,7 @@
           [ngModel]="selectedFilters.onSale"
           (ngModelChange)="onFilterChange('onSale')"
         >
-        <span class="filter-label">On Sale</span>
+        <span class="filter-label">{{ i18n.translate('common.onSale') }}</span>
       </label>
       <label class="filter-item">
         <input 
@@ -100,14 +100,14 @@
           [ngModel]="selectedFilters.newProducts"
           (ngModelChange)="onFilterChange('newProducts')"
         >
-        <span class="filter-label">New Products</span>
+        <span class="filter-label">{{ i18n.translate('common.newProducts') }}</span>
       </label>
     </div>
   </div>
 
   <div class="all-suppliers-section">
-    <h2>All Suppliers</h2>
-    <p class="section-description">Browse all available suppliers in your area</p>
+    <h2>{{ i18n.translate('suppliers.allSuppliers') }}</h2>
+    <p class="section-description">{{ i18n.translate('suppliers.browseAllSuppliers') }}</p>
     
     <div class="suppliers-grid">
       <div 
@@ -129,10 +129,10 @@
           </div>
           <div class="supplier-actions">
             <button class="view-btn" (click)="viewSupplier(supplier)">
-              <i class="icon-eye"></i> View
+              <i class="icon-eye"></i> {{ i18n.translate('common.view') }}
             </button>
             <button class="add-btn" (click)="addSupplier(supplier)">
-              <i class="icon-plus"></i> Add
+              <i class="icon-plus"></i> {{ i18n.translate('common.add') }}
             </button>
           </div>
         </div>
@@ -142,7 +142,7 @@
             {{ getSupplierStatus(supplier) }}
           </span>
           <span class="tag delivery-tag" *ngFor="let option of supplier.deliveryOptions">
-            {{ option === 'free-delivery' ? 'Free Delivery' : 'Co-Delivery' }}
+            {{ option === 'free-delivery' ? i18n.translate('common.freeDelivery') : i18n.translate('common.coDelivery') }}
           </span>
         </div>
 
@@ -157,10 +157,10 @@
 
   <div class="help-section">
     <div class="help-card">
-      <h3>Need Help Finding Suppliers?</h3>
-      <p>Our AI-powered recommendation system analyzes your buying patterns to suggest the best suppliers for your business needs.</p>
+      <h3>{{ i18n.translate('common.needHelpFindingSuppliers') }}</h3>
+      <p>{{ i18n.translate('common.aiPoweredRecommendations') }}</p>
       <div class="help-features">
-        <div class="feature" *ngFor="let feature of ['AI Recommendations', 'Delivery Options', 'Quality Assurance']">
+        <div class="feature" *ngFor="let feature of [i18n.translate('common.aiRecommendations'), i18n.translate('common.deliveryOptions'), i18n.translate('common.qualityAssurance')]">
           <i [class]="getFeatureIcon(feature)"></i>
           <span>{{ feature }}</span>
         </div>

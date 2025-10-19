@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { I18nService } from '../../../core/services/i18n.service';
 
 interface ChartDataPoint {
   month: string;
@@ -34,6 +35,8 @@ interface LegendItem {
 export class ClientInsightsComponent implements OnInit {
   selectedFilter = 'Sales';
   filters = ['Sales', 'Websites', 'Delivery date'];
+
+  constructor(private i18nService: I18nService) {}
   
   dateRange = {
     from: '2023-02-17',

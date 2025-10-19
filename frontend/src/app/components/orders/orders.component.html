@@ -1,67 +1,82 @@
 <div class="orders-container">
   <!-- Header Section -->
-  <div class="page-header">
-    <div class="header-content">
+  <mat-toolbar class="page-header" color="primary">
+    <mat-toolbar-row>
       <div class="title-section">
         <h1>
-          <i class="fas fa-shopping-cart"></i>
+          <mat-icon>shopping_cart</mat-icon>
           Orders Management
         </h1>
         <div class="header-info">
-          <span class="info-icon" title="Track and manage all your orders">📦</span>
+          <mat-icon class="info-icon" matTooltip="Track and manage all your orders">inventory</mat-icon>
           <span class="order-count">{{ getTotalOrders() }} total orders</span>
+          <div class="status-indicators">
+            <span class="indicator delivered">{{ getOrdersByStatus('delivered').length }} Delivered</span>
+            <span class="indicator pending">{{ getOrdersByStatus('pending').length }} Pending</span>
+            <span class="indicator shipped">{{ getOrdersByStatus('shipped').length }} Shipped</span>
+          </div>
         </div>
       </div>
+      <span class="spacer"></span>
       <div class="header-actions">
-        <button class="btn btn-primary" (click)="createNewOrder()">
-          <i class="fas fa-plus"></i>
-          New Order
+        <button mat-raised-button color="accent" (click)="createNewOrder()">
+          <mat-icon>add</mat-icon>
+          + NEW ORDER
         </button>
-        <button class="btn btn-secondary" (click)="exportOrders()">
-          <i class="fas fa-download"></i>
-          Export Orders
+        <button mat-stroked-button (click)="exportOrders()">
+          <mat-icon>download</mat-icon>
+          + EXPORT ORDERS
         </button>
       </div>
-    </div>
-  </div>
+    </mat-toolbar-row>
+  </mat-toolbar>
 
   <!-- Search and Filters -->
-  <div class="search-filters-section">
-    <div class="search-container">
-      <i class="fas fa-search search-icon"></i>
-      <input 
-        type="text" 
-        class="search-input"
-        placeholder="Search orders by number, supplier, or product..."
-        [(ngModel)]="searchQuery"
-        (input)="onSearch()">
-    </div>
+  <mat-card class="search-filters-section">
+    <mat-card-content>
+      <div class="search-container">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Search orders by number, supplier, or product...</mat-label>
+          <input 
+            matInput
+            type="text" 
+            placeholder="Search orders by number, supplier, or product..."
+            [(ngModel)]="searchQuery"
+            (input)="onSearch()">
+          <mat-icon matPrefix>search</mat-icon>
+        </mat-form-field>
+      </div>
 
-    <div class="filters-container">
-      <div class="filter-group">
-        <label>Status:</label>
-        <select [(ngModel)]="statusFilter" (change)="onStatusFilter(statusFilter)" class="filter-select">
-          <option value="all">All Status</option>
-          <option value="pending">Pending</option>
-          <option value="confirmed">Confirmed</option>
-          <option value="shipped">Shipped</option>
-          <option value="delivered">Delivered</option>
-          <option value="cancelled">Cancelled</option>
-        </select>
+      <div class="filters-container">
+        <div class="filter-group">
+          <mat-form-field appearance="outline">
+            <mat-label>Status</mat-label>
+            <mat-select [(value)]="statusFilter" (selectionChange)="onStatusFilter($event.value)">
+              <mat-option value="all">All Status</mat-option>
+              <mat-option value="pending">Pending</mat-option>
+              <mat-option value="confirmed">Confirmed</mat-option>
+              <mat-option value="shipped">Shipped</mat-option>
+              <mat-option value="delivered">Delivered</mat-option>
+              <mat-option value="cancelled">Cancelled</mat-option>
+            </mat-select>
+          </mat-form-field>
       </div>
 
       <div class="filter-group">
-        <label>Date Range:</label>
-        <select [(ngModel)]="dateRange" (change)="onDateRangeChange(dateRange)" class="filter-select">
-          <option value="all">All Time</option>
-          <option value="last-week">Last Week</option>
-          <option value="last-month">Last Month</option>
-          <option value="last-3-months">Last 3 Months</option>
-          <option value="last-year">Last Year</option>
-        </select>
+        <mat-form-field appearance="outline">
+          <mat-label>Date Range</mat-label>
+          <mat-select [(value)]="dateRange" (selectionChange)="onDateRangeChange($event.value)">
+            <mat-option value="all">All Time</mat-option>
+            <mat-option value="last-week">Last Week</mat-option>
+            <mat-option value="last-month">Last Month</mat-option>
+            <mat-option value="last-3-months">Last 3 Months</mat-option>
+            <mat-option value="last-year">Last Year</mat-option>
+          </mat-select>
+        </mat-form-field>
       </div>
     </div>
-  </div>
+    </mat-card-content>
+  </mat-card>
 
   <!-- Order Tabs -->
   <div class="order-tabs">

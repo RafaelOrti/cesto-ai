@@ -1,0 +1,310 @@
+<div class="color-config-container">
+  <mat-card class="config-card">
+    <mat-card-header>
+      <mat-card-title class="mat-mdc-typography mat-headline-5">
+        <mat-icon>palette</mat-icon>
+        Color Configuration
+      </mat-card-title>
+      <mat-card-subtitle class="mat-mdc-typography mat-body-2">
+        Customize the color scheme of your application
+      </mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <!-- Preset Buttons -->
+      <div class="preset-section">
+        <h3 class="mat-mdc-typography mat-subtitle-1">Color Presets</h3>
+        <div class="preset-buttons">
+          <button mat-stroked-button (click)="applyPreset('default')" color="primary">
+            <mat-icon>refresh</mat-icon>
+            Default
+          </button>
+          <button mat-stroked-button (click)="applyPreset('light')" color="primary">
+            <mat-icon>light_mode</mat-icon>
+            Light
+          </button>
+          <button mat-stroked-button (click)="applyPreset('dark')" color="primary">
+            <mat-icon>dark_mode</mat-icon>
+            Dark
+          </button>
+          <button mat-stroked-button (click)="applyPreset('green-light')" color="primary">
+            <mat-icon>eco</mat-icon>
+            Green Light
+          </button>
+          <button mat-stroked-button (click)="applyPreset('green-dark')" color="primary">
+            <mat-icon>park</mat-icon>
+            Green Dark
+          </button>
+        </div>
+      </div>
+
+      <mat-divider></mat-divider>
+
+      <!-- Color Configuration Form -->
+      <form [formGroup]="colorForm" (ngModelChange)="onColorChange()">
+        <div class="color-sections">
+          <!-- Primary Colors -->
+          <mat-expansion-panel class="color-section">
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                <mat-icon class="section-icon">color_lens</mat-icon>
+                Primary Colors
+              </mat-panel-title>
+              <mat-panel-description>
+                Main brand colors
+              </mat-panel-description>
+            </mat-expansion-panel-header>
+
+            <div class="color-inputs">
+              <mat-form-field appearance="outline" class="color-field">
+                <mat-label>Primary Main</mat-label>
+                <input matInput type="color" formControlName="primaryMain">
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="color-field">
+                <mat-label>Primary Light</mat-label>
+                <input matInput type="color" formControlName="primaryLight">
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="color-field">
+                <mat-label>Primary Dark</mat-label>
+                <input matInput type="color" formControlName="primaryDark">
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="color-field">
+                <mat-label>Primary Contrast</mat-label>
+                <input matInput type="color" formControlName="primaryContrast">
+              </mat-form-field>
+            </div>
+          </mat-expansion-panel>
+
+          <!-- Secondary Colors -->
+          <mat-expansion-panel class="color-section">
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                <mat-icon class="section-icon">palette</mat-icon>
+                Secondary Colors
+              </mat-panel-title>
+              <mat-panel-description>
+                Supporting colors
+              </mat-panel-description>
+            </mat-expansion-panel-header>
+
+            <div class="color-inputs">
+              <mat-form-field appearance="outline" class="color-field">
+                <mat-label>Secondary Main</mat-label>
+                <input matInput type="color" formControlName="secondaryMain">
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="color-field">
+                <mat-label>Secondary Light</mat-label>
+                <input matInput type="color" formControlName="secondaryLight">
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="color-field">
+                <mat-label>Secondary Dark</mat-label>
+                <input matInput type="color" formControlName="secondaryDark">
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="color-field">
+                <mat-label>Secondary Contrast</mat-label>
+                <input matInput type="color" formControlName="secondaryContrast">
+              </mat-form-field>
+            </div>
+          </mat-expansion-panel>
+
+          <!-- Accent Colors -->
+          <mat-expansion-panel class="color-section">
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                <mat-icon class="section-icon">brush</mat-icon>
+                Accent Colors
+              </mat-panel-title>
+              <mat-panel-description>
+                Highlight colors
+              </mat-panel-description>
+            </mat-expansion-panel-header>
+
+            <div class="color-inputs">
+              <mat-form-field appearance="outline" class="color-field">
+                <mat-label>Accent Main</mat-label>
+                <input matInput type="color" formControlName="accentMain">
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="color-field">
+                <mat-label>Accent Light</mat-label>
+                <input matInput type="color" formControlName="accentLight">
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="color-field">
+                <mat-label>Accent Dark</mat-label>
+                <input matInput type="color" formControlName="accentDark">
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="color-field">
+                <mat-label>Accent Contrast</mat-label>
+                <input matInput type="color" formControlName="accentContrast">
+              </mat-form-field>
+            </div>
+          </mat-expansion-panel>
+
+          <!-- Background Colors -->
+          <mat-expansion-panel class="color-section">
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                <mat-icon class="section-icon">wallpaper</mat-icon>
+                Background Colors
+              </mat-panel-title>
+              <mat-panel-description>
+                Background colors
+              </mat-panel-description>
+            </mat-expansion-panel-header>
+
+            <div class="color-inputs">
+              <mat-form-field appearance="outline" class="color-field">
+                <mat-label>Background Primary</mat-label>
+                <input matInput type="color" formControlName="backgroundPrimary">
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="color-field">
+                <mat-label>Background Secondary</mat-label>
+                <input matInput type="color" formControlName="backgroundSecondary">
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="color-field">
+                <mat-label>Background Tertiary</mat-label>
+                <input matInput type="color" formControlName="backgroundTertiary">
+              </mat-form-field>
+            </div>
+          </mat-expansion-panel>
+
+          <!-- Text Colors -->
+          <mat-expansion-panel class="color-section">
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                <mat-icon class="section-icon">text_fields</mat-icon>
+                Text Colors
+              </mat-panel-title>
+              <mat-panel-description>
+                Text color scheme
+              </mat-panel-description>
+            </mat-expansion-panel-header>
+
+            <div class="color-inputs">
+              <mat-form-field appearance="outline" class="color-field">
+                <mat-label>Text Primary</mat-label>
+                <input matInput type="color" formControlName="textPrimary">
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="color-field">
+                <mat-label>Text Secondary</mat-label>
+                <input matInput type="color" formControlName="textSecondary">
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="color-field">
+                <mat-label>Text Disabled</mat-label>
+                <input matInput type="color" formControlName="textDisabled">
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="color-field">
+                <mat-label>Text Hint</mat-label>
+                <input matInput type="color" formControlName="textHint">
+              </mat-form-field>
+            </div>
+          </mat-expansion-panel>
+
+          <!-- Status Colors -->
+          <mat-expansion-panel class="color-section">
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                <mat-icon class="section-icon">info</mat-icon>
+                Status Colors
+              </mat-panel-title>
+              <mat-panel-description>
+                Status indicators
+              </mat-panel-description>
+            </mat-expansion-panel-header>
+
+            <div class="color-inputs">
+              <mat-form-field appearance="outline" class="color-field">
+                <mat-label>Success</mat-label>
+                <input matInput type="color" formControlName="statusSuccess">
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="color-field">
+                <mat-label>Warning</mat-label>
+                <input matInput type="color" formControlName="statusWarning">
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="color-field">
+                <mat-label>Error</mat-label>
+                <input matInput type="color" formControlName="statusError">
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="color-field">
+                <mat-label>Info</mat-label>
+                <input matInput type="color" formControlName="statusInfo">
+              </mat-form-field>
+            </div>
+          </mat-expansion-panel>
+        </div>
+      </form>
+    </mat-card-content>
+
+    <mat-card-actions align="end">
+      <button mat-button (click)="resetToDefault()" color="warn">
+        <mat-icon>refresh</mat-icon>
+        Reset to Default
+      </button>
+      <button mat-raised-button color="primary" (click)="onColorChange()">
+        <mat-icon>save</mat-icon>
+        Apply Changes
+      </button>
+    </mat-card-actions>
+  </mat-card>
+
+  <!-- Preview Section -->
+  <mat-card class="preview-card">
+    <mat-card-header>
+      <mat-card-title class="mat-mdc-typography mat-headline-6">
+        <mat-icon>visibility</mat-icon>
+        Preview
+      </mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <div class="preview-section">
+        <!-- Button Preview -->
+        <div class="preview-group">
+          <h4 class="mat-mdc-typography mat-subtitle-2">Buttons</h4>
+          <div class="preview-buttons">
+            <button mat-raised-button color="primary">Primary</button>
+            <button mat-stroked-button color="primary">Secondary</button>
+            <button mat-flat-button color="accent">Accent</button>
+            <button mat-button color="warn">Warning</button>
+          </div>
+        </div>
+
+        <!-- Card Preview -->
+        <div class="preview-group">
+          <h4 class="mat-mdc-typography mat-subtitle-2">Cards</h4>
+          <mat-card class="preview-card-small">
+            <mat-card-content>
+              <p class="mat-mdc-typography mat-body-2">This is a preview card showing how your colors will look.</p>
+            </mat-card-content>
+          </mat-card>
+        </div>
+
+        <!-- Status Preview -->
+        <div class="preview-group">
+          <h4 class="mat-mdc-typography mat-subtitle-2">Status</h4>
+          <div class="preview-status">
+            <mat-chip color="primary">Success</mat-chip>
+            <mat-chip color="accent">Warning</mat-chip>
+            <mat-chip color="warn">Error</mat-chip>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

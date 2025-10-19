@@ -1,0 +1,243 @@
+.color-config-container {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    padding: 16px;
+  }
+}
+
+.config-card {
+  .mat-mdc-card-header {
+    .mat-mdc-card-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      
+      mat-icon {
+        color: var(--mat-primary);
+      }
+    }
+  }
+}
+
+.preset-section {
+  margin-bottom: 24px;
+  
+  h3 {
+    margin-bottom: 16px;
+    color: var(--mat-text-primary);
+  }
+  
+  .preset-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    
+    button {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 120px;
+    }
+  }
+}
+
+.color-sections {
+  margin-top: 24px;
+  
+  .color-section {
+    margin-bottom: 16px;
+    border: 1px solid var(--mat-border-secondary);
+    
+    .mat-expansion-panel-header {
+      .section-icon {
+        margin-right: 12px;
+        color: var(--mat-primary);
+      }
+    }
+  }
+}
+
+.color-inputs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  padding: 16px 0;
+  
+  .color-field {
+    width: 100%;
+    
+    input[type="color"] {
+      width: 100%;
+      height: 40px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      
+      &::-webkit-color-swatch-wrapper {
+        padding: 0;
+      }
+      
+      &::-webkit-color-swatch {
+        border: none;
+        border-radius: 4px;
+      }
+    }
+  }
+}
+
+.preview-card {
+  height: fit-content;
+  
+  .mat-mdc-card-header {
+    .mat-mdc-card-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      
+      mat-icon {
+        color: var(--mat-primary);
+      }
+    }
+  }
+}
+
+.preview-section {
+  .preview-group {
+    margin-bottom: 24px;
+    
+    h4 {
+      margin-bottom: 12px;
+      color: var(--mat-text-primary);
+    }
+    
+    .preview-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    
+    .preview-card-small {
+      max-width: 300px;
+      
+      .mat-mdc-card-content {
+        padding: 16px;
+      }
+    }
+    
+    .preview-status {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .color-inputs {
+    grid-template-columns: 1fr;
+  }
+  
+  .preset-buttons {
+    flex-direction: column;
+    
+    button {
+      width: 100%;
+    }
+  }
+  
+  .preview-buttons {
+    flex-direction: column;
+    
+    button {
+      width: 100%;
+    }
+  }
+}
+
+// Animation for smooth color transitions
+.color-inputs input[type="color"] {
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.preview-group {
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-2px);
+  }
+}
+
+// Custom styling for expansion panels
+.mat-expansion-panel {
+  &.color-section {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    
+    .mat-expansion-panel-header {
+      padding: 16px 24px;
+      
+      &:hover {
+        background-color: var(--mat-background-secondary);
+      }
+    }
+    
+    .mat-expansion-panel-content {
+      padding: 0 24px 16px 24px;
+    }
+    
+    &.mat-expanded {
+      .mat-expansion-panel-header {
+        background-color: var(--mat-background-secondary);
+      }
+    }
+  }
+}
+
+// Enhanced button styling for presets
+.preset-buttons {
+  button {
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+  }
+}
+
+// Preview card enhancements
+.preview-card-small {
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+  }
+}
+
+// Status chip styling
+.preview-status {
+  mat-chip {
+    transition: all 0.3s ease;
+    
+    &:hover {
+      transform: scale(1.05);
+    }
+  }
+}

@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
-import { AuthService } from '../../services/auth.service';
+import { AuthService } from '../../core/services/auth.service';
+import { RoleRedirectService } from '../../core/services/role-redirect.service';
 
 @Component({
   selector: 'app-layout',
@@ -14,24 +15,46 @@ export class LayoutComponent implements OnInit {
 
   constructor(
     private router: Router,
-    private authService: AuthService
-  ) {}
+    private authService: AuthService,
+    private roleRedirectService: RoleRedirectService
+  ) {
+    console.log('[LAYOUT] Constructor called');
+  }
 
   ngOnInit() {
+    console.log('[LAYOUT] Component initialized');
+    
     // Track current route
     this.router.events
       .pipe(filter(event => event instanceof NavigationEnd))
       .subscribe((event: any) => {
+        console.log('[LAYOUT] Route changed to:', event.url);
         this.currentRoute = event.url;
       });
 
-    // Get current user
+    // Get current user and redirect if needed
     this.authService.currentUser$.subscribe(user => {
+      console.log('[LAYOUT] Current user:', user);
       this.currentUser = user;
+      
+      // If user is on root path or generic dashboard, redirect to role-specific dashboard
+      if (user && (this.currentRoute === '' || this.currentRoute === '/dashboard')) {
+        this.roleRedirectService.redirectToRoleDashboard();
+      }
     });
   }
 
   logout() {
-    this.authService.logout();
+    this.authService.logout().subscribe({
+      next: () => {
+        console.log('[LAYOUT] Logout successful');
+        this.router.navigate(['/login']);
+      },
+      error: (error) => {
+        console.error('[LAYOUT] Logout error:', error);
+        // Even if logout fails, redirect to login
+        this.router.navigate(['/login']);
+      }
+    });
   }
 }

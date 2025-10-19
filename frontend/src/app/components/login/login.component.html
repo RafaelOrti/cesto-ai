@@ -1,271 +1,365 @@
 <div class="login-container">
-  <!-- Background Elements -->
+  <!-- Enhanced Background Elements -->
   <div class="background-elements">
     <div class="floating-shape shape-1"></div>
     <div class="floating-shape shape-2"></div>
     <div class="floating-shape shape-3"></div>
+    <div class="gradient-overlay"></div>
+    <div class="geometric-pattern"></div>
   </div>
-
 
   <!-- Main Login Form (Center) -->
   <div class="login-form-wrapper">
     <div class="login-form" [@slideIn]>
+      <!-- Enhanced Header -->
       <div class="form-header">
         <div class="logo-container">
           <div class="logo">
-            <i class="icon-store"></i>
+            <mat-icon class="logo-icon">store</mat-icon>
+            <div class="logo-glow"></div>
           </div>
-          <h1>{{ isLoginMode ? 'Welcome Back' : 'Create Account' }}</h1>
-          <p>{{ isLoginMode ? 'Sign in to your account' : 'Join our platform today' }}</p>
+          <div class="brand-text">
+            <h1>{{ isLoginMode ? ('login.welcomeBack' | translate) : ('login.createAccount' | translate) }}</h1>
+            <p>{{ isLoginMode ? ('login.signInMessage' | translate) : ('login.joinMessage' | translate) }}</p>
+          </div>
+        </div>
+        
+        <!-- Mode Toggle -->
+        <div class="mode-toggle">
+          <button 
+            mat-button 
+            [class.active]="isLoginMode"
+            (click)="toggleMode()"
+            [disabled]="isLoading"
+            class="mode-button">
+            <mat-icon>login</mat-icon>
+            <span>Sign In</span>
+          </button>
+          <button 
+            mat-button 
+            [class.active]="!isLoginMode"
+            (click)="toggleMode()"
+            [disabled]="isLoading"
+            class="mode-button">
+            <mat-icon>person_add</mat-icon>
+            <span>Sign Up</span>
+          </button>
         </div>
       </div>
 
       <form [formGroup]="isLoginMode ? loginForm : registerForm" (ngSubmit)="onSubmit()">
         <!-- Login Form -->
-        <div *ngIf="isLoginMode" [@fadeInOut]>
-          <div class="form-group">
-            <label for="login-email">Email Address*</label>
-            <div class="input-wrapper">
+        <div *ngIf="isLoginMode" [@fadeInOut] class="form-content">
+          <div class="form-field-group">
+            <mat-form-field appearance="outline" class="full-width enhanced-field">
+              <mat-label>Email Address</mat-label>
               <input 
-                id="login-email"
+                matInput
                 type="email" 
                 formControlName="email" 
                 placeholder="Enter your email address" 
-                class="form-input"
                 autocomplete="email"
                 [class.error]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched">
-              <span class="input-icon">✉️</span>
-            </div>
-            <div class="error-message" *ngIf="getErrorMessage('email')">
-              {{ getErrorMessage('email') }}
-            </div>
-          </div>
+              <mat-icon matPrefix class="field-icon">email</mat-icon>
+              <mat-error *ngIf="getErrorMessage('email')" class="error-message">
+                <mat-icon class="error-icon">error</mat-icon>
+                {{ getErrorMessage('email') }}
+              </mat-error>
+            </mat-form-field>
 
-          <div class="form-group">
-            <label for="login-password">Password*</label>
-            <div class="input-wrapper">
+            <mat-form-field appearance="outline" class="full-width enhanced-field">
+              <mat-label>Password</mat-label>
               <input 
-                id="login-password"
+                matInput
                 [type]="showPassword ? 'text' : 'password'" 
                 formControlName="password" 
                 placeholder="Enter your password" 
-                class="form-input"
                 autocomplete="current-password"
                 [class.error]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
-              <button type="button" class="password-toggle" (click)="togglePasswordVisibility()">
-                <i [class]="showPassword ? 'icon-eye-off' : 'icon-eye'"></i>
+              <mat-icon matPrefix class="field-icon">lock</mat-icon>
+              <button 
+                mat-icon-button 
+                matSuffix 
+                type="button"
+                (click)="togglePasswordVisibility()"
+                class="password-toggle"
+                [matTooltip]="showPassword ? 'Hide password' : 'Show password'">
+                <mat-icon>{{ showPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
               </button>
-            </div>
-            <div class="error-message" *ngIf="getErrorMessage('password')">
-              {{ getErrorMessage('password') }}
-            </div>
+              <mat-error *ngIf="getErrorMessage('password')" class="error-message">
+                <mat-icon class="error-icon">error</mat-icon>
+                {{ getErrorMessage('password') }}
+              </mat-error>
+            </mat-form-field>
           </div>
 
           <div class="form-options">
-            <label class="checkbox-wrapper">
-              <input type="checkbox" formControlName="rememberMe">
-              <span class="checkbox-custom"></span>
-              <span class="checkbox-label">Remember me</span>
-            </label>
-            <a href="#" class="forgot-password" (click)="setForgotPasswordMode()">Forgot your password?</a>
+            <mat-checkbox formControlName="rememberMe" class="remember-checkbox">
+              <span class="checkbox-label">Remember me for 30 days</span>
+            </mat-checkbox>
+            <a href="#" class="forgot-password" (click)="setForgotPasswordMode()">
+              <mat-icon>help</mat-icon>
+              <span>Forgot your password?</span>
+            </a>
           </div>
         </div>
 
         <!-- Register Form -->
-        <div *ngIf="!isLoginMode" [@fadeInOut]>
+        <div *ngIf="!isLoginMode" [@fadeInOut] class="form-content">
           <div class="form-row">
-            <div class="form-group half-width">
-              <label for="register-firstName">First Name*</label>
-              <div class="input-wrapper">
-                <input 
-                  id="register-firstName"
-                  type="text" 
-                  formControlName="firstName" 
-                  placeholder="Enter your first name" 
-                  class="form-input"
-                  autocomplete="given-name"
-                  [class.error]="registerForm.get('firstName')?.invalid && registerForm.get('firstName')?.touched">
-              </div>
-              <div class="error-message" *ngIf="getErrorMessage('firstName')">
+            <mat-form-field appearance="outline" class="half-width enhanced-field">
+              <mat-label>First Name</mat-label>
+              <input 
+                matInput
+                type="text" 
+                formControlName="firstName" 
+                placeholder="Enter your first name" 
+                autocomplete="given-name"
+                [class.error]="registerForm.get('firstName')?.invalid && registerForm.get('firstName')?.touched">
+              <mat-icon matPrefix class="field-icon">person</mat-icon>
+              <mat-error *ngIf="getErrorMessage('firstName')" class="error-message">
+                <mat-icon class="error-icon">error</mat-icon>
                 {{ getErrorMessage('firstName') }}
-              </div>
-            </div>
+              </mat-error>
+            </mat-form-field>
 
-            <div class="form-group half-width">
-              <label for="register-lastName">Last Name*</label>
-              <div class="input-wrapper">
-                <input 
-                  id="register-lastName"
-                  type="text" 
-                  formControlName="lastName" 
-                  placeholder="Enter your last name" 
-                  class="form-input"
-                  autocomplete="family-name"
-                  [class.error]="registerForm.get('lastName')?.invalid && registerForm.get('lastName')?.touched">
-              </div>
-              <div class="error-message" *ngIf="getErrorMessage('lastName')">
+            <mat-form-field appearance="outline" class="half-width enhanced-field">
+              <mat-label>Last Name</mat-label>
+              <input 
+                matInput
+                type="text" 
+                formControlName="lastName" 
+                placeholder="Enter your last name" 
+                autocomplete="family-name"
+                [class.error]="registerForm.get('lastName')?.invalid && registerForm.get('lastName')?.touched">
+              <mat-icon matPrefix class="field-icon">person</mat-icon>
+              <mat-error *ngIf="getErrorMessage('lastName')" class="error-message">
+                <mat-icon class="error-icon">error</mat-icon>
                 {{ getErrorMessage('lastName') }}
-              </div>
-            </div>
+              </mat-error>
+            </mat-form-field>
           </div>
 
-          <div class="form-group">
-            <label for="register-email">Email Address*</label>
-            <div class="input-wrapper">
-              <input 
-                id="register-email"
-                type="email" 
-                formControlName="email" 
-                placeholder="Enter your email address" 
-                class="form-input"
-                autocomplete="email"
-                [class.error]="registerForm.get('email')?.invalid && registerForm.get('email')?.touched">
-              <span class="input-icon">✉️</span>
-            </div>
-            <div class="error-message" *ngIf="getErrorMessage('email')">
+          <mat-form-field appearance="outline" class="full-width enhanced-field">
+            <mat-label>Email Address</mat-label>
+            <input 
+              matInput
+              type="email" 
+              formControlName="email" 
+              placeholder="Enter your email address" 
+              autocomplete="email"
+              [class.error]="registerForm.get('email')?.invalid && registerForm.get('email')?.touched">
+            <mat-icon matPrefix class="field-icon">email</mat-icon>
+            <mat-error *ngIf="getErrorMessage('email')" class="error-message">
+              <mat-icon class="error-icon">error</mat-icon>
               {{ getErrorMessage('email') }}
-            </div>
-          </div>
+            </mat-error>
+          </mat-form-field>
 
-          <div class="form-group">
-            <label for="register-password">Password*</label>
-            <div class="input-wrapper">
-              <input 
-                id="register-password"
-                [type]="showPassword ? 'text' : 'password'" 
-                formControlName="password" 
-                placeholder="Create a strong password" 
-                class="form-input"
-                autocomplete="new-password"
-                [class.error]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched">
-              <button type="button" class="password-toggle" (click)="togglePasswordVisibility()">
-                <i [class]="showPassword ? 'icon-eye-off' : 'icon-eye'"></i>
-              </button>
-            </div>
-            
-            <!-- Password Strength Indicator -->
-            <div class="password-strength" *ngIf="registerForm.get('password')?.value">
-              <div class="strength-bar">
-                <div class="strength-fill" [style.width.%]="passwordStrength" 
-                     [class]="'strength-' + passwordStrengthLabel.toLowerCase()"></div>
-              </div>
+          <mat-form-field appearance="outline" class="full-width enhanced-field">
+            <mat-label>Password</mat-label>
+            <input 
+              matInput
+              [type]="showPassword ? 'text' : 'password'" 
+              formControlName="password" 
+              placeholder="Create a strong password" 
+              autocomplete="new-password"
+              [class.error]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched">
+            <mat-icon matPrefix class="field-icon">lock</mat-icon>
+            <button 
+              mat-icon-button 
+              matSuffix 
+              type="button"
+              (click)="togglePasswordVisibility()"
+              class="password-toggle"
+              [matTooltip]="showPassword ? 'Hide password' : 'Show password'">
+              <mat-icon>{{ showPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
+            <mat-error *ngIf="getErrorMessage('password')" class="error-message">
+              <mat-icon class="error-icon">error</mat-icon>
+              {{ getErrorMessage('password') }}
+            </mat-error>
+          </mat-form-field>
+          
+          <!-- Enhanced Password Strength Indicator -->
+          <div class="password-strength" *ngIf="registerForm.get('password')?.value">
+            <div class="strength-header">
+              <span class="strength-title">Password Strength</span>
               <span class="strength-label" [class]="'strength-' + passwordStrengthLabel.toLowerCase()">
                 {{ passwordStrengthLabel }}
               </span>
             </div>
-            
-            <div class="error-message" *ngIf="getErrorMessage('password')">
-              {{ getErrorMessage('password') }}
+            <mat-progress-bar 
+              mode="determinate" 
+              [value]="passwordStrength" 
+              [color]="passwordStrengthLabel.toLowerCase()"
+              class="strength-bar">
+            </mat-progress-bar>
+            <div class="strength-requirements">
+              <div class="requirement" [class.valid]="hasMinLength">
+                <mat-icon>{{ hasMinLength ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+                <span>At least 8 characters</span>
+              </div>
+              <div class="requirement" [class.valid]="hasUppercase">
+                <mat-icon>{{ hasUppercase ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+                <span>One uppercase letter</span>
+              </div>
+              <div class="requirement" [class.valid]="hasLowercase">
+                <mat-icon>{{ hasLowercase ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+                <span>One lowercase letter</span>
+              </div>
+              <div class="requirement" [class.valid]="hasNumber">
+                <mat-icon>{{ hasNumber ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+                <span>One number</span>
+              </div>
             </div>
           </div>
 
-          <div class="form-group">
-            <label for="register-confirmPassword">Confirm Password*</label>
-            <div class="input-wrapper">
-              <input 
-                id="register-confirmPassword"
-                [type]="showConfirmPassword ? 'text' : 'password'" 
-                formControlName="confirmPassword" 
-                placeholder="Confirm your password" 
-                class="form-input"
-                autocomplete="new-password"
-                [class.error]="registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched">
-              <button type="button" class="password-toggle" (click)="toggleConfirmPasswordVisibility()">
-                <i [class]="showConfirmPassword ? 'icon-eye-off' : 'icon-eye'"></i>
-              </button>
-            </div>
-            <div class="error-message" *ngIf="getErrorMessage('confirmPassword')">
+          <mat-form-field appearance="outline" class="full-width enhanced-field">
+            <mat-label>Confirm Password</mat-label>
+            <input 
+              matInput
+              [type]="showConfirmPassword ? 'text' : 'password'" 
+              formControlName="confirmPassword" 
+              placeholder="Confirm your password" 
+              autocomplete="new-password"
+              [class.error]="registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched">
+            <mat-icon matPrefix class="field-icon">lock</mat-icon>
+            <button 
+              mat-icon-button 
+              matSuffix 
+              type="button"
+              (click)="toggleConfirmPasswordVisibility()"
+              class="password-toggle"
+              [matTooltip]="showConfirmPassword ? 'Hide password' : 'Show password'">
+              <mat-icon>{{ showConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
+            <mat-error *ngIf="getErrorMessage('confirmPassword')" class="error-message">
+              <mat-icon class="error-icon">error</mat-icon>
               {{ getErrorMessage('confirmPassword') }}
-            </div>
-          </div>
+            </mat-error>
+          </mat-form-field>
 
-          <div class="form-group">
-            <label for="register-companyName">Company Name*</label>
-            <div class="input-wrapper">
-              <input 
-                id="register-companyName"
-                type="text" 
-                formControlName="companyName" 
-                placeholder="Enter your company name" 
-                class="form-input"
-                autocomplete="organization"
-                [class.error]="registerForm.get('companyName')?.invalid && registerForm.get('companyName')?.touched">
-              <span class="input-icon">🏢</span>
-            </div>
-            <div class="error-message" *ngIf="getErrorMessage('companyName')">
+          <mat-form-field appearance="outline" class="full-width enhanced-field">
+            <mat-label>Company Name</mat-label>
+            <input 
+              matInput
+              type="text" 
+              formControlName="companyName" 
+              placeholder="Enter your company name" 
+              autocomplete="organization"
+              [class.error]="registerForm.get('companyName')?.invalid && registerForm.get('companyName')?.touched">
+            <mat-icon matPrefix class="field-icon">business</mat-icon>
+            <mat-error *ngIf="getErrorMessage('companyName')" class="error-message">
+              <mat-icon class="error-icon">error</mat-icon>
               {{ getErrorMessage('companyName') }}
-            </div>
-          </div>
+            </mat-error>
+          </mat-form-field>
 
-          <div class="form-group">
-            <label for="register-role">Role*</label>
-            <div class="select-wrapper">
-              <select 
-                id="register-role"
-                formControlName="role" 
-                class="form-select"
-                [class.error]="registerForm.get('role')?.invalid && registerForm.get('role')?.touched">
-                <option value="">Select your role</option>
-                <option value="client">Client - I want to purchase products</option>
-                <option value="supplier">Supplier - I want to sell products</option>
-              </select>
-              <span class="select-icon">▼</span>
-            </div>
-            <div class="error-message" *ngIf="getErrorMessage('role')">
+          <mat-form-field appearance="outline" class="full-width enhanced-field">
+            <mat-label>Role</mat-label>
+            <mat-select formControlName="role" placeholder="Select your role">
+              <mat-option value="client">
+                <div class="role-option">
+                  <mat-icon>shopping_cart</mat-icon>
+                  <div class="role-content">
+                    <span class="role-title">Client</span>
+                    <span class="role-description">I want to purchase products</span>
+                  </div>
+                </div>
+              </mat-option>
+              <mat-option value="supplier">
+                <div class="role-option">
+                  <mat-icon>store</mat-icon>
+                  <div class="role-content">
+                    <span class="role-title">Supplier</span>
+                    <span class="role-description">I want to sell products</span>
+                  </div>
+                </div>
+              </mat-option>
+            </mat-select>
+            <mat-icon matPrefix class="field-icon">work</mat-icon>
+            <mat-error *ngIf="getErrorMessage('role')" class="error-message">
+              <mat-icon class="error-icon">error</mat-icon>
               {{ getErrorMessage('role') }}
-            </div>
-          </div>
+            </mat-error>
+          </mat-form-field>
 
-          <div class="form-group">
-            <label class="checkbox-wrapper terms-checkbox">
-              <input type="checkbox" formControlName="termsAccepted">
-              <span class="checkbox-custom"></span>
-              <span class="checkbox-label">
+          <div class="terms-checkbox">
+            <mat-checkbox formControlName="termsAccepted" class="terms-checkbox-field">
+              <span class="terms-text">
                 I agree to the <a href="#" class="terms-link">Terms of Service</a> and <a href="#" class="privacy-link">Privacy Policy</a>
               </span>
-            </label>
+            </mat-checkbox>
             <div class="error-message" *ngIf="getErrorMessage('termsAccepted')">
+              <mat-icon class="error-icon">error</mat-icon>
               You must accept the terms and conditions
             </div>
           </div>
         </div>
 
+        <!-- Enhanced Submit Button -->
         <button 
+          mat-raised-button
           type="submit" 
-          class="submit-button"
-          [disabled]="isFormDisabled || (isLoginMode ? loginForm.invalid : registerForm.invalid)">
-          <div class="button-content" [class.loading]="isLoading">
-            <div *ngIf="isLoading" class="spinner"></div>
-            <i *ngIf="!isLoading" [class]="isLoginMode ? 'icon-login' : 'icon-user-plus'"></i>
-            <span>{{ isLoginMode ? 'SIGN IN' : 'CREATE ACCOUNT' }}</span>
+          color="primary"
+          class="submit-button full-width"
+          [disabled]="isFormDisabled || (isLoginMode ? loginForm.invalid : registerForm.invalid)"
+          [class.loading]="isLoading">
+          <div class="button-content">
+            <mat-spinner *ngIf="isLoading" diameter="20" class="button-spinner"></mat-spinner>
+            <mat-icon *ngIf="!isLoading" class="button-icon">{{ isLoginMode ? 'login' : 'person_add' }}</mat-icon>
+            <span class="button-text">{{ isLoginMode ? 'SIGN IN' : 'CREATE ACCOUNT' }}</span>
           </div>
+          <div class="button-ripple" *ngIf="isLoading"></div>
         </button>
       </form>
 
+      <!-- Enhanced Form Footer -->
       <div class="form-footer">
         <div class="divider">
           <span>or</span>
         </div>
-        <a href="#" (click)="toggleMode()" class="toggle-mode-link" [class.disabled]="isFormDisabled">
-          {{ isLoginMode ? 'Need an account? Sign up' : 'Already have an account? Sign in' }}
-        </a>
+        <div class="footer-actions">
+          <a href="#" (click)="toggleMode()" class="toggle-mode-link" [class.disabled]="isFormDisabled">
+            <mat-icon>{{ isLoginMode ? 'person_add' : 'login' }}</mat-icon>
+            <span>{{ isLoginMode ? 'Need an account? Sign up' : 'Already have an account? Sign in' }}</span>
+          </a>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Security Features Info -->
+  <!-- Enhanced Security Features Info -->
   <div class="security-info">
     <div class="security-item">
-      <i class="icon-shield"></i>
-      <span>SSL Encrypted</span>
+      <mat-icon class="security-icon">security</mat-icon>
+      <div class="security-content">
+        <span class="security-title">SSL Encrypted</span>
+        <span class="security-subtitle">256-bit encryption</span>
+      </div>
     </div>
     <div class="security-item">
-      <i class="icon-lock"></i>
-      <span>Secure Login</span>
+      <mat-icon class="security-icon">verified_user</mat-icon>
+      <div class="security-content">
+        <span class="security-title">Secure Login</span>
+        <span class="security-subtitle">Multi-factor auth</span>
+      </div>
     </div>
     <div class="security-item">
-      <i class="icon-eye"></i>
-      <span>Privacy Protected</span>
+      <mat-icon class="security-icon">privacy_tip</mat-icon>
+      <div class="security-content">
+        <span class="security-title">Privacy Protected</span>
+        <span class="security-subtitle">GDPR compliant</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" *ngIf="isLoading">
+    <div class="loading-content">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>{{ isLoginMode ? 'Signing you in...' : 'Creating your account...' }}</p>
     </div>
   </div>
 </div>

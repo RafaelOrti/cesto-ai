@@ -1,54 +1,131 @@
-<div class="header-toolbar">
+<mat-toolbar class="header-toolbar" color="primary">
   <div class="header-content">
-    <!-- Left side - Logo and Search -->
+    <!-- Left side - Branding and Search -->
     <div class="header-left">
-      <div class="logo">
-        <span class="logo-text">Stockfiller.com</span>
+      <!-- Branding -->
+      <div class="branding-section">
+        <h1 class="brand-title">CESTO AI</h1>
+        <span class="brand-subtitle">Supply Chain Platform</span>
       </div>
+      
+      <!-- Enhanced Search Field -->
       <div class="search-container">
-        <span class="search-icon">🔍</span>
-        <input 
-          type="text"
-          [(ngModel)]="searchQuery" 
-          (keyup.enter)="onSearch()"
-          placeholder="Global search"
-          class="search-input">
+        <mat-form-field appearance="outline" class="search-field" [class.search-focused]="isSearchFocused">
+          <mat-label>{{ 'common.search' | translate }}</mat-label>
+          <input 
+            matInput
+            type="text"
+            [(ngModel)]="searchQuery" 
+            (focus)="onSearchFocus()"
+            (blur)="onSearchBlur()"
+            (keyup.enter)="onSearch()"
+            (input)="onSearchInput()"
+            placeholder="Search products, suppliers, orders...">
+          <mat-icon matPrefix class="search-icon">search</mat-icon>
+          <button 
+            mat-icon-button 
+            matSuffix 
+            type="button" 
+            (click)="onSearch()" 
+            matTooltip="Search"
+            class="search-button"
+            [disabled]="!searchQuery.trim()">
+            <mat-icon>search</mat-icon>
+          </button>
+          <button 
+            *ngIf="searchQuery" 
+            mat-icon-button 
+            matSuffix 
+            type="button" 
+            (click)="clearSearch()" 
+            matTooltip="Clear search"
+            class="clear-button">
+            <mat-icon>close</mat-icon>
+          </button>
+        </mat-form-field>
+        
+        <!-- Search Suggestions Dropdown -->
+        <div class="search-suggestions" *ngIf="showSuggestions && searchSuggestions.length > 0">
+          <div class="suggestions-header">
+            <span class="suggestions-title">Quick Search</span>
+            <div class="quick-filters" *ngIf="!searchQuery">
+              <mat-chip-set>
+                <mat-chip 
+                  *ngFor="let filter of quickFilters" 
+                  [selected]="filter.active"
+                  (click)="toggleQuickFilter(filter)"
+                  class="filter-chip">
+                  <mat-icon *ngIf="filter.icon" class="chip-icon">{{ filter.icon }}</mat-icon>
+                  {{ filter.label }}
+                </mat-chip>
+              </mat-chip-set>
+            </div>
+          </div>
+          <div class="suggestions-list">
+            <div 
+              *ngFor="let suggestion of searchSuggestions; let i = index"
+              class="suggestion-item"
+              [class.selected]="i === selectedSuggestionIndex"
+              (click)="selectSuggestion(suggestion)"
+              (mouseenter)="selectedSuggestionIndex = i">
+              <mat-icon class="suggestion-icon">{{ suggestion.icon }}</mat-icon>
+              <div class="suggestion-content">
+                <span class="suggestion-title">{{ suggestion.title }}</span>
+                <span class="suggestion-subtitle">{{ suggestion.subtitle }}</span>
+                <span class="suggestion-category" *ngIf="suggestion.category">{{ suggestion.category }}</span>
+              </div>
+              <mat-icon class="suggestion-arrow">arrow_forward_ios</mat-icon>
+            </div>
+          </div>
+          <div class="suggestions-footer">
+            <div class="footer-actions">
+              <span class="suggestions-hint">Press Enter to search</span>
+              <button mat-button class="clear-recent-btn" (click)="clearRecentSearches()" *ngIf="!searchQuery">
+                <mat-icon>clear_all</mat-icon>
+                Clear Recent
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- Right side - User info and actions -->
+    <!-- Right side - Controls in correct order -->
     <div class="header-right">
-      <!-- User menu -->
-      <div class="user-menu">
-        <button class="user-menu-button" (click)="toggleUserMenu()">
-          <span class="user-email">{{ userDisplayName }}</span>
-          <span class="dropdown-icon">▼</span>
-        </button>
-        <span class="profile-label">Profile menu</span>
-
-        <!-- User dropdown menu -->
-        <div class="user-dropdown" [class.show]="showUserMenu">
-          <button class="dropdown-item">
-            <span class="item-icon">👤</span>
-            <span>Profile</span>
-          </button>
-          <button class="dropdown-item">
-            <span class="item-icon">⚙️</span>
-            <span>Settings</span>
-          </button>
-          <div class="dropdown-divider"></div>
-          <button class="dropdown-item" (click)="onLogout()">
-            <span class="item-icon">🚪</span>
-            <span>Logout</span>
-          </button>
-        </div>
-      </div>
-
       <!-- Language selector -->
-      <button class="language-button">
-        <span class="language-label">Languages</span>
-        <span class="language-icon">🇸🇪</span>
+      <app-language-selector></app-language-selector>
+
+      <!-- Notifications button -->
+      <button mat-icon-button 
+              class="action-button" 
+              [matTooltip]="'navigation.notifications' | translate"
+              (click)="onNotifications()">
+        <mat-icon>notifications</mat-icon>
+      </button>
+
+      <!-- Settings button -->
+      <button mat-icon-button 
+              class="action-button" 
+              [matTooltip]="'navigation.settings' | translate"
+              (click)="onSettings()">
+        <mat-icon>settings</mat-icon>
+      </button>
+
+      <!-- Help button -->
+      <button mat-icon-button 
+              class="action-button" 
+              [matTooltip]="'navigation.help' | translate"
+              (click)="onHelp()">
+        <mat-icon>help_outline</mat-icon>
+      </button>
+
+      <!-- Logout button -->
+      <button mat-icon-button 
+              class="action-button" 
+              [matTooltip]="'navigation.logout' | translate"
+              (click)="onLogout()">
+        <mat-icon>logout</mat-icon>
       </button>
     </div>
   </div>
-</div>
+</mat-toolbar>

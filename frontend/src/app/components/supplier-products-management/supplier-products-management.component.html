@@ -1,0 +1,503 @@
+<div class="supplier-products-container">
+  <!-- Header Section -->
+  <div class="header-section">
+    <div class="header-content">
+      <div class="title-section">
+        <h1 class="page-title">
+          <mat-icon class="title-icon">inventory_2</mat-icon>
+          My Products Management
+        </h1>
+        <p class="page-subtitle">Manage your product catalog, inventory, and sales performance</p>
+      </div>
+      <div class="header-actions">
+        <button mat-raised-button color="primary" (click)="addNewProduct()" class="add-button">
+          <mat-icon>add</mat-icon>
+          Add Product
+        </button>
+        <button mat-stroked-button (click)="importProducts()" class="import-button">
+          <mat-icon>upload</mat-icon>
+          Import
+        </button>
+        <button mat-stroked-button (click)="exportProducts()" class="export-button">
+          <mat-icon>download</mat-icon>
+          Export
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation Tabs -->
+  <div class="navigation-tabs">
+    <button 
+      mat-button 
+      [class.active]="currentView === 'overview'"
+      (click)="setView('overview')"
+      class="tab-button">
+      <mat-icon>dashboard</mat-icon>
+      Overview
+    </button>
+    <button 
+      mat-button 
+      [class.active]="currentView === 'products'"
+      (click)="setView('products')"
+      class="tab-button">
+      <mat-icon>inventory</mat-icon>
+      Products
+    </button>
+    <button 
+      mat-button 
+      [class.active]="currentView === 'analytics'"
+      (click)="setView('analytics')"
+      class="tab-button">
+      <mat-icon>analytics</mat-icon>
+      Analytics
+    </button>
+  </div>
+
+  <!-- Overview Tab -->
+  <div *ngIf="currentView === 'overview'" class="overview-section">
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-content">
+            <div class="stat-icon total">
+              <mat-icon>inventory</mat-icon>
+            </div>
+            <div class="stat-details">
+              <h3 class="stat-number">{{ productStats.totalProducts }}</h3>
+              <p class="stat-label">Total Products</p>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-content">
+            <div class="stat-icon active">
+              <mat-icon>check_circle</mat-icon>
+            </div>
+            <div class="stat-details">
+              <h3 class="stat-number">{{ productStats.activeProducts }}</h3>
+              <p class="stat-label">Active Products</p>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-content">
+            <div class="stat-icon sales">
+              <mat-icon>trending_up</mat-icon>
+            </div>
+            <div class="stat-details">
+              <h3 class="stat-number">{{ productStats.totalSales }}</h3>
+              <p class="stat-label">Total Sales</p>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-content">
+            <div class="stat-icon revenue">
+              <mat-icon>euro</mat-icon>
+            </div>
+            <div class="stat-details">
+              <h3 class="stat-number">€{{ productStats.totalRevenue | number:'1.0-0' }}</h3>
+              <p class="stat-label">Total Revenue</p>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-content">
+            <div class="stat-icon rating">
+              <mat-icon>star</mat-icon>
+            </div>
+            <div class="stat-details">
+              <h3 class="stat-number">{{ productStats.averageRating | number:'1.1-1' }}</h3>
+              <p class="stat-label">Avg Rating</p>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-content">
+            <div class="stat-icon warning">
+              <mat-icon>warning</mat-icon>
+            </div>
+            <div class="stat-details">
+              <h3 class="stat-number">{{ productStats.lowStockProducts }}</h3>
+              <p class="stat-label">Low Stock</p>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="recent-activity-section">
+      <mat-card class="activity-card">
+        <mat-card-header>
+          <mat-card-title>Recent Activity</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="activity-list">
+            <div class="activity-item">
+              <mat-icon class="activity-icon">add</mat-icon>
+              <div class="activity-details">
+                <p class="activity-text">New product "Premium Tonic Water" added</p>
+                <span class="activity-time">2 hours ago</span>
+              </div>
+            </div>
+            <div class="activity-item">
+              <mat-icon class="activity-icon">edit</mat-icon>
+              <div class="activity-details">
+                <p class="activity-text">Product "Organic Milk" updated</p>
+                <span class="activity-time">4 hours ago</span>
+              </div>
+            </div>
+            <div class="activity-item">
+              <mat-icon class="activity-icon">trending_up</mat-icon>
+              <div class="activity-details">
+                <p class="activity-text">5 new sales today</p>
+                <span class="activity-time">Today</span>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Products Tab -->
+  <div *ngIf="currentView === 'products'" class="products-section">
+    <!-- Filters and Search -->
+    <div class="filters-section">
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Search products...</mat-label>
+        <input matInput [(ngModel)]="searchQuery" (input)="onSearch()" placeholder="Search by name, SKU, or description">
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="category-field">
+        <mat-label>Category</mat-label>
+        <mat-select [(ngModel)]="selectedCategory" (selectionChange)="onCategoryChange()">
+          <mat-option *ngFor="let category of categories" [value]="category.value">
+            <mat-icon>{{ category.icon }}</mat-icon>
+            {{ category.label }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="status-field">
+        <mat-label>Status</mat-label>
+        <mat-select [(ngModel)]="selectedStatus" (selectionChange)="onStatusChange()">
+          <mat-option *ngFor="let status of statuses" [value]="status.value">
+            {{ status.label }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="sort-field">
+        <mat-label>Sort by</mat-label>
+        <mat-select [(ngModel)]="sortBy" (selectionChange)="onSortChange()">
+          <mat-option value="name">Name</mat-option>
+          <mat-option value="price">Price</mat-option>
+          <mat-option value="stock">Stock</mat-option>
+          <mat-option value="sales">Sales</mat-option>
+          <mat-option value="rating">Rating</mat-option>
+          <mat-option value="category">Category</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <button mat-icon-button (click)="sortOrder = sortOrder === 'asc' ? 'desc' : 'asc'; onSortChange()" class="sort-order-button">
+        <mat-icon>{{ sortOrder === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+      </button>
+    </div>
+
+    <!-- Products Table -->
+    <mat-card class="products-table-card">
+      <mat-card-content>
+        <div class="table-container">
+          <table mat-table [dataSource]="filteredProducts" class="products-table">
+            <!-- Image Column -->
+            <ng-container matColumnDef="image">
+              <th mat-header-cell *matHeaderCellDef>Image</th>
+              <td mat-cell *matCellDef="let product">
+                <div class="product-image-cell">
+                  <img [src]="product.images[0]" [alt]="product.name" class="product-image" *ngIf="product.images[0]">
+                  <mat-icon class="no-image-icon" *ngIf="!product.images[0]">image</mat-icon>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Product Name Column -->
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef>Product</th>
+              <td mat-cell *matCellDef="let product">
+                <div class="product-name-cell">
+                  <h4 class="product-name">{{ product.name }}</h4>
+                  <div class="product-details">
+                    <span class="product-sku">SKU: {{ product.sku }}</span>
+                    <span class="product-category">
+                      <mat-icon>{{ getCategoryIcon(product.category) }}</mat-icon>
+                      {{ getCategoryLabel(product.category) }}
+                    </span>
+                  </div>
+                  <div class="product-tags">
+                    <mat-chip *ngFor="let tag of product.tags.slice(0, 2)" class="product-tag">
+                      {{ tag }}
+                    </mat-chip>
+                  </div>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Price Column -->
+            <ng-container matColumnDef="price">
+              <th mat-header-cell *matHeaderCellDef>Price</th>
+              <td mat-cell *matCellDef="let product">
+                <div class="price-cell">
+                  <span class="price">€{{ product.price }}</span>
+                  <span class="cost">Cost: €{{ product.cost }}</span>
+                  <span class="margin">Margin: {{ ((product.price - product.cost) / product.price * 100) | number:'1.0-1' }}%</span>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Stock Column -->
+            <ng-container matColumnDef="stock">
+              <th mat-header-cell *matHeaderCellDef>Stock</th>
+              <td mat-cell *matCellDef="let product">
+                <div class="stock-cell">
+                  <div class="stock-info">
+                    <span class="stock-number" [style.color]="getStockStatus(product).color">
+                      {{ product.stock }}
+                    </span>
+                    <span class="stock-status" [style.color]="getStockStatus(product).color">
+                      {{ getStockStatus(product).status }}
+                    </span>
+                  </div>
+                  <div class="stock-range">
+                    Min: {{ product.minStock }} | Max: {{ product.maxStock }}
+                  </div>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Sales Column -->
+            <ng-container matColumnDef="sales">
+              <th mat-header-cell *matHeaderCellDef>Sales</th>
+              <td mat-cell *matCellDef="let product">
+                <div class="sales-cell">
+                  <span class="sales-number">{{ product.sales }}</span>
+                  <span class="views">Views: {{ product.views }}</span>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Rating Column -->
+            <ng-container matColumnDef="rating">
+              <th mat-header-cell *matHeaderCellDef>Rating</th>
+              <td mat-cell *matCellDef="let product">
+                <div class="rating-cell">
+                  <div class="rating-stars">
+                    <mat-icon *ngFor="let star of [1,2,3,4,5]" 
+                              [class.filled]="star <= product.rating"
+                              class="star-icon">
+                      star
+                    </mat-icon>
+                  </div>
+                  <span class="rating-text">{{ product.rating | number:'1.1-1' }} ({{ product.reviews }})</span>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Status Column -->
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef>Status</th>
+              <td mat-cell *matCellDef="let product">
+                <span class="status-badge" [style.background-color]="getStatusColor(product.status)">
+                  {{ getStatusLabel(product.status) }}
+                </span>
+              </td>
+            </ng-container>
+
+            <!-- Actions Column -->
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Actions</th>
+              <td mat-cell *matCellDef="let product">
+                <div class="actions-cell">
+                  <button mat-icon-button (click)="editProduct(product)" matTooltip="Edit Product" class="edit-button">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <button mat-icon-button (click)="duplicateProduct(product)" matTooltip="Duplicate Product" class="duplicate-button">
+                    <mat-icon>content_copy</mat-icon>
+                  </button>
+                  <button mat-icon-button (click)="toggleProductStatus(product)" 
+                          [matTooltip]="product.status === 'active' ? 'Deactivate' : 'Activate'" 
+                          class="toggle-button">
+                    <mat-icon>{{ product.status === 'active' ? 'visibility_off' : 'visibility' }}</mat-icon>
+                  </button>
+                  <button mat-icon-button (click)="deleteProduct(product)" matTooltip="Delete Product" class="delete-button">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          </table>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Product Form Tab -->
+  <div *ngIf="currentView === 'form'" class="form-section">
+    <mat-card class="form-card">
+      <mat-card-header>
+        <mat-card-title>{{ isEditing ? 'Edit Product' : 'Add New Product' }}</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <form [formGroup]="productForm" (ngSubmit)="saveProduct()">
+          <div class="form-grid">
+            <!-- Basic Information -->
+            <div class="form-section-title">
+              <h3>Basic Information</h3>
+            </div>
+            
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Product Name</mat-label>
+              <input matInput formControlName="name" placeholder="Enter product name">
+              <mat-error *ngIf="productForm.get('name')?.hasError('required')">Product name is required</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Description</mat-label>
+              <textarea matInput formControlName="description" rows="3" placeholder="Enter product description"></textarea>
+              <mat-error *ngIf="productForm.get('description')?.hasError('required')">Description is required</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Category</mat-label>
+              <mat-select formControlName="category">
+                <mat-option *ngFor="let category of categories.slice(1)" [value]="category.value">
+                  <mat-icon>{{ category.icon }}</mat-icon>
+                  {{ category.label }}
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="productForm.get('category')?.hasError('required')">Category is required</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Status</mat-label>
+              <mat-select formControlName="status">
+                <mat-option value="active">Active</mat-option>
+                <mat-option value="inactive">Inactive</mat-option>
+                <mat-option value="draft">Draft</mat-option>
+                <mat-option value="pending">Pending</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <!-- Pricing & Inventory -->
+            <div class="form-section-title">
+              <h3>Pricing & Inventory</h3>
+            </div>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Price (€)</mat-label>
+              <input matInput type="number" formControlName="price" min="0" step="0.01">
+              <mat-error *ngIf="productForm.get('price')?.hasError('required')">Price is required</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Cost (€)</mat-label>
+              <input matInput type="number" formControlName="cost" min="0" step="0.01">
+              <mat-error *ngIf="productForm.get('cost')?.hasError('required')">Cost is required</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Current Stock</mat-label>
+              <input matInput type="number" formControlName="stock" min="0">
+              <mat-error *ngIf="productForm.get('stock')?.hasError('required')">Stock is required</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Min Stock Level</mat-label>
+              <input matInput type="number" formControlName="minStock" min="0">
+              <mat-error *ngIf="productForm.get('minStock')?.hasError('required')">Min stock is required</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Max Stock Level</mat-label>
+              <input matInput type="number" formControlName="maxStock" min="0">
+              <mat-error *ngIf="productForm.get('maxStock')?.hasError('required')">Max stock is required</mat-error>
+            </mat-form-field>
+
+            <!-- Product Codes -->
+            <div class="form-section-title">
+              <h3>Product Codes</h3>
+            </div>
+
+            <mat-form-field appearance="outline">
+              <mat-label>SKU</mat-label>
+              <input matInput formControlName="sku" placeholder="Enter SKU">
+              <mat-error *ngIf="productForm.get('sku')?.hasError('required')">SKU is required</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>EAN Code (13 digits)</mat-label>
+              <input matInput formControlName="eanCode" placeholder="1234567890123">
+              <mat-error *ngIf="productForm.get('eanCode')?.hasError('pattern')">EAN code must be exactly 13 digits</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Tags (comma separated)</mat-label>
+              <input matInput formControlName="tags" placeholder="premium, organic, local">
+            </mat-form-field>
+          </div>
+
+          <div class="form-actions">
+            <button mat-button type="button" (click)="currentView = 'overview'" class="cancel-button">
+              Cancel
+            </button>
+            <button mat-raised-button color="primary" type="submit" [disabled]="productForm.invalid" class="save-button">
+              {{ isEditing ? 'Update Product' : 'Add Product' }}
+            </button>
+          </div>
+        </form>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Analytics Tab -->
+  <div *ngIf="currentView === 'analytics'" class="analytics-section">
+    <mat-card class="analytics-card">
+      <mat-card-header>
+        <mat-card-title>Product Analytics</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="analytics-placeholder">
+          <mat-icon class="placeholder-icon">analytics</mat-icon>
+          <h3>Product Performance Analytics</h3>
+          <p>Track sales performance, inventory trends, and customer feedback</p>
+          <button mat-raised-button color="primary" class="view-analytics-button">
+            <mat-icon>trending_up</mat-icon>
+            View Detailed Analytics
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

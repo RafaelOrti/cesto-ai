@@ -45,19 +45,15 @@ def setup_logging():
             },
             "file": {
                 "level": settings.log_level,
-                "class": "logging.handlers.RotatingFileHandler",
+                "class": "logging.StreamHandler",
                 "formatter": "detailed",
-                "filename": str(log_dir / "ai-services.log"),
-                "maxBytes": 10485760,  # 10MB
-                "backupCount": 5,
+                "stream": sys.stdout,
             },
             "error_file": {
                 "level": "ERROR",
-                "class": "logging.handlers.RotatingFileHandler",
+                "class": "logging.StreamHandler",
                 "formatter": "detailed",
-                "filename": str(log_dir / "ai-services-error.log"),
-                "maxBytes": 10485760,  # 10MB
-                "backupCount": 5,
+                "stream": sys.stderr,
             },
         },
         "loggers": {

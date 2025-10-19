@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SuppliersController } from './suppliers.controller';
 import { SuppliersPublicController } from './suppliers-public.controller';
+import { SuppliersAuthController } from './suppliers-auth.controller';
 import { SuppliersService } from './suppliers.service';
 import { EanService } from './services/ean.service';
 import { CampaignService } from './services/campaign.service';
@@ -23,7 +24,7 @@ import { User } from '../users/entities/user.entity';
       User
     ])
   ],
-  controllers: [SuppliersController, SuppliersPublicController],
+  controllers: [SuppliersController, SuppliersPublicController, SuppliersAuthController],
   providers: [
     SuppliersService,
     EanService,

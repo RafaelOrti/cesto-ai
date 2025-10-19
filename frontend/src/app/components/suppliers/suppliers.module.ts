@@ -17,18 +17,13 @@ import { MatBadgeModule } from '@angular/material/badge';
 import { SuppliersComponent } from './suppliers.component';
 import { SearchSuppliersComponent } from './search-suppliers/search-suppliers.component';
 import { SupplierProfileComponent } from './supplier-profile/supplier-profile.component';
-import { DemoSupplierSearchComponent } from './demo-supplier-search/demo-supplier-search.component';
 import { MySuppliersComponent } from '../clients/my-suppliers/my-suppliers.component';
-import { SupplierProductsComponent } from './supplier-products/supplier-products.component';
-import { OrderHistoryComponent } from './order-history/order-history.component';
-import { SuppliersEnhancedComponent } from './suppliers-enhanced.component';
 
 const routes = [
   {
     path: 'suppliers',
     children: [
-      { path: '', redirectTo: 'demo', pathMatch: 'full' as const },
-      { path: 'demo', component: DemoSupplierSearchComponent },
+      { path: '', component: SuppliersComponent },
       { path: 'search', component: SearchSuppliersComponent },
       { path: ':id', component: SupplierProfileComponent },
       { path: ':id/order', component: SupplierProfileComponent }
@@ -41,10 +36,6 @@ const routes = [
     SuppliersComponent,
     SearchSuppliersComponent,
     SupplierProfileComponent,
-    DemoSupplierSearchComponent,
-    SupplierProductsComponent,
-    OrderHistoryComponent,
-    SuppliersEnhancedComponent,
     MySuppliersComponent
   ],
   imports: [

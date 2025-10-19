@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { AuthService } from './services/auth.service';
+import { AuthService } from './core/services/auth.service';
 import { Router } from '@angular/router';
 import { ThemeInitializerService } from './core/services/theme-initializer.service';
+import { I18nService } from './core/services/i18n.service';
 
 @Component({
   selector: 'app-root',
@@ -16,11 +17,13 @@ export class AppComponent implements OnInit {
   constructor(
     private authService: AuthService,
     private router: Router,
-    private themeInitializer: ThemeInitializerService
+    private themeInitializer: ThemeInitializerService,
+    private i18nService: I18nService
   ) {}
 
   ngOnInit() {
     this.themeInitializer.initializeTheme();
+    this.i18nService.initializeLanguage();
     
     this.authService.isAuthenticated$.subscribe(isAuth => {
       this.isLoggedIn = isAuth;

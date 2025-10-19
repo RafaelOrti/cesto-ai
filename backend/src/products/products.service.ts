@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { Product } from './entities/product.entity';
 import { ProductCategory } from './enums/product-category.enum';
-import { SupplierApproval, ApprovalStatus } from '../suppliers/entities/supplier-approval.entity';
 
 export interface ProductFilters {
   category?: ProductCategory;
@@ -33,8 +32,6 @@ export class ProductsService {
   constructor(
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
-    @InjectRepository(SupplierApproval)
-    private supplierApprovalRepository: Repository<SupplierApproval>,
   ) {}
 
   /**
@@ -87,22 +84,7 @@ export class ProductsService {
       query.andWhere('product.supplierId IN (:...supplierIds)', { supplierIds: filters.supplierIds });
     }
 
-    // Filter by approved suppliers if buyerId is provided
-    if (buyerId && filters.approvedSuppliersOnly !== false) {
-      const approvedSupplierIds = await this.getApprovedSupplierIds(buyerId);
-      if (approvedSupplierIds.length > 0) {
-        query.andWhere('product.supplierId IN (:...approvedSupplierIds)', { approvedSupplierIds });
-      } else {
-        // No approved suppliers, return empty result
-        return {
-          products: [],
-          total: 0,
-          page,
-          pageSize,
-          totalPages: 0,
-        };
-      }
-    }
+    // Note: Supplier approval logic removed for simplicity
 
     // Get total count
     const total = await query.getCount();
@@ -168,11 +150,7 @@ export class ProductsService {
       .where('product.id = :id', { id })
       .andWhere('product.isActive = :isActive', { isActive: true });
 
-    // Check if supplier is approved for buyer
-    if (buyerId) {
-      const approvedSupplierIds = await this.getApprovedSupplierIds(buyerId);
-      query.andWhere('product.supplierId IN (:...approvedSupplierIds)', { approvedSupplierIds });
-    }
+    // Note: Supplier approval logic removed for simplicity
 
     const product = await query.getOne();
 
@@ -236,15 +214,7 @@ export class ProductsService {
       .addOrderBy('product.rating', 'DESC')
       .limit(limit);
 
-    // Filter by approved suppliers if buyerId is provided
-    if (buyerId) {
-      const approvedSupplierIds = await this.getApprovedSupplierIds(buyerId);
-      if (approvedSupplierIds.length > 0) {
-        query.andWhere('product.supplierId IN (:...approvedSupplierIds)', { approvedSupplierIds });
-      } else {
-        return [];
-      }
-    }
+    // Note: Supplier approval logic removed for simplicity
 
     return query.getMany();
   }
@@ -263,15 +233,7 @@ export class ProductsService {
       .orderBy('product.createdAt', 'DESC')
       .limit(limit);
 
-    // Filter by approved suppliers if buyerId is provided
-    if (buyerId) {
-      const approvedSupplierIds = await this.getApprovedSupplierIds(buyerId);
-      if (approvedSupplierIds.length > 0) {
-        query.andWhere('product.supplierId IN (:...approvedSupplierIds)', { approvedSupplierIds });
-      } else {
-        return [];
-      }
-    }
+    // Note: Supplier approval logic removed for simplicity
 
     return query.getMany();
   }
@@ -294,20 +256,6 @@ export class ProductsService {
     );
   }
 
-  /**
-   * Get approved supplier IDs for a buyer
-   */
-  private async getApprovedSupplierIds(buyerId: string): Promise<string[]> {
-    const approvals = await this.supplierApprovalRepository.find({
-      where: {
-        buyerId,
-        status: ApprovalStatus.APPROVED,
-      },
-      select: ['supplierId'],
-    });
-
-    return approvals.map(approval => approval.supplierId);
-  }
 
   /**
    * Get product statistics
@@ -323,21 +271,7 @@ export class ProductsService {
       .createQueryBuilder('product')
       .where('product.isActive = :isActive', { isActive: true });
 
-    // Filter by approved suppliers if buyerId is provided
-    if (buyerId) {
-      const approvedSupplierIds = await this.getApprovedSupplierIds(buyerId);
-      if (approvedSupplierIds.length > 0) {
-        query.andWhere('product.supplierId IN (:...approvedSupplierIds)', { approvedSupplierIds });
-      } else {
-        return {
-          totalProducts: 0,
-          productsOnSale: 0,
-          averagePrice: 0,
-          categoriesCount: 0,
-          topCategories: [],
-        };
-      }
-    }
+    // Note: Supplier approval logic removed for simplicity
 
     const [totalProducts, productsOnSale, averagePrice, categoriesCount, topCategories] = await Promise.all([
       query.getCount(),

@@ -1,19 +1,17 @@
-import { Injectable, Logger, Inject } from '@nestjs/common';
-import { Redis } from 'ioredis';
-import { Observable, of, throwError } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
+import { Injectable, Logger } from '@nestjs/common';
 
 /**
- * Advanced caching service using Redis
- * Provides intelligent caching with TTL, invalidation, and patterns
+ * Simplified caching service without Redis
+ * Provides basic caching functionality for development
  */
 @Injectable()
 export class CacheService {
   private readonly logger = new Logger(CacheService.name);
   private readonly DEFAULT_TTL = 300; // 5 minutes
   private readonly MAX_TTL = 86400; // 24 hours
+  private cache = new Map<string, { value: any; expires: number }>();
 
-  constructor(@Inject('Redis') private readonly redis: Redis) {}
+  constructor() {}
 
   // ============================================================================
   // BASIC CACHE OPERATIONS
@@ -24,8 +22,8 @@ export class CacheService {
    */
   async set(key: string, value: any, ttl: number = this.DEFAULT_TTL): Promise<void> {
     try {
-      const serializedValue = JSON.stringify(value);
-      await this.redis.setex(key, ttl, serializedValue);
+      const expires = Date.now() + (ttl * 1000);
+      this.cache.set(key, { value, expires });
       this.logger.debug(`Cached key: ${key} (TTL: ${ttl}s)`);
     } catch (error) {
       this.logger.error(`Error setting cache key ${key}:`, error);
@@ -38,11 +36,17 @@ export class CacheService {
    */
   async get<T>(key: string): Promise<T | null> {
     try {
-      const value = await this.redis.get(key);
-      if (value === null) {
+      const item = this.cache.get(key);
+      if (!item) {
         return null;
       }
-      return JSON.parse(value) as T;
+      
+      if (Date.now() > item.expires) {
+        this.cache.delete(key);
+        return null;
+      }
+      
+      return item.value as T;
     } catch (error) {
       this.logger.error(`Error getting cache key ${key}:`, error);
       return null;
@@ -72,9 +76,9 @@ export class CacheService {
    */
   async delete(key: string): Promise<boolean> {
     try {
-      const result = await this.redis.del(key);
+      const result = this.cache.delete(key);
       this.logger.debug(`Deleted cache key: ${key}`);
-      return result > 0;
+      return result;
     } catch (error) {
       this.logger.error(`Error deleting cache key ${key}:`, error);
       return false;
@@ -86,8 +90,17 @@ export class CacheService {
    */
   async exists(key: string): Promise<boolean> {
     try {
-      const result = await this.redis.exists(key);
-      return result === 1;
+      const item = this.cache.get(key);
+      if (!item) {
+        return false;
+      }
+      
+      if (Date.now() > item.expires) {
+        this.cache.delete(key);
+        return false;
+      }
+      
+      return true;
     } catch (error) {
       this.logger.error(`Error checking cache key ${key}:`, error);
       return false;
@@ -99,8 +112,13 @@ export class CacheService {
    */
   async expire(key: string, ttl: number): Promise<boolean> {
     try {
-      const result = await this.redis.expire(key, ttl);
-      return result === 1;
+      const item = this.cache.get(key);
+      if (!item) {
+        return false;
+      }
+      
+      item.expires = Date.now() + (ttl * 1000);
+      return true;
     } catch (error) {
       this.logger.error(`Error setting TTL for key ${key}:`, error);
       return false;
@@ -112,7 +130,13 @@ export class CacheService {
    */
   async getTTL(key: string): Promise<number> {
     try {
-      return await this.redis.ttl(key);
+      const item = this.cache.get(key);
+      if (!item) {
+        return -1;
+      }
+      
+      const ttl = Math.ceil((item.expires - Date.now()) / 1000);
+      return ttl > 0 ? ttl : -1;
     } catch (error) {
       this.logger.error(`Error getting TTL for key ${key}:`, error);
       return -1;
@@ -128,14 +152,9 @@ export class CacheService {
    */
   async mset(keyValuePairs: Record<string, any>, ttl: number = this.DEFAULT_TTL): Promise<void> {
     try {
-      const pipeline = this.redis.pipeline();
-      
       for (const [key, value] of Object.entries(keyValuePairs)) {
-        const serializedValue = JSON.stringify(value);
-        pipeline.setex(key, ttl, serializedValue);
+        await this.set(key, value, ttl);
       }
-      
-      await pipeline.exec();
       this.logger.debug(`Cached ${Object.keys(keyValuePairs).length} keys`);
     } catch (error) {
       this.logger.error(`Error setting multiple cache keys:`, error);
@@ -148,8 +167,8 @@ export class CacheService {
    */
   async mget<T>(keys: string[]): Promise<(T | null)[]> {
     try {
-      const values = await this.redis.mget(...keys);
-      return values.map(value => value ? JSON.parse(value) as T : null);
+      const results = await Promise.all(keys.map(key => this.get<T>(key)));
+      return results;
     } catch (error) {
       this.logger.error(`Error getting multiple cache keys:`, error);
       return keys.map(() => null);
@@ -162,9 +181,14 @@ export class CacheService {
   async mdel(keys: string[]): Promise<number> {
     try {
       if (keys.length === 0) return 0;
-      const result = await this.redis.del(...keys);
-      this.logger.debug(`Deleted ${result} cache keys`);
-      return result;
+      let deleted = 0;
+      for (const key of keys) {
+        if (await this.delete(key)) {
+          deleted++;
+        }
+      }
+      this.logger.debug(`Deleted ${deleted} cache keys`);
+      return deleted;
     } catch (error) {
       this.logger.error(`Error deleting multiple cache keys:`, error);
       return 0;
@@ -176,7 +200,8 @@ export class CacheService {
    */
   async keys(pattern: string): Promise<string[]> {
     try {
-      return await this.redis.keys(pattern);
+      const regex = new RegExp(pattern.replace(/\*/g, '.*'));
+      return Array.from(this.cache.keys()).filter(key => regex.test(key));
     } catch (error) {
       this.logger.error(`Error finding keys with pattern ${pattern}:`, error);
       return [];
@@ -225,14 +250,9 @@ export class CacheService {
    */
   async tagKey(key: string, tags: string[]): Promise<void> {
     try {
-      const pipeline = this.redis.pipeline();
-      
       for (const tag of tags) {
-        pipeline.sadd(`tag:${tag}`, key);
-        pipeline.expire(`tag:${tag}`, this.MAX_TTL);
+        await this.set(`tag:${tag}:${key}`, true, this.MAX_TTL);
       }
-      
-      await pipeline.exec();
     } catch (error) {
       this.logger.error(`Error tagging key ${key}:`, error);
     }
@@ -252,34 +272,14 @@ export class CacheService {
     connectedClients: number;
   }> {
     try {
-      const info = await this.redis.info('memory');
-      const keyspace = await this.redis.info('keyspace');
-      const stats = await this.redis.info('stats');
-      
-      // Parse memory usage
-      const memoryMatch = info.match(/used_memory_human:([^\r\n]+)/);
-      const memoryUsage = memoryMatch ? memoryMatch[1] : 'Unknown';
-      
-      // Parse total keys
-      const keysMatch = keyspace.match(/keys=(\d+)/);
-      const totalKeys = keysMatch ? parseInt(keysMatch[1]) : 0;
-      
-      // Parse hit rate
-      const hitsMatch = stats.match(/keyspace_hits:(\d+)/);
-      const missesMatch = stats.match(/keyspace_misses:(\d+)/);
-      const hits = hitsMatch ? parseInt(hitsMatch[1]) : 0;
-      const misses = missesMatch ? parseInt(missesMatch[1]) : 0;
-      const hitRate = hits + misses > 0 ? hits / (hits + misses) : 0;
-      
-      // Parse connected clients
-      const clientsMatch = stats.match(/connected_clients:(\d+)/);
-      const connectedClients = clientsMatch ? parseInt(clientsMatch[1]) : 0;
+      const totalKeys = this.cache.size;
+      const memoryUsage = `${Math.round(JSON.stringify(this.cache).length / 1024)}KB`;
       
       return {
         totalKeys,
         memoryUsage,
-        hitRate: Math.round(hitRate * 100) / 100,
-        connectedClients
+        hitRate: 0, // Not implemented in memory cache
+        connectedClients: 1
       };
     } catch (error) {
       this.logger.error('Error getting cache statistics:', error);
@@ -301,8 +301,7 @@ export class CacheService {
    */
   async isHealthy(): Promise<boolean> {
     try {
-      await this.redis.ping();
-      return true;
+      return true; // Memory cache is always healthy
     } catch (error) {
       this.logger.error('Cache health check failed:', error);
       return false;
@@ -314,7 +313,7 @@ export class CacheService {
    */
   async clearAll(): Promise<void> {
     try {
-      await this.redis.flushall();
+      this.cache.clear();
       this.logger.log('All cache cleared');
     } catch (error) {
       this.logger.error('Error clearing all cache:', error);

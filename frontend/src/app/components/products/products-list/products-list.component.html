@@ -3,20 +3,20 @@
   <div class="page-header">
     <div class="header-content">
       <div class="title-section">
-        <h1>Productos</h1>
+        <h1>{{ i18n.translate('products.title') }}</h1>
         <div class="header-info">
-          <span class="info-icon" title="Explora y descubre productos de calidad">ℹ️</span>
-          <span class="product-count">{{ totalItems }} productos</span>
+          <span class="info-icon" [title]="i18n.translate('products.exploreQuality')">ℹ️</span>
+          <span class="product-count">{{ totalItems }} {{ i18n.translate('products.productCount') }}</span>
         </div>
       </div>
       <div class="header-actions">
         <button class="btn btn-secondary" (click)="toggleFilters()">
           <i class="fas fa-filter"></i>
-          Filtros ({{ getActiveFiltersCount() }})
+          {{ i18n.translate('products.filters') }} ({{ getActiveFiltersCount() }})
         </button>
         <button class="btn btn-outline" (click)="toggleViewMode()">
           <i class="fas" [class.fa-th-large]="viewMode === 'grid'" [class.fa-list]="viewMode === 'list'"></i>
-          {{ viewMode === 'grid' ? 'Vista de lista' : 'Vista de cuadrícula' }}
+          {{ viewMode === 'grid' ? i18n.translate('products.listViewMode') : i18n.translate('products.gridViewMode') }}
         </button>
       </div>
     </div>
@@ -29,7 +29,7 @@
       <input 
         type="text" 
         class="search-input"
-        placeholder="Buscar productos..."
+        [placeholder]="i18n.translate('products.searchPlaceholder')"
         (input)="onSearch($event)"
         [formControl]="searchForm.get('search')">
       <button class="search-btn" *ngIf="searchTerm" (click)="clearFilters()">
@@ -46,7 +46,7 @@
         [class.active]="selectedCategory === ''"
         (click)="onCategoryChange('')">
         <i class="fas fa-th"></i>
-        <span>Todas</span>
+        <span>{{ i18n.translate('products.all') }}</span>
       </button>
       <button 
         *ngFor="let category of categories" 

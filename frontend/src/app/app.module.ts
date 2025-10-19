@@ -4,6 +4,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { CommonModule } from '@angular/common';
 
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
@@ -27,6 +28,18 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatStepperModule } from '@angular/material/stepper';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatRadioModule } from '@angular/material/radio';
+import { MatSliderModule } from '@angular/material/slider';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatGridListModule } from '@angular/material/grid-list';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { DatePipe } from '@angular/common';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -44,14 +57,16 @@ import { TeamComponent } from './components/team/team.component';
 import { TransactionsComponent } from './components/transactions/transactions.component';
 import { SupplierDashboardComponent } from './components/supplier-dashboard/supplier-dashboard.component';
 import { EdiComponent } from './components/edi/edi.component';
+import { EANComponent } from './components/ean/ean.component';
 import { AdminDashboardComponent } from './components/admin-dashboard/admin-dashboard.component';
+import { RoleBasedSidebarComponent } from './components/layout/role-based-sidebar/role-based-sidebar.component';
 import { ColorThemeConfigComponent } from './components/admin-dashboard/color-theme-config/color-theme-config.component';
 import { ProductsListComponent } from './components/products/products-list/products-list.component';
 import { ProductsOnSaleComponent } from './components/products/products-on-sale/products-on-sale.component';
 import { LoadingComponent } from './core/components/loading/loading.component';
 import { NotificationsComponent } from './core/components/notifications/notifications.component';
 
-import { AuthService } from './services/auth.service';
+import { AuthService } from './core/services/auth.service';
 import { SupplierService } from './services/supplier.service';
 import { ColorThemeService } from './services/color-theme.service';
 import { UserManagementService } from './services/user-management.service';
@@ -62,6 +77,9 @@ import { StateService } from './core/services/state.service';
 import { CacheService } from './core/services/cache.service';
 import { NotificationService } from './core/services/notification.service';
 import { ValidationService } from './core/services/validation.service';
+import { I18nService } from './core/services/i18n.service';
+import { AdvancedInventoryService } from './services/advanced-inventory.service';
+import { SupplierDashboardService } from './services/supplier-dashboard.service';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
 import { ErrorInterceptor } from './core/interceptors/error.interceptor';
 import { CacheInterceptor } from './core/interceptors/cache.interceptor';
@@ -69,14 +87,25 @@ import { LoadingInterceptor } from './core/interceptors/loading.interceptor';
 import { LayoutComponent } from './components/layout/layout.component';
 import { SidebarComponent } from './components/layout/sidebar/sidebar.component';
 import { HeaderComponent } from './components/layout/header/header.component';
+import { OnboardingComponent } from './components/onboarding/onboarding.component';
+import { AdvancedInventoryComponent } from './components/inventory/advanced-inventory/advanced-inventory.component';
 import { ProviderOrdersComponent } from './components/provider/orders/orders.component';
-import { ProductCatalogComponent } from './components/ecommerce/product-catalog/product-catalog.component';
+import { EanManagementComponent } from './components/ean-management/ean-management.component';
+import { SupplierProductsManagementComponent } from './components/supplier-products-management/supplier-products-management.component';
+import { UserManagementComponent } from './components/user-management/user-management.component';
+import { SystemSettingsComponent } from './components/system-settings/system-settings.component';
+import { ClientDashboardComponent } from './components/client-dashboard/client-dashboard.component';
+import { SupplierProductsComponent } from './components/supplier-products/supplier-products.component';
+import { SupplierInventoryComponent } from './components/supplier-inventory/supplier-inventory.component';
+import { SupplierAnalysisComponent } from './components/supplier-analysis/supplier-analysis.component';
+import { SharedModule } from './shared/shared.module';
 
 @NgModule({
   declarations: [
     AppComponent,
     LoginComponent,
     DashboardComponent,
+    ClientDashboardComponent,
     ClientInsightsComponent,
     ExploreSuppliersComponent,
     ProductsComponent,
@@ -90,15 +119,28 @@ import { ProductCatalogComponent } from './components/ecommerce/product-catalog/
     SidebarComponent,
     HeaderComponent,
     SupplierDashboardComponent,
+    SupplierProductsComponent,
+    SupplierAnalysisComponent,
     EdiComponent,
+    EANComponent,
     AdminDashboardComponent,
+    RoleBasedSidebarComponent,
     ColorThemeConfigComponent,
     ProductsListComponent,
     ProductsOnSaleComponent,
     LoadingComponent,
     NotificationsComponent,
     ProviderOrdersComponent,
-    ProductCatalogComponent,
+    OnboardingComponent,
+    AdvancedInventoryComponent,
+    EanManagementComponent,
+    SupplierProductsManagementComponent,
+    UserManagementComponent,
+    SystemSettingsComponent,
+    ClientDashboardComponent,
+    SupplierProductsComponent,
+    SupplierInventoryComponent,
+    SupplierAnalysisComponent,
   ],
   imports: [
     BrowserModule,
@@ -107,8 +149,10 @@ import { ProductCatalogComponent } from './components/ecommerce/product-catalog/
     FormsModule,
     ReactiveFormsModule,
     RouterModule,
+    CommonModule,
     AppRoutingModule,
     SuppliersModule,
+    SharedModule,
     MatToolbarModule,
     MatButtonModule,
     MatIconModule,
@@ -131,6 +175,17 @@ import { ProductCatalogComponent } from './components/ecommerce/product-catalog/
     MatMenuModule,
     MatExpansionModule,
     MatStepperModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
+    MatSlideToggleModule,
+    MatRadioModule,
+    MatSliderModule,
+    MatTooltipModule,
+    MatDividerModule,
+    MatProgressBarModule,
+    MatGridListModule,
+    MatButtonToggleModule,
+    MatAutocompleteModule,
   ],
   providers: [
     AuthService,
@@ -144,6 +199,10 @@ import { ProductCatalogComponent } from './components/ecommerce/product-catalog/
     CacheService,
     NotificationService,
     ValidationService,
+    I18nService,
+    AdvancedInventoryService,
+    SupplierDashboardService,
+    DatePipe,
     {
       provide: 'API_BASE_URL',
       useValue: 'http://localhost:3400/api/v1'

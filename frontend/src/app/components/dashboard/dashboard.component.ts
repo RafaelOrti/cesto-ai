@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { Subject, takeUntil, forkJoin } from 'rxjs';
-import { AuthService } from '../../services/auth.service';
+import { AuthService } from '../../core/services/auth.service';
 import { 
   AnalyticsService, 
   ChartDataPoint, 
@@ -33,6 +33,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
   filters: FilterOptions[] = [];
   availableFilters: FilterOptions[] = [];
   showFilterDropdown = false;
+
+  // Material Table columns
+  displayedColumns: string[] = ['customer', 'sales', 'orders', 'averageOrder', 'frequency'];
 
   dateRange = {
     from: '2022-02-01',
@@ -69,16 +72,22 @@ export class DashboardComponent implements OnInit, OnDestroy {
   constructor(
     private authService: AuthService,
     private analyticsService: AnalyticsService
-  ) {}
+  ) {
+    console.log('[DASHBOARD] Constructor called');
+  }
 
   ngOnInit() {
+    console.log('[DASHBOARD] Component initialized');
+    
     this.authService.currentUser$.pipe(
       takeUntil(this.destroy$)
     ).subscribe(user => {
+      console.log('[DASHBOARD] Current user:', user);
       this.currentUser = user;
       if (user) {
-        this.isClient = user.role === 'buyer';
+        this.isClient = user.role === 'client';
         this.isSupplier = user.role === 'supplier';
+        console.log('[DASHBOARD] User role - Client:', this.isClient, 'Supplier:', this.isSupplier);
       }
     });
 
@@ -91,17 +100,84 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   loadInitialData(): void {
-    // Load available filters and initial data
+    console.log('[DASHBOARD] Loading initial data...');
+    
+    // For now, load mock data to test if the component renders
+    this.loadMockData();
+    
+    // Original code commented out for debugging
+    /*
     forkJoin({
       filters: this.analyticsService.getFilters(),
       analytics: this.analyticsService.getAnalyticsData(this.getCurrentFilters())
     }).pipe(
       takeUntil(this.destroy$)
-    ).subscribe(({ filters, analytics }) => {
-      this.availableFilters = filters;
-      this.filters = filters.filter(f => f.type === 'primary');
-      this.updateAnalyticsData(analytics);
+    ).subscribe({
+      next: ({ filters, analytics }) => {
+        console.log('[DASHBOARD] Data loaded successfully:', { filters, analytics });
+        this.availableFilters = filters;
+        this.filters = filters.filter(f => f.type === 'primary');
+        this.updateAnalyticsData(analytics);
+        console.log('[DASHBOARD] Data processed and assigned to component properties');
+      },
+      error: (error) => {
+        console.error('[DASHBOARD] Error loading initial data:', error);
+      }
     });
+    */
+  }
+
+  private loadMockData(): void {
+    console.log('[DASHBOARD] Loading mock data...');
+    
+    // Mock data for testing
+    this.analyticsData = [
+      { month: 'Jan', value: 2000000, date: new Date('2023-01-01') },
+      { month: 'Feb', value: 2200000, date: new Date('2023-02-01') },
+      { month: 'Mar', value: 1800000, date: new Date('2023-03-01') },
+      { month: 'Apr', value: 2100000, date: new Date('2023-04-01') },
+      { month: 'May', value: 2500000, date: new Date('2023-05-01') },
+      { month: 'Jun', value: 2800000, date: new Date('2023-06-01') }
+    ];
+
+    this.customerData = [
+      {
+        name: 'StockNet Microdistribution',
+        color: 'red',
+        sales: 1000000,
+        orders: 100,
+        averageOrder: 10000,
+        frequency: 1,
+        dateRange: { from: new Date('2023-01-01'), to: new Date('2023-12-31') }
+      },
+      {
+        name: 'StockNet Macrodistribution',
+        color: 'orange',
+        sales: 1200000,
+        orders: 120,
+        averageOrder: 10000,
+        frequency: 1,
+        dateRange: { from: new Date('2023-01-01'), to: new Date('2023-12-31') }
+      }
+    ];
+
+    this.summaryTotals = {
+      totalStores: 21,
+      totalSales: 10657910,
+      totalOrders: 1065,
+      averageOrder: 10000,
+      averageFrequency: 1
+    };
+
+    this.legendData = [
+      { color: 'red', value: 78, label: 'StockNet Microdistribution' },
+      { color: 'orange', value: 65, label: 'StockNet Macrodistribution' },
+      { color: 'yellow', value: 45, label: 'Deep Green Wholesalers' },
+      { color: 'green', value: 32, label: 'Deep Green Retailers' },
+      { color: 'blue', value: 28, label: 'City Ware Merchants' }
+    ];
+
+    console.log('[DASHBOARD] Mock data loaded successfully');
   }
 
   onFilterChange(filter: string): void {

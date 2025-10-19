@@ -1,0 +1,397 @@
+<div class="advanced-inventory-container">
+  <div class="header">
+    <h1>Advanced Inventory Management</h1>
+    <div class="header-actions">
+      <button mat-raised-button color="primary" (click)="updateAiInsights()" [disabled]="loading">
+        <mat-icon>auto_awesome</mat-icon>
+        Update AI Insights
+      </button>
+    </div>
+  </div>
+
+  <mat-tab-group [(selectedIndex)]="selectedTab" (selectedIndexChange)="onTabChange($event)">
+    <!-- Analytics Tab -->
+    <mat-tab label="Analytics">
+      <div class="tab-content" *ngIf="analytics">
+        <div class="analytics-grid">
+          <!-- Key Metrics -->
+          <mat-card class="metric-card">
+            <mat-card-content>
+              <mat-icon class="metric-icon">account_balance_wallet</mat-icon>
+              <div class="metric-title">{{ i18n.translate('inventory.totalValue') }}</div>
+              <div class="metric-value">{{ formatCurrency(analytics.totalValue) }}</div>
+              <div class="metric-change positive">
+                <mat-icon>trending_up</mat-icon>
+                <span>+5.2%</span>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card class="metric-card">
+            <mat-card-content>
+              <mat-icon class="metric-icon">inventory_2</mat-icon>
+              <div class="metric-title">{{ i18n.translate('inventory.totalItems') }}</div>
+              <div class="metric-value">{{ analytics.totalItems }}</div>
+              <div class="metric-change positive">
+                <mat-icon>trending_up</mat-icon>
+                <span>+2.1%</span>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card class="metric-card warning">
+            <mat-card-content>
+              <mat-icon class="metric-icon">warning</mat-icon>
+              <div class="metric-title">{{ i18n.translate('inventory.lowStockItems') }}</div>
+              <div class="metric-value">{{ analytics.lowStockItems }}</div>
+              <div class="metric-change negative">
+                <mat-icon>trending_down</mat-icon>
+                <span>-12.3%</span>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card class="metric-card error">
+            <mat-card-content>
+              <mat-icon class="metric-icon">error</mat-icon>
+              <div class="metric-title">{{ i18n.translate('inventory.outOfStockItems') }}</div>
+              <div class="metric-value">{{ analytics.outOfStockItems }}</div>
+              <div class="metric-change negative">
+                <mat-icon>trending_down</mat-icon>
+                <span>-8.7%</span>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card class="metric-card info">
+            <mat-card-content>
+              <mat-icon class="metric-icon">storage</mat-icon>
+              <div class="metric-title">{{ i18n.translate('inventory.overstockItems') }}</div>
+              <div class="metric-value">{{ analytics.overstockItems }}</div>
+              <div class="metric-change positive">
+                <mat-icon>trending_up</mat-icon>
+                <span>+3.4%</span>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card class="metric-card warning">
+            <mat-card-content>
+              <mat-icon class="metric-icon">schedule</mat-icon>
+              <div class="metric-title">{{ i18n.translate('inventory.expiringSoon') }}</div>
+              <div class="metric-value">{{ analytics.expiringSoon }}</div>
+              <div class="metric-change negative">
+                <mat-icon>trending_down</mat-icon>
+                <span>-15.6%</span>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+
+        <!-- Top Categories -->
+        <mat-card class="chart-card">
+          <mat-card-header>
+            <mat-card-title>{{ i18n.translate('inventory.topCategories') }}</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="category-list">
+              <div *ngFor="let category of analytics.topCategories" class="category-item">
+                <span class="category-name">{{ category.category }}</span>
+                <span class="category-value">{{ formatCurrency(category.value) }}</span>
+                <span class="category-count">({{ category.count }} items)</span>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- AI Insights -->
+        <mat-card class="insights-card" *ngIf="analytics.aiInsights">
+          <mat-card-header>
+            <mat-card-title>{{ i18n.translate('inventory.aiInsights') }}</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="insights-section">
+              <h3>{{ i18n.translate('inventory.recommendedRestocks') }}</h3>
+              <div *ngFor="let restock of analytics.aiInsights.recommendedRestocks" class="restock-item">
+                <span class="product-name">{{ restock.productName }}</span>
+                <span class="recommended-qty">{{ restock.recommendedQuantity }}</span>
+                <span class="urgency" [ngClass]="getUrgencyClass(restock.urgency)">
+                  {{ restock.urgency }}
+                </span>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </mat-tab>
+
+    <!-- Alerts Tab -->
+    <mat-tab label="Alerts">
+      <div class="tab-content">
+        <div class="alerts-header">
+          <h2>Active Alerts</h2>
+          <span class="alert-count">{{ alerts.length }} alerts</span>
+        </div>
+
+        <div class="alerts-list" *ngIf="alerts.length > 0; else noAlerts">
+          <mat-card *ngFor="let alert of alerts" class="alert-card" [ngClass]="getAlertPriorityClass(alert.priority)">
+            <mat-card-content>
+              <div class="alert-header">
+                <div class="alert-info">
+                  <h3>{{ alert.message }}</h3>
+                  <p class="alert-description" *ngIf="alert.description">{{ alert.description }}</p>
+                  <div class="alert-meta">
+                    <span class="alert-type">{{ alert.type }}</span>
+                    <span class="alert-priority">{{ alert.priority }}</span>
+                    <span class="alert-date">{{ formatDate(alert.createdAt) }}</span>
+                  </div>
+                </div>
+                <div class="alert-actions">
+                  <button mat-button (click)="selectAlert(alert)">
+                    {{ i18n.translate('common.view') }}
+                  </button>
+                  <button mat-button color="primary" (click)="acknowledgeAlert(alert)">
+                    {{ i18n.translate('inventory.acknowledge') }}
+                  </button>
+                  <button mat-button color="accent" (click)="resolveAlert(alert)">
+                    {{ i18n.translate('inventory.resolve') }}
+                  </button>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+
+        <ng-template #noAlerts>
+          <div class="no-alerts">
+            <mat-icon>check_circle</mat-icon>
+            <p>{{ i18n.translate('inventory.noActiveAlerts') }}</p>
+          </div>
+        </ng-template>
+      </div>
+    </mat-tab>
+
+    <!-- Restock Recommendations Tab -->
+    <mat-tab label="Restock Recommendations">
+      <div class="tab-content">
+        <div class="recommendations-header">
+          <h2>Restock Recommendations</h2>
+          <button mat-raised-button color="primary" (click)="showRestockModal = true">
+            Bulk Restock
+          </button>
+        </div>
+
+        <div class="recommendations-list" *ngIf="restockRecommendations.length > 0; else noRecommendations">
+          <mat-card *ngFor="let rec of restockRecommendations" class="recommendation-card">
+            <mat-card-content>
+              <div class="recommendation-header">
+                <div class="product-info">
+                  <h3>{{ rec.productName }}</h3>
+                  <p class="product-id">ID: {{ rec.productId }}</p>
+                </div>
+                <div class="urgency-badge" [ngClass]="getUrgencyClass(rec.urgency)">
+                  {{ rec.urgency }}
+                </div>
+              </div>
+              
+              <div class="recommendation-details">
+                <div class="quantity-info">
+                  <span class="current-qty">{{ i18n.translate('inventory.currentQuantity') }}: {{ rec.currentQuantity }}</span>
+                  <span class="recommended-qty">{{ i18n.translate('inventory.recommendedQuantity') }}: {{ rec.recommendedQuantity }}</span>
+                </div>
+                <div class="cost-info">
+                  <span class="estimated-cost">{{ i18n.translate('inventory.estimatedCost') }}: {{ formatCurrency(rec.estimatedCost) }}</span>
+                </div>
+                <div class="dates-info" *ngIf="rec.lastRestocked || rec.nextRestockDate">
+                  <span *ngIf="rec.lastRestocked" class="last-restocked">
+                    {{ i18n.translate('inventory.lastRestocked') }}: {{ formatDate(rec.lastRestocked) }}
+                  </span>
+                  <span *ngIf="rec.nextRestockDate" class="next-restock">
+                    {{ i18n.translate('inventory.nextRestockDate') }}: {{ formatDate(rec.nextRestockDate) }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="recommendation-actions">
+                <button mat-raised-button color="primary">
+                  {{ i18n.translate('inventory.createOrder') }}
+                </button>
+                <button mat-button>
+                  {{ i18n.translate('inventory.addToShoppingList') }}
+                </button>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+
+        <ng-template #noRecommendations>
+          <div class="no-recommendations">
+            <mat-icon>inventory</mat-icon>
+            <p>{{ i18n.translate('inventory.noRestockRecommendations') }}</p>
+          </div>
+        </ng-template>
+      </div>
+    </mat-tab>
+
+    <!-- Settings Tab -->
+    <mat-tab label="Settings">
+      <div class="tab-content">
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Alert Settings</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <form [formGroup]="alertSettingsForm" (ngSubmit)="saveAlertSettings()">
+              <div class="form-row">
+                <mat-form-field appearance="fill">
+                  <mat-label>Low Stock Threshold</mat-label>
+                  <input matInput type="number" formControlName="lowStockThreshold" min="0">
+                </mat-form-field>
+
+                <mat-form-field appearance="fill">
+                  <mat-label>Overstock Threshold</mat-label>
+                  <input matInput type="number" formControlName="overstockThreshold" min="0">
+                </mat-form-field>
+              </div>
+
+              <div class="form-row">
+                <mat-form-field appearance="fill">
+                  <mat-label>Price Change Threshold (%)</mat-label>
+                  <input matInput type="number" formControlName="priceChangeThreshold" min="0" max="100">
+                </mat-form-field>
+
+                <mat-form-field appearance="fill">
+                  <mat-label>Expiry Warning Days</mat-label>
+                  <input matInput type="number" formControlName="expiryWarningDays" min="1">
+                </mat-form-field>
+              </div>
+
+              <div class="form-row">
+                <mat-form-field appearance="fill">
+                  <mat-label>Alert Frequency</mat-label>
+                  <mat-select formControlName="alertFrequency">
+                    <mat-option value="immediate">Immediate</mat-option>
+                    <mat-option value="daily">Daily</mat-option>
+                    <mat-option value="weekly">Weekly</mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
+
+              <div class="checkbox-group">
+                <mat-checkbox formControlName="enableEmailAlerts">
+                  Enable Email Alerts
+                </mat-checkbox>
+                <mat-checkbox formControlName="enableSmsAlerts">
+                  Enable SMS Alerts
+                </mat-checkbox>
+                <mat-checkbox formControlName="enablePushAlerts">
+                  Enable Push Alerts
+                </mat-checkbox>
+                <mat-checkbox formControlName="offerAlerts">
+                  Offer Alerts
+                </mat-checkbox>
+                <mat-checkbox formControlName="campaignAlerts">
+                  {{ i18n.translate('inventory.campaignAlerts') }}
+                </mat-checkbox>
+              </div>
+
+              <div class="form-actions">
+                <button mat-raised-button color="primary" type="submit">
+                  {{ i18n.translate('common.save') }}
+                </button>
+                <button mat-button type="button" (click)="alertSettingsForm.reset()">
+                  {{ i18n.translate('common.reset') }}
+                </button>
+              </div>
+            </form>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </mat-tab>
+
+    <!-- Movement Tracking Tab -->
+    <mat-tab [label]="i18n.translate('inventory.movementTracking')">
+      <div class="tab-content">
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>{{ i18n.translate('inventory.recordMovement') }}</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <form [formGroup]="movementForm" (ngSubmit)="recordMovement()">
+              <div class="form-row">
+                <mat-form-field appearance="fill">
+                  <mat-label>{{ i18n.translate('inventory.inventoryId') }}</mat-label>
+                  <input matInput formControlName="inventoryId" required>
+                </mat-form-field>
+
+                <mat-form-field appearance="fill">
+                  <mat-label>{{ i18n.translate('inventory.movementType') }}</mat-label>
+                  <mat-select formControlName="type" required>
+                    <mat-option *ngFor="let type of movementTypes" [value]="type.value">
+                      {{ type.label }}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
+
+              <div class="form-row">
+                <mat-form-field appearance="fill">
+                  <mat-label>{{ i18n.translate('inventory.movementReason') }}</mat-label>
+                  <mat-select formControlName="reason" required>
+                    <mat-option *ngFor="let reason of movementReasons" [value]="reason.value">
+                      {{ reason.label }}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="fill">
+                  <mat-label>{{ i18n.translate('inventory.quantity') }}</mat-label>
+                  <input matInput type="number" formControlName="quantity" min="1" required>
+                </mat-form-field>
+              </div>
+
+              <div class="form-row">
+                <mat-form-field appearance="fill">
+                  <mat-label>{{ i18n.translate('inventory.location') }}</mat-label>
+                  <input matInput formControlName="location">
+                </mat-form-field>
+
+                <mat-form-field appearance="fill">
+                  <mat-label>{{ i18n.translate('inventory.batchNumber') }}</mat-label>
+                  <input matInput formControlName="batchNumber">
+                </mat-form-field>
+              </div>
+
+              <div class="form-row">
+                <mat-form-field appearance="fill">
+                  <mat-label>{{ i18n.translate('inventory.expiryDate') }}</mat-label>
+                  <input matInput type="date" formControlName="expiryDate">
+                </mat-form-field>
+
+                <mat-form-field appearance="fill">
+                  <mat-label>{{ i18n.translate('inventory.notes') }}</mat-label>
+                  <textarea matInput formControlName="notes" rows="3"></textarea>
+                </mat-form-field>
+              </div>
+
+              <div class="form-actions">
+                <button mat-raised-button color="primary" type="submit">
+                  {{ i18n.translate('inventory.recordMovement') }}
+                </button>
+                <button mat-button type="button" (click)="movementForm.reset()">
+                  {{ i18n.translate('common.clear') }}
+                </button>
+              </div>
+            </form>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+
+  <!-- Loading Spinner -->
+  <div *ngIf="loading" class="loading-overlay">
+    <mat-spinner></mat-spinner>
+  </div>
+</div>
+

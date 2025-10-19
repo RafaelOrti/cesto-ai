@@ -50,7 +50,9 @@ export abstract class BaseCrudService<T extends BaseEntity> {
           totalPages,
           hasNext: page < totalPages,
           hasPrevious: page > 1
-        }
+        },
+        success: true,
+        status: 200
       };
     } catch (error) {
       this.logger.error(`Error finding ${this.entityName} with pagination:`, error);

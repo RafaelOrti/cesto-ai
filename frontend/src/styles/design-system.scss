@@ -1,0 +1,250 @@
+// CESTO AI Design System
+// Professional Green-Gray Color Palette
+
+// Primary Colors - Green Palette
+$primary-50: #f0f9f0;
+$primary-100: #dcf2dc;
+$primary-200: #bce5bc;
+$primary-300: #8dd18d;
+$primary-400: #5bb85b;
+$primary-500: #4CAF50;  // Main primary
+$primary-600: #2E7D32;  // Darker primary
+$primary-700: #1B5E20;
+$primary-800: #0D4B0D;
+$primary-900: #003300;
+
+// Secondary Colors - Gray Palette
+$secondary-50: #f8f9fa;
+$secondary-100: #f1f3f4;
+$secondary-200: #e8eaed;
+$secondary-300: #dadce0;
+$secondary-400: #bdc1c6;
+$secondary-500: #9aa0a6;
+$secondary-600: #80868b;
+$secondary-700: #5f6368;
+$secondary-800: #3c4043;
+$secondary-900: #202124;
+
+// Accent Colors - Green/Gray tones only
+$accent-gold: #8BC34A;  // Light green instead of gold
+$accent-blue: #4CAF50;  // Green instead of blue
+$accent-orange: #66BB6A; // Green instead of orange
+$accent-red: #2E7D32;   // Dark green instead of red
+
+// Neutral Colors
+$white: #ffffff;
+$black: #000000;
+$gray-50: #fafafa;
+$gray-100: #f5f5f5;
+$gray-200: #eeeeee;
+$gray-300: #e0e0e0;
+$gray-400: #bdbdbd;
+$gray-500: #9e9e9e;
+$gray-600: #757575;
+$gray-700: #616161;
+$gray-800: #424242;
+$gray-900: #212121;
+
+// Status Colors - Green/Gray tones only
+$success: #4CAF50;  // Green
+$warning: #8BC34A;  // Light green instead of orange
+$error: #2E7D32;    // Dark green instead of red
+$info: #66BB6A;     // Medium green instead of blue
+
+// Background Colors
+$bg-primary: linear-gradient(135deg, #f8f9fa 0%, #e8f5e8 100%);
+$bg-secondary: linear-gradient(135deg, #ffffff 0%, #f1f8e9 100%);
+$bg-accent: linear-gradient(135deg, #2E7D32 0%, #4CAF50 50%, #66BB6A 100%);
+$bg-card: rgba(255, 255, 255, 0.95);
+$bg-glass: rgba(255, 255, 255, 0.1);
+
+// Text Colors
+$text-primary: #2c3e50;
+$text-secondary: #5f6368;
+$text-muted: #9aa0a6;
+$text-white: #ffffff;
+$text-accent: #2E7D32;
+
+// Shadow System
+$shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+$shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+$shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+$shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+$shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+$shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+
+// Border Radius
+$radius-xs: 4px;
+$radius-sm: 6px;
+$radius-md: 8px;
+$radius-lg: 12px;
+$radius-xl: 16px;
+$radius-2xl: 20px;
+$radius-full: 9999px;
+
+// Spacing System
+$space-1: 4px;
+$space-2: 8px;
+$space-3: 12px;
+$space-4: 16px;
+$space-5: 20px;
+$space-6: 24px;
+$space-8: 32px;
+$space-10: 40px;
+$space-12: 48px;
+$space-16: 64px;
+$space-20: 80px;
+$space-24: 96px;
+
+// Typography
+$font-family-primary: 'Inter', 'Roboto', 'Helvetica Neue', sans-serif;
+$font-family-secondary: 'Poppins', 'Roboto', sans-serif;
+
+$font-size-xs: 12px;
+$font-size-sm: 14px;
+$font-size-base: 16px;
+$font-size-lg: 18px;
+$font-size-xl: 20px;
+$font-size-2xl: 24px;
+$font-size-3xl: 30px;
+$font-size-4xl: 36px;
+$font-size-5xl: 48px;
+
+$font-weight-light: 300;
+$font-weight-normal: 400;
+$font-weight-medium: 500;
+$font-weight-semibold: 600;
+$font-weight-bold: 700;
+$font-weight-extrabold: 800;
+
+$line-height-tight: 1.25;
+$line-height-normal: 1.5;
+$line-height-relaxed: 1.75;
+
+// Z-Index System
+$z-dropdown: 1000;
+$z-sticky: 1020;
+$z-fixed: 1030;
+$z-modal-backdrop: 1040;
+$z-modal: 1050;
+$z-popover: 1060;
+$z-tooltip: 1070;
+$z-toast: 1080;
+
+// Breakpoints
+$breakpoint-sm: 640px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 1024px;
+$breakpoint-xl: 1280px;
+$breakpoint-2xl: 1536px;
+
+// Component Specific Variables
+$header-height: 80px;
+$sidebar-width: 280px;
+$sidebar-collapsed-width: 70px;
+$content-padding: $space-6;
+
+// Glass Morphism
+$glass-bg: rgba(255, 255, 255, 0.1);
+$glass-border: rgba(255, 255, 255, 0.2);
+$glass-backdrop: blur(10px);
+
+// Animation
+$transition-fast: 0.15s ease;
+$transition-normal: 0.3s ease;
+$transition-slow: 0.5s ease;
+
+// Button Styles
+$button-height-sm: 32px;
+$button-height-md: 40px;
+$button-height-lg: 48px;
+$button-height-xl: 56px;
+
+// Card Styles
+$card-padding: $space-6;
+$card-radius: $radius-lg;
+$card-shadow: $shadow-md;
+
+// Form Styles
+$input-height: 48px;
+$input-padding: $space-4;
+$input-radius: $radius-md;
+$input-border: 2px solid $secondary-300;
+$input-border-focus: 2px solid $primary-500;
+
+// Table Styles
+$table-header-bg: $primary-600;
+$table-header-color: $white;
+$table-row-hover: $secondary-50;
+$table-border: 1px solid $secondary-200;
+
+// Mixins
+@mixin glass-morphism {
+  background: $glass-bg;
+  backdrop-filter: $glass-backdrop;
+  border: 1px solid $glass-border;
+}
+
+@mixin gradient-primary {
+  background: linear-gradient(135deg, $primary-600 0%, $primary-500 50%, $primary-400 100%);
+}
+
+@mixin gradient-secondary {
+  background: linear-gradient(135deg, $secondary-100 0%, $secondary-200 100%);
+}
+
+@mixin card-style {
+  background: $bg-card;
+  border-radius: $card-radius;
+  box-shadow: $card-shadow;
+  padding: $card-padding;
+}
+
+@mixin button-primary {
+  background: $gradient-primary;
+  color: $white;
+  border: none;
+  border-radius: $radius-md;
+  font-weight: $font-weight-medium;
+  transition: all $transition-normal;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: $shadow-lg;
+  }
+}
+
+@mixin button-secondary {
+  background: transparent;
+  color: $primary-600;
+  border: 2px solid $primary-600;
+  border-radius: $radius-md;
+  font-weight: $font-weight-medium;
+  transition: all $transition-normal;
+  
+  &:hover {
+    background: $primary-600;
+    color: $white;
+  }
+}
+
+@mixin text-gradient {
+  background: linear-gradient(135deg, $primary-600 0%, $primary-500 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+@mixin responsive-grid($columns) {
+  display: grid;
+  grid-template-columns: repeat($columns, 1fr);
+  gap: $space-6;
+  
+  @media (max-width: $breakpoint-lg) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  @media (max-width: $breakpoint-md) {
+    grid-template-columns: 1fr;
+  }
+}

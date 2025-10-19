@@ -1,30 +1,30 @@
-// Professional Color Palette
-$primary-color: #667eea;
-$primary-dark: #5a6fd8;
-$primary-light: #7c8ef0;
-$secondary-color: #764ba2;
-$secondary-dark: #6a4190;
-$secondary-light: #8a5cb4;
+// Professional Color Palette - Green Theme
+$primary-color: #2E7D32;
+$primary-dark: #1B5E20;
+$primary-light: #4CAF50;
+$secondary-color: #4CAF50;
+$secondary-dark: #388E3C;
+$secondary-light: #66BB6A;
 
-$accent-color: #ff6b6b;
-$accent-dark: #ff5252;
-$accent-light: #ff8a80;
+$accent-color: #66BB6A;
+$accent-dark: #4CAF50;
+$accent-light: #81C784;
 
-$success-color: #4ecdc4;
-$success-dark: #26a69a;
-$success-light: #80cbc4;
+$success-color: #4CAF50;
+$success-dark: #388E3C;
+$success-light: #66BB6A;
 
-$warning-color: #ffd93d;
-$warning-dark: #ffc107;
-$warning-light: #ffecb3;
+$warning-color: #8BC34A;  // Light green instead of yellow
+$warning-dark: #66BB6A;   // Medium green
+$warning-light: #A5D6A7;  // Very light green
 
-$error-color: #ff6b6b;
-$error-dark: #e53935;
-$error-light: #ffcdd2;
+$error-color: #2E7D32;    // Dark green instead of red
+$error-dark: #1B5E20;     // Darker green
+$error-light: #C8E6C9;    // Light green
 
-$info-color: #74b9ff;
-$info-dark: #2196f3;
-$info-light: #90caf9;
+$info-color: #4CAF50;     // Green instead of blue
+$info-dark: #388E3C;      // Darker green
+$info-light: #81C784;     // Light green
 
 // Neutral Colors - Professional Scale
 $gray-50: #fafafa;
@@ -254,3 +254,17 @@ $ease-linear: linear;
 $ease-in: cubic-bezier(0.4, 0, 1, 1);
 $ease-out: cubic-bezier(0, 0, 0.2, 1);
 $ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+// CSS Custom Properties for Sidebar
+:root {
+  --color-primary-main: #008080;
+  --color-primary-light: #4db6ac;
+  --color-primary-dark: #00695c;
+  --color-secondary-main: #f5f5f5;
+  --color-secondary-light: #fafafa;
+  --color-surface-primary: #ffffff;
+  --color-text-primary: #212121;
+  --color-text-secondary: #757575;
+  --color-text-hint: #9e9e9e;
+  --color-border-primary: #e0e0e0;
+}

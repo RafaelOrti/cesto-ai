@@ -70,25 +70,25 @@ export interface ColorCategory {
   STATUS: 'status';
 }
 
-// Default Cesto theme based on the image description
+// Default Cesto theme based on the green design from images
 export const DEFAULT_CESTO_THEME: ColorConfig = {
   primary: {
-    main: '#008080',      // Dark teal/green (header background)
-    light: '#20B2AA',     // Lighter teal
-    dark: '#006666',      // Darker teal
-    contrast: '#FFFFFF'   // White text on teal
+    main: '#2E7D32',      // Forest green (main brand color)
+    light: '#4CAF50',     // Medium green
+    dark: '#1B5E20',      // Dark green
+    contrast: '#FFFFFF'   // White text on green
   },
   secondary: {
-    main: '#E0E0E0',      // Light gray (sidebar background)
-    light: '#EDEDED',     // Lighter gray
-    dark: '#BDBDBD',      // Darker gray
-    contrast: '#333333'   // Dark gray text
+    main: '#E8F5E8',      // Very light green (sidebar background)
+    light: '#F1F8E9',     // Lighter green
+    dark: '#C8E6C9',      // Light green
+    contrast: '#2E7D32'   // Dark green text
   },
   accent: {
-    main: '#ADD8E6',      // Light blue (heart icon)
-    light: '#B8DCE8',     // Lighter light blue
-    dark: '#8BC4D6',      // Darker light blue
-    contrast: '#333333'   // Dark text
+    main: '#66BB6A',      // Light green (accent elements)
+    light: '#81C784',     // Lighter green
+    dark: '#4CAF50',      // Medium green
+    contrast: '#FFFFFF'   // White text
   },
   background: {
     primary: '#F5F5F5',   // Light gray (main content area)
@@ -101,21 +101,21 @@ export const DEFAULT_CESTO_THEME: ColorConfig = {
     elevated: '#FFFFFF'   // White (elevated surfaces)
   },
   text: {
-    primary: '#333333',   // Dark gray (main text)
-    secondary: '#666666', // Medium gray
-    disabled: '#999999',  // Light gray (disabled text)
-    hint: '#CCCCCC'       // Very light gray (hints)
+    primary: '#2E7D32',   // Dark green (main text)
+    secondary: '#4CAF50', // Medium green
+    disabled: '#9E9E9E',  // Light gray (disabled text)
+    hint: '#BDBDBD'       // Very light gray (hints)
   },
   border: {
-    primary: '#E0E0E0',   // Light gray borders
-    secondary: '#F0F0F0', // Very light gray borders
-    focus: '#008080'      // Teal for focus states
+    primary: '#C8E6C9',   // Light green borders
+    secondary: '#E8F5E8', // Very light green borders
+    focus: '#2E7D32'      // Dark green for focus states
   },
   status: {
-    success: '#008080',   // Teal for success
-    warning: '#FF6347',   // Orange/red (notification icon)
-    error: '#FF0000',     // Red for errors
-    info: '#ADD8E6'       // Light blue for info
+    success: '#4CAF50',   // Green for success
+    warning: '#8BC34A',   // Light green for warnings
+    error: '#2E7D32',     // Dark green for errors
+    info: '#66BB6A'       // Medium green for info
   }
 };
 

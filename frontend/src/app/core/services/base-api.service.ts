@@ -10,10 +10,6 @@ import {
   BaseEntity 
 } from '../../../shared/types/common.types';
 
-/**
- * Base API service that provides common functionality for all API services
- * Implements common patterns like pagination, error handling, caching, and loading states
- */
 @Injectable({
   providedIn: 'root'
 })
@@ -30,13 +26,7 @@ export abstract class BaseApiService<T extends BaseEntity> {
     this.baseUrl = `${apiBaseUrl}${endpoint}`;
   }
 
-  // ============================================================================
   // CRUD OPERATIONS
-  // ============================================================================
-
-  /**
-   * Get all entities with optional filtering and pagination
-   */
   getAll(params?: PaginationParams & Record<string, any>): Observable<PaginatedResponse<T>> {
     const httpParams = this.buildHttpParams(params);
     const cacheKey = `getAll_${this.serializeParams(httpParams)}`;
@@ -60,9 +50,6 @@ export abstract class BaseApiService<T extends BaseEntity> {
       );
   }
 
-  /**
-   * Get entity by ID
-   */
   getById(id: string): Observable<T> {
     const cacheKey = `getById_${id}`;
     
@@ -140,13 +127,7 @@ export abstract class BaseApiService<T extends BaseEntity> {
       );
   }
 
-  // ============================================================================
   // SEARCH & FILTERING
-  // ============================================================================
-
-  /**
-   * Search entities
-   */
   search(query: string, filters?: Record<string, any>): Observable<PaginatedResponse<T>> {
     const params = { page: 1, limit: 10, ...filters, search: query };
     return this.getAll({ page: 1, limit: 10, ...params });
@@ -166,13 +147,7 @@ export abstract class BaseApiService<T extends BaseEntity> {
     return this.getAll({ ...params, supplierId });
   }
 
-  // ============================================================================
   // BULK OPERATIONS
-  // ============================================================================
-
-  /**
-   * Create multiple entities
-   */
   createMany(data: Partial<T>[]): Observable<T[]> {
     this.setLoading('createMany', true);
     
@@ -230,13 +205,7 @@ export abstract class BaseApiService<T extends BaseEntity> {
       );
   }
 
-  // ============================================================================
   // EXPORT/IMPORT
-  // ============================================================================
-
-  /**
-   * Export entities
-   */
   export(format: 'csv' | 'xlsx' | 'json', filters?: Record<string, any>): Observable<Blob> {
     const params = this.buildHttpParams({ ...filters, format });
     
@@ -268,13 +237,7 @@ export abstract class BaseApiService<T extends BaseEntity> {
     );
   }
 
-  // ============================================================================
   // CACHE MANAGEMENT
-  // ============================================================================
-
-  /**
-   * Get data from cache
-   */
   protected getFromCache(key: string): any {
     const cached = this.cache.get(key);
     if (!cached) return null;
@@ -324,13 +287,7 @@ export abstract class BaseApiService<T extends BaseEntity> {
     }
   }
 
-  // ============================================================================
   // LOADING STATES
-  // ============================================================================
-
-  /**
-   * Set loading state
-   */
   protected setLoading(key: string, loading: boolean): void {
     if (!this.loadingStates.has(key)) {
       this.loadingStates.set(key, new BehaviorSubject(false));
@@ -373,13 +330,7 @@ export abstract class BaseApiService<T extends BaseEntity> {
     });
   }
 
-  // ============================================================================
   // ERROR HANDLING
-  // ============================================================================
-
-  /**
-   * Handle HTTP errors
-   */
   protected handleError(operation: string, error: HttpErrorResponse): Observable<never> {
     let errorMessage = 'An error occurred';
     let errorCode = 'UNKNOWN_ERROR';
@@ -405,21 +356,13 @@ export abstract class BaseApiService<T extends BaseEntity> {
       code: errorCode,
       message: errorMessage,
       details: error.error?.details,
-      timestamp: new Date().toISOString(),
-      path: error.url,
-      method: error.error?.method
+      timestamp: new Date().toISOString()
     };
 
     return throwError(() => apiError);
   }
 
-  // ============================================================================
   // UTILITY METHODS
-  // ============================================================================
-
-  /**
-   * Build HTTP parameters from object
-   */
   protected buildHttpParams(params: Record<string, any> = {}): HttpParams {
     let httpParams = new HttpParams();
     
@@ -452,13 +395,7 @@ export abstract class BaseApiService<T extends BaseEntity> {
     console.log(`Entity ${action}:`, entity);
   }
 
-  // ============================================================================
-  // SIMPLE HTTP METHODS (for direct API calls)
-  // ============================================================================
-
-  /**
-   * Simple GET request
-   */
+  // SIMPLE HTTP METHODS
   protected get<T>(endpoint: string): Observable<ApiResponse<T>> {
     return this.http.get<ApiResponse<T>>(`${this.baseUrl}${endpoint}`);
   }
@@ -505,13 +442,7 @@ export abstract class BaseApiService<T extends BaseEntity> {
       .pipe(map(response => response.data));
   }
 
-  // ============================================================================
-  // ABSTRACT METHODS (to be implemented by subclasses)
-  // ============================================================================
-
-  /**
-   * Get entity display name (for logging and error messages)
-   */
+  // ABSTRACT METHODS
   protected abstract getEntityName(): string;
 
   /**

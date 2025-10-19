@@ -1,53 +1,93 @@
 <div class="edi-container">
   <!-- Header -->
-  <div class="edi-header">
-    <h1>EDI Management</h1>
-    <div class="status-indicator">
-      <span class="status-dot" [class.active]="ediStatus.operational"></span>
-      <span>{{ ediStatus.operational ? 'Operational' : 'Offline' }}</span>
-    </div>
-  </div>
+  <mat-toolbar class="edi-header" color="primary">
+    <mat-toolbar-row>
+      <h1>EDI Management</h1>
+      <span class="spacer"></span>
+      <div class="status-indicator">
+        <mat-icon [class]="ediStatus.operational ? 'status-online' : 'status-offline'">
+          {{ ediStatus.operational ? 'wifi' : 'wifi_off' }}
+        </mat-icon>
+        <span>{{ ediStatus.operational ? 'Operational' : 'Offline' }}</span>
+      </div>
+    </mat-toolbar-row>
+  </mat-toolbar>
 
   <!-- EDI Features Overview -->
-  <div class="features-section">
-    <h2>AI-Driven EDI Features</h2>
-    <div class="features-grid">
-      <div class="feature-card" [class.enabled]="ediStatus.features.automated_po_generation">
-        <div class="feature-icon">🤖</div>
-        <h3>Automated PO Generation</h3>
-        <p>Automatic generation of purchase orders when buyers select items</p>
-        <button class="feature-btn" (click)="generatePurchaseOrder()">Generate PO</button>
-      </div>
+  <mat-card class="features-section">
+    <mat-card-header>
+      <mat-card-title>AI-Driven EDI Features</mat-card-title>
+      <mat-card-subtitle>Automated document processing and validation</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="features-grid">
+        <mat-card class="feature-card" [class.enabled]="ediStatus.features.automated_po_generation">
+          <mat-card-content>
+            <div class="feature-header">
+              <mat-icon class="feature-icon">smart_toy</mat-icon>
+              <h3>Automated PO Generation</h3>
+            </div>
+            <p>Automatic generation of purchase orders when buyers select items</p>
+            <button mat-raised-button color="primary" (click)="generatePurchaseOrder()">
+              Generate PO
+            </button>
+          </mat-card-content>
+        </mat-card>
 
-      <div class="feature-card" [class.enabled]="ediStatus.features.document_validation">
-        <div class="feature-icon">✅</div>
-        <h3>Document Validation</h3>
-        <p>Compare documents with actual orders to prevent errors</p>
-        <button class="feature-btn" (click)="validateDocument('1')">Validate</button>
-      </div>
+        <mat-card class="feature-card" [class.enabled]="ediStatus.features.document_validation">
+          <mat-card-content>
+            <div class="feature-header">
+              <mat-icon class="feature-icon">verified</mat-icon>
+              <h3>Document Validation</h3>
+            </div>
+            <p>Compare documents with actual orders to prevent errors</p>
+            <button mat-raised-button color="primary" (click)="validateDocument('1')">
+              Validate
+            </button>
+          </mat-card-content>
+        </mat-card>
 
-      <div class="feature-card" [class.enabled]="ediStatus.features.error_prevention">
-        <div class="feature-icon">🛡️</div>
-        <h3>Error Prevention</h3>
-        <p>Scan and compare all documents to ensure accuracy</p>
-        <button class="feature-btn">Prevent Errors</button>
-      </div>
+        <mat-card class="feature-card" [class.enabled]="ediStatus.features.error_prevention">
+          <mat-card-content>
+            <div class="feature-header">
+              <mat-icon class="feature-icon">security</mat-icon>
+              <h3>Error Prevention</h3>
+            </div>
+            <p>Scan and compare all documents to ensure accuracy</p>
+            <button mat-raised-button color="primary">
+              Prevent Errors
+            </button>
+          </mat-card-content>
+        </mat-card>
 
-      <div class="feature-card" [class.enabled]="ediStatus.features.inventory_notifications">
-        <div class="feature-icon">📦</div>
-        <h3>Inventory Notifications</h3>
-        <p>Automated notifications for low stock and inventory updates</p>
-        <button class="feature-btn">View Notifications</button>
-      </div>
+        <mat-card class="feature-card" [class.enabled]="ediStatus.features.inventory_notifications">
+          <mat-card-content>
+            <div class="feature-header">
+              <mat-icon class="feature-icon">inventory</mat-icon>
+              <h3>Inventory Notifications</h3>
+            </div>
+            <p>Automated notifications for low stock and inventory updates</p>
+            <button mat-raised-button color="primary">
+              View Notifications
+            </button>
+          </mat-card-content>
+        </mat-card>
 
-      <div class="feature-card" [class.enabled]="ediStatus.features.document_scanning">
-        <div class="feature-icon">📄</div>
-        <h3>Document Scanning</h3>
-        <p>Automated document scanning without manual intervention</p>
-        <button class="feature-btn">Scan Documents</button>
+        <mat-card class="feature-card" [class.enabled]="ediStatus.features.document_scanning">
+          <mat-card-content>
+            <div class="feature-header">
+              <mat-icon class="feature-icon">document_scanner</mat-icon>
+              <h3>Document Scanning</h3>
+            </div>
+            <p>Automated document scanning without manual intervention</p>
+            <button mat-raised-button color="primary">
+              Scan Documents
+            </button>
+          </mat-card-content>
+        </mat-card>
       </div>
-    </div>
-  </div>
+    </mat-card-content>
+  </mat-card>
 
   <!-- Document Processing -->
   <div class="processing-section">

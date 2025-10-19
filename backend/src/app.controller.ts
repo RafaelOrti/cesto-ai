@@ -10,14 +10,6 @@ export class AppController {
     return this.appService.getHello();
   }
 
-  @Get('health')
-  getHealth() {
-    return {
-      status: 'healthy',
-      service: 'cesto-backend',
-      timestamp: new Date().toISOString(),
-    };
-  }
 }
 
 

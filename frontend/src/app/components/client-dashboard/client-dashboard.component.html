@@ -1,0 +1,146 @@
+<div class="client-dashboard">
+  <!-- Header -->
+  <div class="dashboard-header">
+    <div class="header-content">
+      <h1>Client Dashboard</h1>
+      <p class="welcome-text">Welcome back, {{ currentUser?.firstName || 'Client' }}!</p>
+    </div>
+    <div class="header-actions">
+      <button mat-raised-button color="primary" class="action-btn">
+        <mat-icon>add</mat-icon>
+        New Order
+      </button>
+      <button mat-stroked-button class="action-btn">
+        <mat-icon>search</mat-icon>
+        Find Suppliers
+      </button>
+    </div>
+  </div>
+
+  <!-- Quick Stats -->
+  <div class="stats-grid">
+    <mat-card *ngFor="let stat of quickStats" class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <div class="stat-icon">
+            <mat-icon [class]="stat.icon">{{ stat.icon }}</mat-icon>
+          </div>
+          <div class="stat-details">
+            <h3 class="stat-value">{{ stat.value }}</h3>
+            <p class="stat-title">{{ stat.title }}</p>
+            <span class="stat-change" [class]="getChangeClass(stat.changeType)">
+              {{ stat.change }}
+            </span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Main Content Grid -->
+  <div class="content-grid">
+    <!-- Orders Chart -->
+    <mat-card class="chart-card">
+      <mat-card-header>
+        <mat-card-title>Order Trends</mat-card-title>
+        <mat-card-subtitle>Monthly order volume and revenue</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="chart-container">
+          <div class="chart-placeholder">
+            <mat-icon>trending_up</mat-icon>
+            <p>Order trends chart will be displayed here</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Recent Activity -->
+    <mat-card class="activity-card">
+      <mat-card-header>
+        <mat-card-title>Recent Activity</mat-card-title>
+        <mat-card-subtitle>Your latest actions and updates</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="activity-list">
+          <div *ngFor="let activity of recentActivity" class="activity-item">
+            <div class="activity-icon">
+              <mat-icon [class]="activity.type">{{ activity.type === 'order' ? 'shopping_cart' : 
+                activity.type === 'supplier' ? 'business' : 'payment' }}</mat-icon>
+            </div>
+            <div class="activity-content">
+              <h4 class="activity-title">{{ activity.title }}</h4>
+              <p class="activity-description">{{ activity.description }}</p>
+              <span class="activity-time">{{ activity.time }}</span>
+            </div>
+            <div class="activity-status">
+              <span class="status-badge" [class]="getStatusClass(activity.status)">
+                {{ activity.status }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Top Suppliers -->
+    <mat-card class="suppliers-card">
+      <mat-card-header>
+        <mat-card-title>Top Suppliers</mat-card-title>
+        <mat-card-subtitle>Your most active suppliers</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="suppliers-list">
+          <div *ngFor="let supplier of customerData" class="supplier-item">
+            <div class="supplier-info">
+              <h4 class="supplier-name">{{ supplier.name }}</h4>
+              <p class="supplier-orders">{{ supplier.orders }} orders</p>
+            </div>
+            <div class="supplier-stats">
+              <span class="supplier-total">${{ supplier.total | number }}</span>
+              <span class="supplier-status" [class]="getStatusClass(supplier.status)">
+                {{ supplier.status }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Quick Actions -->
+    <mat-card class="actions-card">
+      <mat-card-header>
+        <mat-card-title>Quick Actions</mat-card-title>
+        <mat-card-subtitle>Common tasks and shortcuts</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="actions-grid">
+          <button mat-stroked-button class="action-button">
+            <mat-icon>add_shopping_cart</mat-icon>
+            Create Order
+          </button>
+          <button mat-stroked-button class="action-button">
+            <mat-icon>search</mat-icon>
+            Find Suppliers
+          </button>
+          <button mat-stroked-button class="action-button">
+            <mat-icon>inventory</mat-icon>
+            Check Inventory
+          </button>
+          <button mat-stroked-button class="action-button">
+            <mat-icon>analytics</mat-icon>
+            View Reports
+          </button>
+          <button mat-stroked-button class="action-button">
+            <mat-icon>shopping_list</mat-icon>
+            Shopping Lists
+          </button>
+          <button mat-stroked-button class="action-button">
+            <mat-icon>support</mat-icon>
+            Get Support
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

@@ -347,24 +347,12 @@ export class TransactionsComponent implements OnInit {
     this.selectedStatus = 'all';
   }
 
-  exportTransactions(): void {
-    console.log('Exporting transactions...');
-  }
-
   exportInvoices(): void {
     console.log('Exporting invoices...');
   }
 
   generateFinancialReport(): void {
     console.log('Generating financial report...');
-  }
-
-  payInvoice(invoice: Invoice): void {
-    if (confirm(`Pay invoice ${invoice.invoiceNumber} for ${this.formatCurrency(invoice.total)}?`)) {
-      invoice.status = 'paid';
-      invoice.paidDate = new Date().toISOString().split('T')[0];
-      console.log('Invoice paid:', invoice.invoiceNumber);
-    }
   }
 
   viewTransactionDetails(transaction: Transaction): void {
@@ -485,4 +473,54 @@ export class TransactionsComponent implements OnInit {
     // Load transactions from API based on selected date range
     console.log('Loading transactions for:', this.dateRange);
   }
+
+  getAmountClass(amount: number): string {
+    return amount >= 0 ? 'amount-positive' : 'amount-negative';
+  }
+
+  editTransaction(transaction: Transaction): void {
+    console.log('Edit transaction:', transaction);
+  }
+
+  viewInvoice(invoice: Invoice): void {
+    console.log('View invoice:', invoice);
+  }
+
+  payInvoice(invoice: Invoice): void {
+    if (confirm(`Pay invoice ${invoice.invoiceNumber} for ${this.formatCurrency(invoice.total)}?`)) {
+      invoice.status = 'paid';
+      invoice.paidDate = new Date().toISOString().split('T')[0];
+      console.log('Invoice paid:', invoice.invoiceNumber);
+    }
+  }
+
+  createTransaction(): void {
+    console.log('Create new transaction');
+  }
+
+  exportTransactions(): void {
+    console.log('Exporting transactions...');
+  }
+
+  getFilteredTransactions(): Transaction[] {
+    let filtered = this.transactions;
+
+    if (this.selectedType !== 'all') {
+      filtered = filtered.filter(t => t.type === this.selectedType);
+    }
+
+    if (this.selectedStatus !== 'all') {
+      filtered = filtered.filter(t => t.status === this.selectedStatus);
+    }
+
+    if (this.searchQuery) {
+      filtered = filtered.filter(t =>
+        t.description.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+        t.reference.toLowerCase().includes(this.searchQuery.toLowerCase())
+      );
+    }
+
+    return filtered;
+  }
+
 }

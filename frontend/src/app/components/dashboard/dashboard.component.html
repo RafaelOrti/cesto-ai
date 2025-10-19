@@ -1,208 +1,281 @@
 <div class="dashboard-container">
+
   <!-- Page Header -->
-  <div class="page-header">
-    <h1 class="page-title">Client Insights</h1>
-  </div>
+  <mat-toolbar class="page-header" color="primary">
+    <mat-toolbar-row>
+      <span class="page-title">Client Insights</span>
+      <span class="spacer"></span>
+      <button mat-icon-button>
+        <mat-icon>more_vert</mat-icon>
+      </button>
+    </mat-toolbar-row>
+  </mat-toolbar>
 
   <!-- Filter and Control Bar -->
-  <div class="controls-bar">
-    <div class="filter-section">
-      <!-- Choose Filter Dropdown -->
-      <div class="filter-dropdown" [class.open]="showFilterDropdown">
-        <span class="filter-label" (click)="toggleFilterDropdown()">
-          + Choose filter
-          <i class="dropdown-arrow" [class.rotated]="showFilterDropdown">▼</i>
-        </span>
-        <div class="dropdown-menu" *ngIf="showFilterDropdown">
-          <div class="dropdown-item" 
-               *ngFor="let filter of availableFilters"
-               (click)="addFilter(filter)">
-            {{ filter.label }}
-          </div>
+  <mat-card class="controls-bar">
+    <mat-card-content>
+      <div class="filter-section">
+        <!-- Choose Filter Dropdown -->
+        <mat-form-field appearance="outline" class="filter-dropdown">
+          <mat-label>Add Filter</mat-label>
+          <mat-select (selectionChange)="addFilter($event.value)" placeholder="Choose filter">
+            <mat-option *ngFor="let filter of availableFilters" [value]="filter">
+              {{ filter.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <!-- Active Filter Chips -->
+        <div class="filter-chips">
+          <mat-chip-set>
+            <mat-chip 
+              *ngFor="let filter of filters"
+              [selected]="selectedFilter === filter.value"
+              (click)="onFilterChange(filter.value)"
+              (removed)="removeFilter(filter.value)">
+              {{ filter.label }}
+              <button matChipRemove>
+                <mat-icon>cancel</mat-icon>
+              </button>
+            </mat-chip>
+          </mat-chip-set>
         </div>
-      </div>
 
-      <!-- Active Filter Tabs -->
-      <div class="filter-tabs">
-        <button 
-          *ngFor="let filter of filters"
-          class="filter-tab"
-          [class.active]="selectedFilter === filter.value"
-          (click)="onFilterChange(filter.value)">
-          {{ filter.label }}
-          <span class="remove-filter" (click)="removeFilter(filter.value); $event.stopPropagation()">×</span>
-        </button>
-      </div>
-
-      <!-- Date Range -->
-      <div class="date-range">
-        <input 
-          type="date" 
-          [(ngModel)]="dateRange.from" 
-          (change)="onDateRangeChange()"
-          class="date-input">
-        <span class="date-separator">-</span>
-        <input 
-          type="date" 
-          [(ngModel)]="dateRange.to" 
-          (change)="onDateRangeChange()"
-          class="date-input">
-      </div>
-
-      <!-- Additional Filters -->
-      <div class="additional-filters" *ngIf="additionalFilters.length > 0">
-        <div class="filter-chip" 
-             *ngFor="let filter of additionalFilters"
-             [class.active]="filter.active"
-             (click)="toggleAdditionalFilter(filter)">
-          {{ filter.label }}
+        <!-- Date Range -->
+        <div class="date-range">
+          <mat-form-field appearance="outline">
+            <mat-label>From Date</mat-label>
+            <input matInput [matDatepicker]="fromPicker" [(ngModel)]="dateRange.from" (dateChange)="onDateRangeChange()">
+            <mat-datepicker-toggle matSuffix [for]="fromPicker"></mat-datepicker-toggle>
+            <mat-datepicker #fromPicker></mat-datepicker>
+          </mat-form-field>
+          
+          <mat-form-field appearance="outline">
+            <mat-label>To Date</mat-label>
+            <input matInput [matDatepicker]="toPicker" [(ngModel)]="dateRange.to" (dateChange)="onDateRangeChange()">
+            <mat-datepicker-toggle matSuffix [for]="toPicker"></mat-datepicker-toggle>
+            <mat-datepicker #toPicker></mat-datepicker>
+          </mat-form-field>
         </div>
-      </div>
 
-      <!-- Comparison Section -->
-      <div class="comparison-section" *ngIf="showComparison">
-        <div class="comparison-filters">
-          <h4>Comparison Filters:</h4>
-          <div class="date-range">
-            <label>From:</label>
-            <input 
-              type="date" 
-              [ngModel]="comparisonFilters.dateRange?.from" 
-              (ngModelChange)="onComparisonDateFromChange($event)" 
-              class="date-input">
-            <label>To:</label>
-            <input 
-              type="date" 
-              [ngModel]="comparisonFilters.dateRange?.to" 
-              (ngModelChange)="onComparisonDateToChange($event)" 
-              class="date-input">
+        <!-- Additional Filters -->
+        <div class="additional-filters" *ngIf="additionalFilters.length > 0">
+          <mat-chip-set>
+            <mat-chip 
+              *ngFor="let filter of additionalFilters"
+              [selected]="filter.active"
+              (click)="toggleAdditionalFilter(filter)">
+              {{ filter.label }}
+            </mat-chip>
+          </mat-chip-set>
+        </div>
+
+        <!-- Comparison Section -->
+        <mat-expansion-panel *ngIf="showComparison" class="comparison-section">
+          <mat-expansion-panel-header>
+            <mat-panel-title>Comparison Filters</mat-panel-title>
+          </mat-expansion-panel-header>
+          <div class="comparison-filters">
+            <div class="date-range">
+              <mat-form-field appearance="outline">
+                <mat-label>From Date</mat-label>
+                <input matInput [matDatepicker]="compFromPicker" [(ngModel)]="comparisonFilters.dateRange.from" (dateChange)="onComparisonDateFromChange($event)">
+                <mat-datepicker-toggle matSuffix [for]="compFromPicker"></mat-datepicker-toggle>
+                <mat-datepicker #compFromPicker></mat-datepicker>
+              </mat-form-field>
+              
+              <mat-form-field appearance="outline">
+                <mat-label>To Date</mat-label>
+                <input matInput [matDatepicker]="compToPicker" [(ngModel)]="comparisonFilters.dateRange.to" (dateChange)="onComparisonDateToChange($event)">
+                <mat-datepicker-toggle matSuffix [for]="compToPicker"></mat-datepicker-toggle>
+                <mat-datepicker #compToPicker></mat-datepicker>
+              </mat-form-field>
+            </div>
+            <button mat-raised-button color="primary" (click)="applyComparison()">
+              Apply Comparison
+            </button>
           </div>
-          <button class="apply-comparison-btn" (click)="applyComparison()">
-            Apply Comparison
+        </mat-expansion-panel>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+          <button mat-stroked-button (click)="addComparison()">
+            <mat-icon>{{ showComparison ? 'remove' : 'add' }}</mat-icon>
+            {{ showComparison ? 'Hide comparison' : 'Add comparison' }}
+          </button>
+          
+          <button mat-raised-button 
+                  color="primary"
+                  (click)="generateReport()"
+                  [disabled]="isLoading">
+            <mat-spinner *ngIf="isLoading" diameter="20" class="button-spinner"></mat-spinner>
+            <mat-icon *ngIf="!isLoading">analytics</mat-icon>
+            <span>{{ isLoading ? 'Generating...' : 'Generate' }}</span>
           </button>
         </div>
       </div>
+    </mat-card-content>
+  </mat-card>
 
-      <!-- Action Buttons -->
-      <div class="action-buttons">
-        <button class="comparison-btn" (click)="addComparison()">
-          {{ showComparison ? 'Hide comparison' : 'Add comparison' }}
-        </button>
-        
-        <button class="generate-btn" 
-                (click)="generateReport()"
-                [disabled]="isLoading">
-          <span *ngIf="isLoading">Generating...</span>
-          <span *ngIf="!isLoading">Generate</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- Legend Section -->
-    <div class="legend-section">
-      <div class="legend-item" *ngFor="let item of legendData">
-        <div class="legend-dot" [style.background-color]="item.color"></div>
-        <span class="legend-value">{{ item.value }}</span>
-        <span class="legend-label" *ngIf="item.label">{{ item.label }}</span>
-      </div>
-    </div>
-  </div>
+  <!-- Legend Section -->
+  <mat-card class="legend-section">
+    <mat-card-content>
+      <mat-chip-set>
+        <mat-chip *ngFor="let item of legendData">
+          <div class="legend-dot" [style.background-color]="item.color"></div>
+          <span class="legend-value">{{ item.value }}</span>
+          <span class="legend-label" *ngIf="item.label">{{ item.label }}</span>
+        </mat-chip>
+      </mat-chip-set>
+    </mat-card-content>
+  </mat-card>
 
   <!-- Loading Indicator -->
   <div class="loading-indicator" *ngIf="isLoading">
-    <div class="loading-spinner"></div>
+    <mat-spinner diameter="50"></mat-spinner>
     <span>Loading analytics data...</span>
   </div>
 
   <!-- Line Graph -->
-  <div class="chart-section" [class.loading]="isLoading">
-    <div class="chart-container">
-      <div class="line-chart">
-        <div class="chart-area">
-          <!-- Y-axis labels -->
-          <div class="y-axis">
-            <div class="y-label" *ngFor="let label of yAxisLabels">
-              {{ label }}
+  <mat-card class="chart-section" [class.loading]="isLoading">
+    <mat-card-header>
+      <mat-card-title>Analytics Chart</mat-card-title>
+      <mat-card-subtitle>Sales and Orders Overview</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="chart-container">
+        <div class="line-chart">
+          <div class="chart-area">
+            <!-- Y-axis labels -->
+            <div class="y-axis">
+              <div class="y-label" *ngFor="let label of yAxisLabels">
+                {{ label }}
+              </div>
             </div>
-          </div>
 
-          <!-- Chart line -->
-          <div class="chart-line">
-            <svg width="100%" height="100%" viewBox="0 0 800 200">
-              <polyline
-                [attr.points]="getChartPoints()"
-                fill="none"
-                stroke="#20B2AA"
-                stroke-width="3"
-              />
-              <circle
-                *ngFor="let point of getChartPointsArray()"
-                [attr.cx]="point.x"
-                [attr.cy]="point.y"
-                r="4"
-                fill="#20B2AA"
-                stroke="white"
-                stroke-width="2"
-              />
-            </svg>
-          </div>
+            <!-- Chart line -->
+            <div class="chart-line">
+              <svg width="100%" height="100%" viewBox="0 0 800 200">
+                <polyline
+                  [attr.points]="getChartPoints()"
+                  fill="none"
+                  stroke="#20B2AA"
+                  stroke-width="3"
+                />
+                <circle
+                  *ngFor="let point of getChartPointsArray()"
+                  [attr.cx]="point.x"
+                  [attr.cy]="point.y"
+                  r="4"
+                  fill="#20B2AA"
+                  stroke="white"
+                  stroke-width="2"
+                />
+              </svg>
+            </div>
 
-          <!-- X-axis labels -->
-          <div class="x-axis">
-            <div class="x-label" *ngFor="let data of analyticsData">
-              {{ data.month }}
+            <!-- X-axis labels -->
+            <div class="x-axis">
+              <div class="x-label" *ngFor="let data of analyticsData">
+                {{ data.month }}
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  </div>
+    </mat-card-content>
+  </mat-card>
 
   <!-- Customer Performance Table -->
-  <div class="table-section">
-    <div class="table-container">
-      <table class="performance-table">
-        <thead>
-          <tr>
-            <th>Customer</th>
-            <th>Sales</th>
-            <th>Orders</th>
-            <th>Average order...</th>
-            <th>Frequency</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let customer of customerData; trackBy: trackByCustomer">
-            <td class="customer-cell">
-              <div class="customer-indicator" [style.background-color]="customer.color"></div>
-              {{ customer.name }}
+  <mat-card class="table-section">
+    <mat-card-header>
+      <mat-card-title>Customer Performance</mat-card-title>
+      <mat-card-subtitle>Sales and Order Analysis</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="table-container">
+        <table mat-table [dataSource]="customerData" class="performance-table">
+          <!-- Customer Column -->
+          <ng-container matColumnDef="customer">
+            <th mat-header-cell *matHeaderCellDef>Customer</th>
+            <td mat-cell *matCellDef="let customer">
+              <div class="customer-cell">
+                <div class="customer-indicator" [style.background-color]="customer.color"></div>
+                {{ customer.name }}
+              </div>
             </td>
-            <td class="sales-cell">{{ customer.sales | number }}</td>
-            <td class="orders-cell">{{ customer.orders }}</td>
-            <td class="avg-order-cell">{{ customer.averageOrder | number }}</td>
-            <td class="frequency-cell">{{ customer.frequency }}</td>
-          </tr>
-        </tbody>
-        <tfoot>
-          <tr class="summary-row">
-            <td><strong>Amount of stores: {{ summaryTotals.totalStores }}</strong></td>
-            <td><strong>Total: {{ summaryTotals.totalSales | number }}</strong></td>
-            <td><strong>{{ summaryTotals.totalOrders | number }}</strong></td>
-            <td><strong>{{ summaryTotals.averageOrder | number }}</strong></td>
-            <td><strong>{{ summaryTotals.averageFrequency }}</strong></td>
-          </tr>
-        </tfoot>
-      </table>
-    </div>
-  </div>
+          </ng-container>
+
+          <!-- Sales Column -->
+          <ng-container matColumnDef="sales">
+            <th mat-header-cell *matHeaderCellDef>Sales</th>
+            <td mat-cell *matCellDef="let customer" class="sales-cell">
+              {{ customer.sales | number }}
+            </td>
+          </ng-container>
+
+          <!-- Orders Column -->
+          <ng-container matColumnDef="orders">
+            <th mat-header-cell *matHeaderCellDef>Orders</th>
+            <td mat-cell *matCellDef="let customer" class="orders-cell">
+              {{ customer.orders }}
+            </td>
+          </ng-container>
+
+          <!-- Average Order Column -->
+          <ng-container matColumnDef="averageOrder">
+            <th mat-header-cell *matHeaderCellDef>Average Order</th>
+            <td mat-cell *matCellDef="let customer" class="avg-order-cell">
+              {{ customer.averageOrder | number }}
+            </td>
+          </ng-container>
+
+          <!-- Frequency Column -->
+          <ng-container matColumnDef="frequency">
+            <th mat-header-cell *matHeaderCellDef>Frequency</th>
+            <td mat-cell *matCellDef="let customer" class="frequency-cell">
+              {{ customer.frequency }}
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+      </div>
+      
+      <!-- Summary Row -->
+      <mat-divider></mat-divider>
+      <div class="summary-section">
+        <div class="summary-item">
+          <strong>Amount of stores: {{ summaryTotals.totalStores }}</strong>
+        </div>
+        <div class="summary-item">
+          <strong>Total: {{ summaryTotals.totalSales | number }}</strong>
+        </div>
+        <div class="summary-item">
+          <strong>{{ summaryTotals.totalOrders | number }}</strong>
+        </div>
+        <div class="summary-item">
+          <strong>{{ summaryTotals.averageOrder | number }}</strong>
+        </div>
+        <div class="summary-item">
+          <strong>{{ summaryTotals.averageFrequency }}</strong>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
 
   <!-- Annotations -->
-  <div class="annotations">
-    <div class="annotation-item">
-      <span>GRAPHIC (filters): sales orders</span>
-    </div>
-    <div class="annotation-item">
-      <span>LIST (Filters)</span>
-    </div>
-  </div>
+  <mat-card class="annotations">
+    <mat-card-content>
+      <div class="annotation-item">
+        <mat-icon>analytics</mat-icon>
+        <span>GRAPHIC (filters): sales orders</span>
+      </div>
+      <div class="annotation-item">
+        <mat-icon>filter_list</mat-icon>
+        <span>LIST (Filters)</span>
+      </div>
+    </mat-card-content>
+  </mat-card>
 </div>

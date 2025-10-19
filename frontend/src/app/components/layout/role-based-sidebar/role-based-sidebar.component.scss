@@ -1,0 +1,282 @@
+.role-based-sidebar {
+  width: 280px;
+  height: 100vh;
+  background: linear-gradient(135deg, #2E7D32 0%, #4CAF50 50%, #66BB6A 100%);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+
+  &.collapsed {
+    width: 70px;
+    
+    .platform-info,
+    .user-info,
+    .nav-label,
+    .nav-child-label {
+      opacity: 0;
+      visibility: hidden;
+    }
+    
+    .nav-item-main {
+      justify-content: center;
+    }
+    
+    .expand-icon {
+      display: none;
+    }
+  }
+}
+
+.platform-header {
+  padding: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.platform-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-icon {
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+  color: #FFD700;
+}
+
+.platform-info {
+  h2 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    color: white;
+    line-height: 1;
+  }
+  
+  .platform-subtitle {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 500;
+  }
+}
+
+.user-profile {
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  mat-icon {
+    color: white;
+    font-size: 20px;
+  }
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  
+  .user-name {
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 1.2;
+  }
+  
+  .user-role {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 12px;
+    line-height: 1.2;
+  }
+}
+
+.navigation-menu {
+  flex: 1;
+  padding: 20px 0;
+  overflow-y: auto;
+}
+
+.nav-items {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nav-item {
+  position: relative;
+  
+  &.expanded {
+    .nav-item-main {
+      background: rgba(255, 255, 255, 0.1);
+    }
+  }
+  
+  &.active {
+    .nav-item-main {
+      background: rgba(255, 255, 255, 0.15);
+      color: white;
+      
+      .nav-icon {
+        color: #FFD700;
+      }
+    }
+  }
+}
+
+.nav-item-main {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: rgba(255, 255, 255, 0.9);
+  border-radius: 0 25px 25px 0;
+  margin-right: 20px;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+  }
+  
+  &.has-children {
+    cursor: pointer;
+  }
+}
+
+.nav-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  margin-right: 12px;
+  color: rgba(255, 255, 255, 0.8);
+  transition: color 0.2s ease;
+}
+
+.nav-label {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.expand-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  transition: transform 0.2s ease;
+  
+  &.rotated {
+    transform: rotate(90deg);
+  }
+}
+
+.nav-children {
+  background: rgba(0, 0, 0, 0.1);
+  margin-left: 20px;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 4px;
+  margin-right: 20px;
+}
+
+.nav-child-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: rgba(255, 255, 255, 0.8);
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+  }
+  
+  &.active {
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+    
+    .nav-child-icon {
+      color: #FFD700;
+    }
+  }
+}
+
+.nav-child-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  margin-right: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  transition: color 0.2s ease;
+}
+
+.nav-child-label {
+  font-size: 13px;
+  font-weight: 400;
+  transition: all 0.3s ease;
+}
+
+.sidebar-footer {
+  padding: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  justify-content: center;
+}
+
+.collapse-btn {
+  color: rgba(255, 255, 255, 0.7);
+  
+  &:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .role-based-sidebar {
+    width: 100%;
+    transform: translateX(-100%);
+    
+    &.open {
+      transform: translateX(0);
+    }
+  }
+}
+
+// Scrollbar styling
+.navigation-menu::-webkit-scrollbar {
+  width: 4px;
+}
+
+.navigation-menu::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.navigation-menu::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+}
+
+.navigation-menu::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+

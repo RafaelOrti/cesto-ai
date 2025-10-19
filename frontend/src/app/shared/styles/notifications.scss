@@ -41,11 +41,11 @@
   }
 
   &.notification-info {
-    border-left-color: #3b82f6;
+    border-left-color: #4CAF50;
     
     .notification-content {
       i {
-        color: #3b82f6;
+        color: #4CAF50;
       }
     }
   }
@@ -157,7 +157,7 @@
             margin-bottom: 12px;
 
             .stars {
-              color: #fbbf24;
+              color: #8BC34A;
               margin-right: 8px;
             }
 
@@ -207,11 +207,11 @@
           gap: 8px;
 
           &.btn-primary {
-            background: #3b82f6;
+            background: #4CAF50;
             color: white;
 
             &:hover {
-              background: #2563eb;
+              background: #2E7D32;
             }
           }
 

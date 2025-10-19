@@ -1,7 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Notification } from '../../../../shared/types/common.types';
-import { NotificationService } from '../../services/notification.service';
+import { NotificationService, Notification } from '../../services/notification.service';
 
 /**
  * Global notifications component that displays app notifications

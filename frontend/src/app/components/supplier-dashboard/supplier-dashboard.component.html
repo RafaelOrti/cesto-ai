@@ -1,308 +1,174 @@
 <div class="supplier-dashboard">
   <!-- Header -->
-  <div class="dashboard-header">
-    <h1>Supplier Dashboard</h1>
-    <div class="user-info">
-      <span>demo&#64;supplier.com</span>
-      <button class="logout-btn" (click)="navigateToEdi()">EDI</button>
-    </div>
-  </div>
-
-  <!-- Navigation Sidebar -->
-  <div class="sidebar">
-    <div class="nav-item" [class.active]="currentView === 'dashboard'" (click)="navigateToView('dashboard')">
-      DASHBOARD
-    </div>
-    <div class="nav-item" [class.active]="currentView === 'products'" (click)="navigateToView('products')">
-      PRODUCTS
-    </div>
-    <div class="nav-item" [class.active]="currentView === 'invoices'" (click)="navigateToView('invoices')">
-      INVOICES
-    </div>
-    <div class="nav-item" [class.active]="currentView === 'ean-code'" (click)="navigateToView('ean-code')">
-      EAN CODE
-    </div>
-    <div class="nav-item" [class.active]="currentView === 'inventory'" (click)="navigateToView('inventory')">
-      INVENTORY
-    </div>
-  </div>
-
-  <!-- Main Content -->
-  <div class="main-content">
-    <!-- Dashboard View -->
-    <div *ngIf="currentView === 'dashboard'" class="dashboard-content">
-      <h2>Supplier Insights</h2>
-      
-      <!-- Stats Cards -->
-      <div class="stats-grid">
-        <div class="stat-card">
-          <h3>{{ supplierStats.totalProducts }}</h3>
-          <p>Total Products</p>
+  <mat-card class="dashboard-header">
+    <mat-card-content>
+      <div class="header-content">
+        <div class="header-info">
+          <h1 class="mat-mdc-typography mat-headline-4">Supplier Dashboard</h1>
+          <p class="welcome-text mat-mdc-typography mat-body-1">Welcome back, {{ currentUser?.firstName || 'Supplier' }}!</p>
         </div>
-        <div class="stat-card">
-          <h3>{{ supplierStats.activeCampaigns }}</h3>
-          <p>Active Campaigns</p>
-        </div>
-        <div class="stat-card">
-          <h3>{{ supplierStats.pendingOrders }}</h3>
-          <p>Pending Orders</p>
-        </div>
-        <div class="stat-card">
-          <h3>${{ supplierStats.totalRevenue | number }}</h3>
-          <p>Total Revenue</p>
-        </div>
-      </div>
-
-      <!-- Recent Activities -->
-      <div class="activities-section">
-        <h3>Recent Activities</h3>
-        <div class="activity-list">
-          <div class="activity-item">
-            <span class="activity-time">2 hours ago</span>
-            <span class="activity-text">New order received from Buyer A</span>
-          </div>
-          <div class="activity-item">
-            <span class="activity-time">4 hours ago</span>
-            <span class="activity-text">Campaign "Summer Discount" activated</span>
-          </div>
-          <div class="activity-item">
-            <span class="activity-time">1 day ago</span>
-            <span class="activity-text">Product catalog updated</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Products View -->
-    <div *ngIf="currentView === 'products'" class="products-content">
-      <div class="content-header">
-        <h2>Explore Suppliers</h2>
         <div class="header-actions">
-          <button class="btn-secondary">Upload Products</button>
-          <button class="btn-primary">Create Campaign</button>
+          <button mat-raised-button color="primary" class="action-btn">
+            <mat-icon>add</mat-icon>
+            Add Product
+          </button>
+          <button mat-stroked-button color="primary" class="action-btn">
+            <mat-icon>inventory</mat-icon>
+            Manage Inventory
+          </button>
         </div>
       </div>
+    </mat-card-content>
+  </mat-card>
 
-      <!-- Search and Filters -->
-      <div class="search-section">
-        <input type="text" placeholder="Search for supplier" class="search-input">
-        <div class="filter-tags">
-          <span class="filter-tag">FREE DELIVERY</span>
-          <span class="filter-tag">CO-DELIVERY</span>
-          <span class="filter-tag">ON SALE</span>
-          <span class="filter-tag">SUPPLIERS ETC</span>
+  <!-- Stats Grid -->
+  <div class="stats-grid">
+    <mat-card *ngFor="let stat of supplierStats" class="stat-card mat-mdc-hover-lift">
+      <mat-card-content>
+        <div class="stat-content">
+          <div class="stat-icon">
+            <mat-icon [class]="stat.icon">{{ stat.icon }}</mat-icon>
+          </div>
+          <div class="stat-details">
+            <h3 class="stat-value mat-mdc-typography mat-headline-3">{{ stat.value }}</h3>
+            <p class="stat-title mat-mdc-typography mat-body-2">{{ stat.title }}</p>
+            <mat-chip class="stat-change mat-mdc-chip mat-primary" [ngClass]="getChangeClass(stat.changeType)">
+              {{ stat.change }}
+            </mat-chip>
+          </div>
         </div>
-      </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
 
-      <!-- Recommended Suppliers -->
-      <div class="recommended-section">
-        <h3>Recommended for you</h3>
-        <div class="recommended-grid">
-          <div class="recommended-item">
-            <div class="recommended-icon">🏷️</div>
-            <span>Recently Added</span>
+  <!-- Main Content Grid -->
+  <div class="content-grid">
+    <!-- Performance Metrics -->
+    <mat-card class="metrics-card">
+      <mat-card-header>
+        <mat-card-title>Performance Metrics</mat-card-title>
+        <mat-card-subtitle>Your key performance indicators</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="metrics-grid">
+          <div class="metric-item">
+            <div class="metric-value">{{ performanceMetrics.orderFulfillment }}%</div>
+            <div class="metric-label">Order Fulfillment</div>
+            <div class="metric-progress">
+              <div class="progress-bar" [style.width.%]="performanceMetrics.orderFulfillment"></div>
+            </div>
           </div>
-          <div class="recommended-item">
-            <div class="recommended-icon">⭐</div>
-            <span>Popular</span>
+          <div class="metric-item">
+            <div class="metric-value">{{ performanceMetrics.customerSatisfaction }}/5</div>
+            <div class="metric-label">Customer Satisfaction</div>
+            <div class="metric-progress">
+              <div class="progress-bar" [style.width.%]="performanceMetrics.customerSatisfaction * 20"></div>
+            </div>
           </div>
-          <div class="recommended-item">
-            <div class="recommended-icon">👥</div>
-            <span>All Suppliers</span>
+          <div class="metric-item">
+            <div class="metric-value">{{ performanceMetrics.onTimeDelivery }}%</div>
+            <div class="metric-label">On-Time Delivery</div>
+            <div class="metric-progress">
+              <div class="progress-bar" [style.width.%]="performanceMetrics.onTimeDelivery"></div>
+            </div>
           </div>
-          <div class="recommended-item">
-            <div class="recommended-icon">➕</div>
-            <span>Add Supplier</span>
+          <div class="metric-item">
+            <div class="metric-value">{{ performanceMetrics.productQuality }}/5</div>
+            <div class="metric-label">Product Quality</div>
+            <div class="metric-progress">
+              <div class="progress-bar" [style.width.%]="performanceMetrics.productQuality * 20"></div>
+            </div>
           </div>
         </div>
-      </div>
+      </mat-card-content>
+    </mat-card>
 
-      <!-- Category Filters -->
-      <div class="category-section">
-        <h3>Filter by category</h3>
-        <div class="category-grid">
-          <button class="category-btn">Dairy</button>
-          <button class="category-btn">Fruits & Vegetables</button>
-          <button class="category-btn">Delicatessen</button>
-          <button class="category-btn">Frozen</button>
-          <button class="category-btn">Fresh from Sea</button>
-          <button class="category-btn">Fresh Goods</button>
-          <button class="category-btn">→</button>
+    <!-- Recent Orders -->
+    <mat-card class="orders-card">
+      <mat-card-header>
+        <mat-card-title>Recent Orders</mat-card-title>
+        <mat-card-subtitle>Latest orders from buyers</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="orders-list">
+          <div *ngFor="let order of recentOrders" class="order-item">
+            <div class="order-info">
+              <h4 class="order-id">{{ order.id }}</h4>
+              <p class="order-buyer">{{ order.buyer }}</p>
+              <span class="order-date">{{ order.date }}</span>
+            </div>
+            <div class="order-details">
+              <div class="order-total">${{ order.total | number:'1.2-2' }}</div>
+              <div class="order-items">{{ order.items }} items</div>
+            </div>
+            <div class="order-status">
+              <span class="status-badge" [class]="getStatusClass(order.status)">
+                {{ getStatusLabel(order.status) }}
+              </span>
+            </div>
+          </div>
         </div>
-      </div>
+      </mat-card-content>
+    </mat-card>
 
-      <!-- Suppliers List -->
-      <div class="suppliers-section">
-        <h3>Suppliers</h3>
-        <div class="suppliers-list">
-          <div class="supplier-card">
-            <div class="supplier-header">
-              <h4>Engelmanns</h4>
-              <span class="expand-icon">▼</span>
+    <!-- Top Products -->
+    <mat-card class="products-card">
+      <mat-card-header>
+        <mat-card-title>Top Products</mat-card-title>
+        <mat-card-subtitle>Your best-selling products</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="products-list">
+          <div *ngFor="let product of topProducts" class="product-item">
+            <div class="product-info">
+              <h4 class="product-name">{{ product.name }}</h4>
+              <p class="product-sales">{{ product.sales }} sales</p>
             </div>
-            <p class="supplier-description">Premium quality food products</p>
-            <button class="request-btn">Send Request</button>
-          </div>
-          
-          <div class="supplier-card">
-            <div class="supplier-header">
-              <h4>Gastro import</h4>
-              <span class="expand-icon">▼</span>
+            <div class="product-stats">
+              <div class="product-revenue">${{ product.revenue | number:'1.2-2' }}</div>
+              <div class="product-stock" [class]="getStatusClass(product.status)">
+                {{ product.stock }} in stock
+              </div>
             </div>
-            <p class="supplier-description">Professional kitchen supplies</p>
-            <span class="request-sent">Request sent</span>
           </div>
         </div>
-      </div>
-    </div>
+      </mat-card-content>
+    </mat-card>
 
-    <!-- EAN Code View -->
-    <div *ngIf="currentView === 'ean-code'" class="ean-content">
-      <h2>EAN</h2>
-      
-      <!-- Scanner Interface -->
-      <div class="scanner-interface">
-        <div class="barcode-scanner">
-          <div class="barcode-display">
-            <div class="barcode">
-              <div class="barcode-lines"></div>
-              <div class="scan-line"></div>
-            </div>
-            <p class="barcode-number">5 901234 123457</p>
-            <span class="scan-arrow">></span>
-          </div>
+    <!-- Quick Actions -->
+    <mat-card class="actions-card">
+      <mat-card-header>
+        <mat-card-title>Quick Actions</mat-card-title>
+        <mat-card-subtitle>Manage your supplier account</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="actions-grid">
+          <button mat-stroked-button class="action-button">
+            <mat-icon>add_box</mat-icon>
+            Add Product
+          </button>
+          <button mat-stroked-button class="action-button">
+            <mat-icon>inventory</mat-icon>
+            Manage Inventory
+          </button>
+          <button mat-stroked-button class="action-button">
+            <mat-icon>receipt</mat-icon>
+            View Orders
+          </button>
+          <button mat-stroked-button class="action-button">
+            <mat-icon>analytics</mat-icon>
+            Analytics
+          </button>
+          <button mat-stroked-button class="action-button">
+            <mat-icon>settings</mat-icon>
+            Settings
+          </button>
+          <button mat-stroked-button class="action-button">
+            <mat-icon>support</mat-icon>
+            Support
+          </button>
         </div>
-        
-        <!-- Instructions -->
-        <div class="instructions">
-          <div class="instruction-item">
-            <strong>Digitize product EAN codes to display exact quantity, MOQ (minimum order quantity), delivery time, etc.</strong>
-          </div>
-          <div class="instruction-item">
-            <strong>WE NEED THE EXACT FIELDS TO OBTAIN</strong>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Inventory View -->
-    <div *ngIf="currentView === 'inventory'" class="inventory-content">
-      <div class="inventory-header">
-        <div class="past-section">
-          <div class="past-icon">📅</div>
-          <div class="past-text">
-            <span class="version">v22, 2024</span>
-            <span class="cancelled">Vis-called orders</span>
-          </div>
-        </div>
-      </div>
-      
-      <div class="calendar-view">
-        <div class="calendar-grid">
-          <div class="calendar-day">
-            <span class="day-label">Monday May 27</span>
-            <div class="day-orders">
-              <div class="order-item">Nifac</div>
-            </div>
-          </div>
-          
-          <div class="calendar-day">
-            <span class="day-label">Tuesday May 28</span>
-            <div class="day-orders">
-              <div class="order-item">Oriental supplier</div>
-            </div>
-          </div>
-          
-          <div class="calendar-day">
-            <span class="day-label">Wednesday May 29</span>
-            <div class="day-orders">
-              <div class="order-item">Beverage supplier</div>
-            </div>
-          </div>
-          
-          <div class="calendar-day">
-            <span class="day-label">Thursday May 30</span>
-            <div class="day-orders">
-              <div class="order-item">Lunglinders Me</div>
-            </div>
-          </div>
-          
-          <div class="calendar-day">
-            <span class="day-label">Friday May 31</span>
-            <div class="day-orders">
-              <div class="order-item">Nifac</div>
-            </div>
-          </div>
-          
-          <div class="calendar-day">
-            <span class="day-label">Saturday June 1</span>
-            <div class="day-orders">
-              <div class="order-item">Oriental supplier</div>
-            </div>
-          </div>
-          
-          <div class="calendar-day">
-            <span class="day-label">Sunday June 2</span>
-            <div class="day-orders">
-              <div class="order-item">Beverage supplier</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Tutorial Popup -->
-      <div class="tutorial-popup">
-        <div class="tutorial-content">
-          <p>In the order history you will find your historical and future orders</p>
-          <button class="tutorial-button">Next</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Invoices View -->
-    <div *ngIf="currentView === 'invoices'" class="invoices-content">
-      <h2>Invoice Management</h2>
-      
-      <!-- Invoice System Info -->
-      <div class="invoice-info">
-        <div class="info-card">
-          <h3>Internal Cesto Invoicing System</h3>
-          <p>We will create an internal invoicing system for Cesto, but we will offer the possibility to integrate third parties like TRUECOMMERCE EDICOM</p>
-        </div>
-        
-        <div class="info-card">
-          <h3>Digital Signature</h3>
-          <p>It is necessary to be able to sign invoices digitally</p>
-        </div>
-      </div>
-      
-      <div class="invoice-filters">
-        <button class="filter-btn active">All</button>
-        <button class="filter-btn">Draft</button>
-        <button class="filter-btn">Sent</button>
-        <button class="filter-btn">Paid</button>
-        <button class="filter-btn">Overdue</button>
-      </div>
-      
-      <div class="invoice-list">
-        <div class="invoice-card">
-          <div class="invoice-header">
-            <span class="invoice-number">INV-001</span>
-            <span class="invoice-status paid">Paid</span>
-          </div>
-          <div class="invoice-details">
-            <p>Buyer: Restaurant ABC</p>
-            <p>Amount: $1,250.00</p>
-            <p>Due Date: 2024-06-15</p>
-          </div>
-          <div class="invoice-actions">
-            <button class="btn-secondary">View</button>
-            <button class="btn-primary">Download</button>
-            <button class="btn-sign">Sign</button>
-          </div>
-        </div>
-      </div>
-    </div>
+      </mat-card-content>
+    </mat-card>
   </div>
 </div>
-

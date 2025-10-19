@@ -19,7 +19,7 @@ export class StateService {
   private readonly isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
   public readonly isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
 
-  private readonly userRoleSubject = new BehaviorSubject<'admin' | 'supplier' | 'buyer' | null>(null);
+  private readonly userRoleSubject = new BehaviorSubject<'admin' | 'supplier' | 'client' | null>(null);
   public readonly userRole$ = this.userRoleSubject.asObservable();
 
   // ============================================================================
@@ -207,7 +207,7 @@ export class StateService {
     return this.isAuthenticatedSubject.value;
   }
 
-  getUserRole(): 'admin' | 'supplier' | 'buyer' | null {
+  getUserRole(): 'admin' | 'supplier' | 'client' | null {
     return this.userRoleSubject.value;
   }
 

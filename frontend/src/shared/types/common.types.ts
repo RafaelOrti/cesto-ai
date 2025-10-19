@@ -1,3 +1,100 @@
+export interface ShoppingList {
+  id: string;
+  name: string;
+  description: string;
+  type: ShoppingListType;
+  status: 'active' | 'archived' | 'completed' | 'cancelled';
+  isActive: boolean;
+  isShared: boolean;
+  sharedWith: string[];
+  lastUsedDate: string;
+  usageCount: number;
+  totalItems: number;
+  purchasedItems: number;
+  pendingItems: number;
+  estimatedTotal: number;
+  actualTotal: number;
+  items: ShoppingListItem[];
+  aiRecommendations: AIRecommendations;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ShoppingListItem {
+  id: string;
+  productName: string;
+  productImage?: string;
+  category: string;
+  supplier: string;
+  quantity: number;
+  unit: string;
+  estimatedPrice: number;
+  priority: ItemPriority;
+  aiRecommended: boolean;
+  aiConfidence?: number;
+  lastOrdered?: string;
+  averageConsumption?: number;
+  stockLevel?: 'low' | 'medium' | 'high' | 'out';
+  notes?: string;
+  purchased?: boolean;
+}
+
+export enum ShoppingListType {
+  REGULAR = 'regular',
+  BUY_LATER = 'saved_for_later',
+  WISHLIST = 'wishlist',
+  SEASONAL = 'seasonal',
+  EMERGENCY = 'emergency'
+}
+
+export enum ItemPriority {
+  LOW = 'low',
+  MEDIUM = 'medium',
+  HIGH = 'high',
+  URGENT = 'urgent'
+}
+
+export interface AIRecommendations {
+  suggestedItems: SuggestedItem[];
+  priceAlerts: PriceAlert[];
+  restockPredictions: RestockPrediction[];
+  seasonalInsights: SeasonalInsight[];
+}
+
+export interface SuggestedItem {
+  name: string;
+  reason: string;
+  confidence: number;
+}
+
+export interface PriceAlert {
+  item: string;
+  oldPrice: number;
+  newPrice: number;
+  savings: number;
+}
+
+export interface RestockPrediction {
+  item: string;
+  predictedDate: string;
+  confidence: number;
+}
+
+export interface SeasonalInsight {
+  insight: string;
+  recommendation: string;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrevious: boolean;
+}
+
 // Common types for the CESTO application
 
 export interface ApiResponse<T> {
@@ -48,32 +145,19 @@ export interface Product {
   tags: string[];
   createdAt: string;
   updatedAt: string;
-  salesCount: number;
-  viewCount: number;
-  weight?: number;
-  dimensions?: string;
-  brand?: string;
-  model?: string;
-  warrantyPeriod?: number;
-  originCountry?: string;
-  allergens?: string[];
-  nutritionalInfo?: any;
-  specifications?: any;
+  leadTimeDays?: number;
 }
 
 export interface ProductCategory {
   id: string;
   name: string;
-  nameSwedish?: string;
-  nameSpanish?: string;
-  nameEnglish?: string;
-  description?: string;
+  nameSpanish: string;
+  nameEnglish: string;
+  nameSwedish: string;
   icon?: string;
+  parentId?: string;
   isActive: boolean;
   sortOrder: number;
-  children?: ProductCategory[];
-  subcategories?: ProductCategory[]; // Alias for children
-  parent?: ProductCategory;
 }
 
 export interface ProductFilters {
@@ -87,42 +171,22 @@ export interface ProductFilters {
   isOnSale?: boolean;
   inStock?: boolean;
   rating?: number;
-  featured?: boolean;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
 }
 
 export interface ProductFiltersExtended extends ProductFilters {
-  sortBy?: 'name' | 'rating' | 'createdAt' | 'price' | 'discount' | 'popularity';
-  sortDirection?: 'asc' | 'desc';
-  page?: number;
-  pageSize?: number;
+  brands?: string[];
+  suppliers?: string[];
+  dateRange?: {
+    start: string;
+    end: string;
+  };
 }
 
 export interface ProductSortOptions {
-  field: 'name' | 'rating' | 'createdAt' | 'price' | 'discount' | 'popularity';
+  field: string;
   direction: 'asc' | 'desc';
-}
-
-// Supplier related types
-export interface Supplier {
-  id: string;
-  name: string;
-  email: string;
-  phone?: string;
-  address?: string;
-  city?: string;
-  country?: string;
-  logo?: string;
-  description?: string;
-  isVerified: boolean;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-  rating?: number;
-  reviewCount?: number;
-  deliveryAreas?: string[];
-  paymentTerms?: string;
-  deliveryTerms?: string;
-  minimumOrderAmount?: number;
 }
 
 // User related types
@@ -131,38 +195,109 @@ export interface User {
   email: string;
   firstName: string;
   lastName: string;
-  role: 'admin' | 'buyer' | 'supplier';
+  role: UserRole;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
-  lastLogin?: string;
-  profile?: {
-    company?: string;
-    phone?: string;
-    address?: string;
-    avatar?: string;
-  };
-  preferences?: {
-    language: string;
-    notifications: boolean;
-    theme: string;
-  };
+  lastLoginAt?: string;
+  phone?: string;
+  jobTitle?: string;
+  department?: string;
+  companyName?: string;
+  address?: string;
+  city?: string;
+  country?: string;
+  postalCode?: string;
+}
+
+export type UserRole = 'admin' | 'client' | 'supplier';
+
+export enum UserRoleEnum {
+  ADMIN = 'admin',
+  CLIENT = 'client',
+  SUPPLIER = 'supplier'
+}
+
+// Helper function to convert UserRole to string
+export function userRoleToString(role: UserRole): string {
+  return role;
+}
+
+// Helper function to convert string to UserRole
+export function stringToUserRole(role: string): UserRole {
+  if (role === 'admin' || role === 'buyer' || role === 'supplier') {
+    return role as UserRole;
+  }
+  throw new Error(`Invalid user role: ${role}`);
+}
+
+// Supplier related types
+export interface Supplier {
+  id: string;
+  name: string;
+  companyName: string;
+  supplierName: string;
+  email: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  country?: string;
+  postalCode?: string;
+  website?: string;
+  logo?: string;
+  description?: string;
+  rating: number;
+  reviewCount: number;
+  isVerified: boolean;
+  isActive: boolean;
+  categories: string[];
+  createdAt: string;
+  updatedAt: string;
+  relationshipStatus?: 'active' | 'inactive' | 'pending' | 'approved' | 'rejected';
+  relationshipId?: string;
+}
+
+export interface SupplierRelationshipRequest {
+  id: string;
+  supplierId: string;
+  clientId: string;
+  buyerId: string;
+  requestType: 'partnership' | 'collaboration' | 'general';
+  status: 'pending' | 'approved' | 'rejected';
+  requestedAt: string;
+  respondedAt?: string;
+  message?: string;
 }
 
 // Order related types
 export interface Order {
   id: string;
   orderNumber: string;
-  buyerId: string;
+  clientId: string;
   supplierId: string;
   status: OrderStatus;
   totalAmount: number;
-  deliveryDate?: string;
-  deliveryAddress?: string;
-  notes?: string;
+  currency: string;
+  items: OrderItem[];
+  shippingAddress: Address;
+  billingAddress: Address;
+  paymentMethod: string;
   paymentStatus: PaymentStatus;
+  notes?: string;
   createdAt: string;
   updatedAt: string;
+  shippedAt?: string;
+  deliveredAt?: string;
+}
+
+export interface OrderItem {
+  id: string;
+  productId: string;
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+  unit: string;
 }
 
 export enum OrderStatus {
@@ -172,7 +307,7 @@ export enum OrderStatus {
   SHIPPED = 'shipped',
   DELIVERED = 'delivered',
   CANCELLED = 'cancelled',
-  REFUNDED = 'refunded'
+  RETURNED = 'returned'
 }
 
 export enum PaymentStatus {
@@ -182,56 +317,47 @@ export enum PaymentStatus {
   REFUNDED = 'refunded'
 }
 
-// Error related types
-export interface ApiError {
-  code: string;
-  message: string;
-  details?: any;
-  path?: string;
-  method?: string;
-  timestamp?: string;
+// Address type
+export interface Address {
+  street: string;
+  city: string;
+  state?: string;
+  country: string;
+  postalCode: string;
+  phone?: string;
 }
 
-// Base entity interface
-export interface BaseEntity {
+// Category type
+export interface Category {
   id: string;
+  name: string;
+  nameSpanish: string;
+  nameEnglish: string;
+  nameSwedish: string;
+  icon?: string;
+  parentId?: string;
+  isActive: boolean;
+  sortOrder: number;
   createdAt: string;
   updatedAt: string;
 }
 
-// Shopping cart types
-export interface ShoppingCartItem {
-  id: string;
-  buyerId: string;
-  productId: string;
-  product: Product;
-  quantity: number;
-  addedAt: string;
-  updatedAt: string;
-}
-
-// Wishlist types
-export interface WishlistItem {
-  id: string;
-  buyerId: string;
-  productId: string;
-  product: Product;
-  addedAt: string;
-}
-
-// Product review types
-export interface ProductReview {
-  id: string;
-  productId: string;
-  buyerId: string;
-  buyer: User;
-  rating: number;
-  title?: string;
-  comment?: string;
-  isVerifiedPurchase: boolean;
-  isApproved: boolean;
-  createdAt: string;
-  updatedAt: string;
+// Search and filter types
+export interface SearchFilters {
+  query?: string;
+  category?: string;
+  supplier?: string;
+  priceRange?: {
+    min: number;
+    max: number;
+  };
+  minPrice?: number;
+  maxPrice?: number;
+  rating?: number;
+  inStock?: boolean;
+  isOnSale?: boolean;
+  featured?: boolean;
+  tags?: string[];
 }
 
 // Notification types
@@ -240,33 +366,42 @@ export interface Notification {
   userId: string;
   title: string;
   message: string;
-  type: 'info' | 'success' | 'warning' | 'error';
+  type: NotificationType;
   isRead: boolean;
   createdAt: string;
-  actionUrl?: string;
+  data?: any;
 }
 
-// Category type (alias for ProductCategory)
-export type Category = ProductCategory;
-
-// Search filters
-export interface SearchFilters {
-  query?: string;
-  category?: string;
-  subcategory?: string;
-  minPrice?: number;
-  maxPrice?: number;
-  tags?: string[];
-  supplierIds?: string[];
-  isOnSale?: boolean;
-  inStock?: boolean;
-  rating?: number;
-  featured?: boolean;
+export enum NotificationType {
+  INFO = 'info',
+  SUCCESS = 'success',
+  WARNING = 'warning',
+  ERROR = 'error',
+  ORDER_UPDATE = 'order_update',
+  PRICE_ALERT = 'price_alert',
+  STOCK_ALERT = 'stock_alert'
 }
 
-// Validation error
+// API Error types
+export interface ApiError {
+  code: string;
+  message: string;
+  details?: any;
+  timestamp: string;
+  path?: string;
+  method?: string;
+}
+
+// Validation types
 export interface ValidationError {
   field: string;
   message: string;
   code: string;
+}
+
+// Base entity interface
+export interface BaseEntity {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
 }

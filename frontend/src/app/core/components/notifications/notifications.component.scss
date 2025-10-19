@@ -24,7 +24,7 @@
   position: absolute;
   top: 0;
   right: 0;
-  background-color: var(--color-error-500, #f44336);
+  background-color: var(--color-error-500, #2E7D32);
   color: white;
   border-radius: 50%;
   width: 20px;
@@ -41,25 +41,47 @@
 
 .notifications-dropdown {
   position: absolute;
-  top: 100%;
-  right: 0;
+  top: 0;
+  left: 100%;
   width: 350px;
   max-height: 500px;
-  background: var(--color-background-primary, #ffffff);
-  border: 1px solid var(--color-border-primary, #e0e0e0);
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  background: rgba(0, 128, 128, 0.95); // Teal color matching the center square
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  box-shadow: 
+    0 25px 50px rgba(0, 128, 128, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
   z-index: 1000;
   opacity: 0;
   visibility: hidden;
-  transform: translateY(-10px);
-  transition: all 0.2s ease;
-  margin-top: 8px;
+  transform: translateX(-10px);
+  transition: all 0.3s ease;
+  margin-left: 8px;
   
   &.show {
     opacity: 1;
     visibility: visible;
-    transform: translateY(0);
+    transform: translateX(0);
+  }
+  
+  // Shopping basket background pattern
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+      radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.1) 2px, transparent 2px),
+      radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.08) 1.5px, transparent 1.5px),
+      radial-gradient(circle at 40% 60%, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+    background-size: 50px 50px, 30px 30px, 20px 20px;
+    border-radius: 12px;
+    pointer-events: none;
+    z-index: -1;
   }
 }
 
@@ -68,13 +90,15 @@
   justify-content: space-between;
   align-items: center;
   padding: 16px;
-  border-bottom: 1px solid var(--color-border-primary, #e0e0e0);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  position: relative;
   
   h3 {
     margin: 0;
     font-size: 1.1rem;
     font-weight: 600;
-    color: var(--color-text-primary, #333333);
+    color: rgba(255, 255, 255, 0.95);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   }
   
   .header-actions {
@@ -85,6 +109,12 @@
       width: 32px;
       height: 32px;
       line-height: 32px;
+      color: rgba(255, 255, 255, 0.8);
+      
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 1);
+      }
       
       mat-icon {
         font-size: 18px;
@@ -92,6 +122,18 @@
         height: 18px;
       }
     }
+  }
+  
+  // Shopping basket icon in header
+  &::before {
+    content: '🛒';
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 16px;
+    opacity: 0.3;
+    z-index: 1;
   }
 }
 
@@ -104,19 +146,34 @@
   }
   
   &::-webkit-scrollbar-track {
-    background: var(--color-background-secondary, #f5f5f5);
+    background: rgba(255, 255, 255, 0.1);
   }
   
   &::-webkit-scrollbar-thumb {
-    background: var(--color-border-primary, #e0e0e0);
+    background: rgba(255, 255, 255, 0.3);
     border-radius: 2px;
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.5);
+    }
   }
 }
 
 .no-notifications {
   text-align: center;
   padding: 32px 16px;
-  color: var(--color-text-secondary, #666666);
+  color: rgba(255, 255, 255, 0.7);
+  position: relative;
+  
+  &::before {
+    content: '🛍️';
+    position: absolute;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 24px;
+    opacity: 0.3;
+  }
   
   mat-icon {
     font-size: 48px;
@@ -124,11 +181,13 @@
     height: 48px;
     margin-bottom: 8px;
     opacity: 0.5;
+    color: rgba(255, 255, 255, 0.5);
   }
   
   p {
     margin: 0;
     font-size: 0.9rem;
+    margin-top: 16px;
   }
 }
 
@@ -136,11 +195,12 @@
   display: flex;
   align-items: flex-start;
   padding: 12px 16px;
-  border-bottom: 1px solid var(--color-border-secondary, #f0f0f0);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   transition: background-color 0.2s ease;
+  position: relative;
   
   &:hover {
-    background-color: var(--color-background-secondary, #f5f5f5);
+    background-color: rgba(255, 255, 255, 0.1);
   }
   
   &:last-child {
@@ -148,24 +208,33 @@
   }
   
   &.unread {
-    background-color: var(--color-info-50, #f0f8ff);
-    border-left: 3px solid var(--color-info-500, #2196f3);
+    background-color: rgba(255, 255, 255, 0.1);
+    border-left: 3px solid rgba(255, 255, 255, 0.6);
+    
+    &::before {
+      content: '🛒';
+      position: absolute;
+      right: 8px;
+      top: 8px;
+      font-size: 12px;
+      opacity: 0.4;
+    }
   }
   
   &.notification-success {
-    border-left-color: var(--color-success-500, #4caf50);
+    border-left-color: rgba(76, 175, 80, 0.8);
   }
   
   &.notification-error {
-    border-left-color: var(--color-error-500, #f44336);
+    border-left-color: rgba(244, 67, 54, 0.8);
   }
   
   &.notification-warning {
-    border-left-color: var(--color-warning-500, #ff9800);
+    border-left-color: rgba(255, 152, 0, 0.8);
   }
   
   &.notification-info {
-    border-left-color: var(--color-info-500, #2196f3);
+    border-left-color: rgba(33, 150, 243, 0.8);
   }
 }
 
@@ -184,15 +253,15 @@
   }
   
   .notification-error mat-icon {
-    color: var(--color-error-500, #f44336);
+    color: var(--color-error-500, #2E7D32);
   }
   
   .notification-warning mat-icon {
-    color: var(--color-warning-500, #ff9800);
+    color: var(--color-warning-500, #8BC34A);
   }
   
   .notification-info mat-icon {
-    color: var(--color-info-500, #2196f3);
+    color: var(--color-info-500, #4CAF50);
   }
 }
 
@@ -204,14 +273,15 @@
 .notification-title {
   font-weight: 600;
   font-size: 0.9rem;
-  color: var(--color-text-primary, #333333);
+  color: rgba(255, 255, 255, 0.95);
   margin-bottom: 4px;
   line-height: 1.3;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .notification-message {
   font-size: 0.85rem;
-  color: var(--color-text-secondary, #666666);
+  color: rgba(255, 255, 255, 0.8);
   line-height: 1.4;
   margin-bottom: 4px;
   word-wrap: break-word;
@@ -219,7 +289,7 @@
 
 .notification-time {
   font-size: 0.75rem;
-  color: var(--color-text-hint, #999999);
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .notification-actions {
@@ -233,6 +303,12 @@
     height: 28px;
     line-height: 28px;
     min-width: 28px;
+    color: rgba(255, 255, 255, 0.7);
+    
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 1);
+    }
     
     mat-icon {
       font-size: 16px;
@@ -244,12 +320,29 @@
 
 .notifications-footer {
   padding: 12px 16px;
-  border-top: 1px solid var(--color-border-primary, #e0e0e0);
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
   text-align: center;
+  position: relative;
+  
+  &::before {
+    content: '🛒';
+    position: absolute;
+    left: 50%;
+    top: 8px;
+    transform: translateX(-50%);
+    font-size: 12px;
+    opacity: 0.2;
+  }
   
   button {
     font-size: 0.85rem;
-    color: var(--color-primary-500, #007bff);
+    color: rgba(255, 255, 255, 0.8);
+    margin-top: 8px;
+    
+    &:hover {
+      color: rgba(255, 255, 255, 1);
+      background-color: rgba(255, 255, 255, 0.1);
+    }
   }
 }
 
@@ -257,7 +350,7 @@
 @media (max-width: 768px) {
   .notifications-dropdown {
     width: 300px;
-    right: -50px;
+    left: -250px;
   }
   
   .notification-item {
@@ -278,6 +371,39 @@
 @media (max-width: 480px) {
   .notifications-dropdown {
     width: 280px;
-    right: -80px;
+    left: -230px;
+  }
+}
+
+// Additional shopping basket themed elements
+.notifications-dropdown {
+  // Add subtle shopping basket pattern overlay
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+      linear-gradient(45deg, transparent 40%, rgba(255, 255, 255, 0.02) 50%, transparent 60%),
+      linear-gradient(-45deg, transparent 40%, rgba(255, 255, 255, 0.02) 50%, transparent 60%);
+    background-size: 20px 20px, 20px 20px;
+    border-radius: 12px;
+    pointer-events: none;
+    z-index: -1;
+  }
+  
+  // Add shopping basket handle effect
+  .notifications-header::after {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 30px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 2px;
   }
 }

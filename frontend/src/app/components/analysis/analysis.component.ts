@@ -135,7 +135,7 @@ export class AnalysisComponent implements OnInit {
       {
         label: 'Historical Demand',
         data: [120, 135, 128, 145, 140, 155, 148, 160],
-        borderColor: '#2196F3',
+        borderColor: '#4CAF50',
         backgroundColor: 'rgba(33, 150, 243, 0.1)',
         fill: false
       },
@@ -378,6 +378,41 @@ export class AnalysisComponent implements OnInit {
     return 'confidence-low';
   }
 
+  getMetricTrendClass(trend: string): string {
+    const classes: { [key: string]: string } = {
+      'up': 'trend-up',
+      'down': 'trend-down',
+      'stable': 'trend-stable'
+    };
+    return classes[trend] || 'trend-stable';
+  }
+
+  getChangeClass(changePercentage: number): string {
+    if (changePercentage > 0) return 'change-positive';
+    if (changePercentage < 0) return 'change-negative';
+    return 'change-neutral';
+  }
+
+  getChangeIcon(trend: string): string {
+    const icons: { [key: string]: string } = {
+      'up': 'trending_up',
+      'down': 'trending_down',
+      'stable': 'trending_flat'
+    };
+    return icons[trend] || 'trending_flat';
+  }
+
+  formatValue(value: number, unit: string): string {
+    if (unit === 'SEK') {
+      return this.formatCurrency(value);
+    }
+    return `${value.toLocaleString('sv-SE')} ${unit}`;
+  }
+
+  getAbsoluteValue(value: number): number {
+    return Math.abs(value);
+  }
+
   formatCurrency(amount: number): string {
     return new Intl.NumberFormat('sv-SE', {
       style: 'currency',
@@ -396,6 +431,45 @@ export class AnalysisComponent implements OnInit {
 
   formatConfidence(confidence: number): string {
     return `${Math.round(confidence * 100)}%`;
+  }
+
+  getRecommendationIcon(type: string): string {
+    const icons: { [key: string]: string } = {
+      'cost_optimization': 'savings',
+      'demand_forecast': 'trending_up',
+      'inventory_management': 'inventory',
+      'supplier_optimization': 'business'
+    };
+    return icons[type] || 'lightbulb';
+  }
+
+  getRecommendationTypeLabel(type: string): string {
+    const labels: { [key: string]: string } = {
+      'cost_optimization': 'Cost Optimization',
+      'demand_forecast': 'Demand Forecast',
+      'inventory_management': 'Inventory Management',
+      'supplier_optimization': 'Supplier Optimization'
+    };
+    return labels[type] || 'General';
+  }
+
+  getPerformanceClass(current: number, industry: number): string {
+    if (current > industry) return 'performance-above';
+    if (current < industry) return 'performance-below';
+    return 'performance-average';
+  }
+
+  getPerformanceIcon(current: number, industry: number): string {
+    if (current > industry) return 'trending_up';
+    if (current < industry) return 'trending_down';
+    return 'trending_flat';
+  }
+
+  getPerformanceText(current: number, industry: number): string {
+    const percentage = ((current - industry) / industry) * 100;
+    if (percentage > 0) return `${Math.abs(percentage).toFixed(1)}% above industry average`;
+    if (percentage < 0) return `${Math.abs(percentage).toFixed(1)}% below industry average`;
+    return 'At industry average';
   }
 
   private loadAnalysisData(): void {

@@ -1,0 +1,401 @@
+<div class="onboarding-container">
+  <!-- Progress Header -->
+  <div class="progress-header">
+    <div class="progress-bar">
+      <div class="progress-fill" [style.width.%]="getStepProgress()"></div>
+    </div>
+    <div class="step-indicator">
+      <span class="current-step">{{ currentStep + 1 }}</span>
+      <span class="total-steps">/ {{ totalSteps }}</span>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="onboarding-content" *ngIf="!isCompleted">
+    <!-- Step Navigation -->
+    <div class="step-navigation">
+      <div class="step-list">
+        <div 
+          *ngFor="let step of steps; let i = index" 
+          class="step-item"
+          [class.active]="i === currentStep"
+          [class.completed]="step.completed">
+          <div class="step-number">
+            <i *ngIf="step.completed" class="fas fa-check"></i>
+            <span *ngIf="!step.completed">{{ i + 1 }}</span>
+          </div>
+          <div class="step-info">
+            <div class="step-title">{{ step.title }}</div>
+            <div class="step-description">{{ step.description }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step Content -->
+    <div class="step-content">
+      <div class="step-header">
+        <h2>{{ getCurrentStepTitle() }}</h2>
+        <p>{{ getCurrentStepDescription() }}</p>
+      </div>
+
+      <!-- Step 1: Basic Information -->
+      <div *ngIf="currentStep === 0" class="step-form">
+        <form [formGroup]="basicInfoForm">
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>{{ i18n.translate('common.name') }} ({{ i18n.translate('common.firstName') }})</mat-label>
+              <input matInput formControlName="firstName" required>
+              <mat-error *ngIf="basicInfoForm.get('firstName')?.hasError('required')">
+                {{ i18n.translate('common.firstName') }} is required
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>{{ i18n.translate('common.name') }} ({{ i18n.translate('common.lastName') }})</mat-label>
+              <input matInput formControlName="lastName" required>
+              <mat-error *ngIf="basicInfoForm.get('lastName')?.hasError('required')">
+                {{ i18n.translate('common.lastName') }} is required
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>{{ i18n.translate('common.email') }}</mat-label>
+              <input matInput formControlName="email" type="email" required>
+              <mat-error *ngIf="basicInfoForm.get('email')?.hasError('required')">
+                {{ i18n.translate('common.email') }} is required
+              </mat-error>
+              <mat-error *ngIf="basicInfoForm.get('email')?.hasError('email')">
+                Please enter a valid email
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>{{ i18n.translate('common.phone') }}</mat-label>
+              <input matInput formControlName="phone" required>
+              <mat-error *ngIf="basicInfoForm.get('phone')?.hasError('required')">
+                {{ i18n.translate('common.phone') }} is required
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Job Title</mat-label>
+              <input matInput formControlName="jobTitle" required>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Department</mat-label>
+              <input matInput formControlName="department">
+            </mat-form-field>
+          </div>
+
+          <mat-form-field appearance="outline" class="form-field full-width">
+            <mat-label>Years of Experience</mat-label>
+            <mat-select formControlName="experience" required>
+              <mat-option value="0-1">0-1 years</mat-option>
+              <mat-option value="2-5">2-5 years</mat-option>
+              <mat-option value="6-10">6-10 years</mat-option>
+              <mat-option value="10+">10+ years</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </form>
+      </div>
+
+      <!-- Step 2: Business Information -->
+      <div *ngIf="currentStep === 1" class="step-form">
+        <form [formGroup]="businessInfoForm">
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>{{ i18n.translate('common.company') }}</mat-label>
+              <input matInput formControlName="companyName" required>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Business Type</mat-label>
+              <mat-select formControlName="businessType" required>
+                <mat-option *ngFor="let type of businessTypes" [value]="type">{{ type }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Industry</mat-label>
+              <mat-select formControlName="industry" required>
+                <mat-option *ngFor="let industry of industries" [value]="industry">{{ industry }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Company Size</mat-label>
+              <mat-select formControlName="companySize" required>
+                <mat-option *ngFor="let size of companySizes" [value]="size">{{ size }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Annual Revenue</mat-label>
+              <mat-select formControlName="annualRevenue" required>
+                <mat-option *ngFor="let revenue of revenueRanges" [value]="revenue">{{ revenue }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Website</mat-label>
+              <input matInput formControlName="website" placeholder="https://">
+            </mat-form-field>
+          </div>
+
+          <div class="address-section">
+            <h3>Business Address</h3>
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="form-field full-width">
+                <mat-label>{{ i18n.translate('common.address') }}</mat-label>
+                <input matInput formControlName="address" required>
+              </mat-form-field>
+            </div>
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="form-field">
+                <mat-label>{{ i18n.translate('common.city') }}</mat-label>
+                <input matInput formControlName="city" required>
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="form-field">
+                <mat-label>State/Province</mat-label>
+                <input matInput formControlName="state" required>
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="form-field">
+                <mat-label>{{ i18n.translate('common.zipCode') }}</mat-label>
+                <input matInput formControlName="zipCode" required>
+              </mat-form-field>
+            </div>
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="form-field">
+                <mat-label>{{ i18n.translate('common.country') }}</mat-label>
+                <input matInput formControlName="country" required>
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="form-field">
+                <mat-label>Tax ID</mat-label>
+                <input matInput formControlName="taxId">
+              </mat-form-field>
+            </div>
+          </div>
+
+          <div class="categories-section">
+            <h3>Product Categories</h3>
+            <mat-form-field appearance="outline" class="form-field full-width">
+              <mat-label>Primary Categories</mat-label>
+              <mat-select formControlName="primaryCategories" multiple required>
+                <mat-option *ngFor="let category of productCategories" [value]="category">{{ category }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </form>
+      </div>
+
+      <!-- Step 3: Preferences -->
+      <div *ngIf="currentStep === 2" class="step-form">
+        <form [formGroup]="preferencesForm">
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>{{ i18n.translate('common.language') }}</mat-label>
+              <mat-select formControlName="language" required>
+                <mat-option value="en">English</mat-option>
+                <mat-option value="sv">Svenska</mat-option>
+                <mat-option value="es">Español</mat-option>
+                <mat-option value="fr">Français</mat-option>
+                <mat-option value="it">Italiano</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Timezone</mat-label>
+              <mat-select formControlName="timezone" required>
+                <mat-option value="UTC">UTC</mat-option>
+                <mat-option value="EST">Eastern Time</mat-option>
+                <mat-option value="PST">Pacific Time</mat-option>
+                <mat-option value="CET">Central European Time</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Currency</mat-label>
+              <mat-select formControlName="currency" required>
+                <mat-option value="USD">USD ($)</mat-option>
+                <mat-option value="EUR">EUR (€)</mat-option>
+                <mat-option value="SEK">SEK (kr)</mat-option>
+                <mat-option value="GBP">GBP (£)</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Units</mat-label>
+              <mat-select formControlName="units" required>
+                <mat-option value="metric">Metric (kg, L)</mat-option>
+                <mat-option value="imperial">Imperial (lbs, gal)</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <div class="notifications-section">
+            <h3>Notification Preferences</h3>
+            <div formGroupName="notifications">
+              <mat-checkbox formControlName="email">Email Notifications</mat-checkbox>
+              <mat-checkbox formControlName="sms">SMS Notifications</mat-checkbox>
+              <mat-checkbox formControlName="push">Push Notifications</mat-checkbox>
+            </div>
+            <mat-checkbox formControlName="marketing">Receive marketing communications</mat-checkbox>
+          </div>
+        </form>
+      </div>
+
+      <!-- Step 4: Verification -->
+      <div *ngIf="currentStep === 3" class="step-form">
+        <form [formGroup]="verificationForm">
+          <div class="verification-methods">
+            <h3>Choose Verification Method</h3>
+            <mat-radio-group formControlName="verificationMethod" class="verification-options">
+              <mat-radio-button value="email">Email Verification</mat-radio-button>
+              <mat-radio-button value="phone">Phone Verification</mat-radio-button>
+              <mat-radio-button value="document">Document Upload</mat-radio-button>
+            </mat-radio-group>
+          </div>
+
+          <div *ngIf="verificationForm.get('verificationMethod')?.value === 'email'" class="verification-content">
+            <p>We'll send a verification code to your email address.</p>
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Verification Code</mat-label>
+              <input matInput formControlName="verificationCode" placeholder="Enter 6-digit code">
+            </mat-form-field>
+            <button type="button" mat-button (click)="resendVerificationCode()">
+              Resend Code
+            </button>
+          </div>
+
+          <div *ngIf="verificationForm.get('verificationMethod')?.value === 'phone'" class="verification-content">
+            <p>We'll send a verification code to your phone number.</p>
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Verification Code</mat-label>
+              <input matInput formControlName="verificationCode" placeholder="Enter 6-digit code">
+            </mat-form-field>
+            <button type="button" mat-button (click)="resendVerificationCode()">
+              Resend Code
+            </button>
+          </div>
+
+          <div *ngIf="verificationForm.get('verificationMethod')?.value === 'document'" class="verification-content">
+            <p>Upload business verification documents.</p>
+            <div class="file-upload-section">
+              <div class="file-upload-item">
+                <label>Business License</label>
+                <input type="file" (change)="onFileSelected($event, 'businessLicense')" accept=".pdf,.jpg,.png">
+              </div>
+              <div class="file-upload-item">
+                <label>Tax Certificate</label>
+                <input type="file" (change)="onFileSelected($event, 'taxCertificate')" accept=".pdf,.jpg,.png">
+              </div>
+              <div class="file-upload-item">
+                <label>Insurance Document</label>
+                <input type="file" (change)="onFileSelected($event, 'insuranceDocument')" accept=".pdf,.jpg,.png">
+              </div>
+            </div>
+          </div>
+
+          <div class="terms-section">
+            <mat-checkbox formControlName="termsAccepted" required>
+              I agree to the Terms of Service
+            </mat-checkbox>
+            <mat-checkbox formControlName="privacyAccepted" required>
+              I agree to the Privacy Policy
+            </mat-checkbox>
+          </div>
+        </form>
+      </div>
+
+      <!-- Step 5: Welcome -->
+      <div *ngIf="currentStep === 4" class="step-form">
+        <div class="welcome-content">
+          <div class="welcome-icon">
+            <i class="fas fa-check-circle"></i>
+          </div>
+          <h2>Welcome to CESTO!</h2>
+          <p>Your account has been set up successfully. Let's get you started with a quick tour of the platform.</p>
+          
+          <form [formGroup]="welcomeForm">
+            <div class="welcome-options">
+              <mat-checkbox formControlName="tourCompleted">
+                I've completed the platform tour
+              </mat-checkbox>
+              <mat-checkbox formControlName="notificationsEnabled">
+                Enable notifications
+              </mat-checkbox>
+              <mat-checkbox formControlName="marketingOptIn">
+                Opt-in to marketing communications
+              </mat-checkbox>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Buttons -->
+    <div class="step-navigation-buttons">
+      <button 
+        mat-button 
+        (click)="previousStep()" 
+        [disabled]="currentStep === 0"
+        class="nav-button">
+        <i class="fas fa-arrow-left"></i>
+        Previous
+      </button>
+
+      <div class="nav-buttons-right">
+        <button 
+          *ngIf="canSkip()" 
+          mat-button 
+          (click)="skipStep()"
+          class="nav-button skip-button">
+          Skip
+        </button>
+        
+        <button 
+          mat-raised-button 
+          color="primary"
+          (click)="nextStep()" 
+          [disabled]="!canGoNext() || isLoading"
+          class="nav-button next-button">
+          <span *ngIf="!isLoading">
+            {{ currentStep === totalSteps - 1 ? 'Complete' : 'Next' }}
+            <i class="fas fa-arrow-right"></i>
+          </span>
+          <span *ngIf="isLoading">
+            <i class="fas fa-spinner fa-spin"></i>
+            Processing...
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Completion Screen -->
+  <div *ngIf="isCompleted" class="completion-screen">
+    <div class="completion-content">
+      <div class="completion-icon">
+        <i class="fas fa-check-circle"></i>
+      </div>
+      <h2>Onboarding Complete!</h2>
+      <p>Your account is ready. Redirecting to dashboard...</p>
+      <div class="loading-spinner">
+        <i class="fas fa-spinner fa-spin"></i>
+      </div>
+    </div>
+  </div>
+</div>
+

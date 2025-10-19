@@ -1,0 +1,221 @@
+<div class="ean-management-container">
+  <!-- Header Section -->
+  <div class="ean-header">
+    <div class="header-content">
+      <div class="title-section">
+        <h1 class="ean-title">
+          <i class="fas fa-barcode"></i>
+          EAN Management
+        </h1>
+        <p class="ean-subtitle">Manage your product EAN codes and barcodes</p>
+      </div>
+      
+      <div class="header-actions">
+        <button class="btn btn-primary" (click)="generateEanCode()">
+          <i class="fas fa-plus"></i>
+          Generate EAN Code
+        </button>
+        <button class="btn btn-secondary" (click)="importEanCodes()">
+          <i class="fas fa-upload"></i>
+          Import Codes
+        </button>
+        <button class="btn btn-outline" (click)="exportEanCodes()">
+          <i class="fas fa-download"></i>
+          Export Codes
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">
+        <i class="fas fa-check-circle"></i>
+      </div>
+      <div class="stat-content">
+        <h3 class="stat-value">{{ getTotalActiveCodes() }}</h3>
+        <p class="stat-label">Active Codes</p>
+      </div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon">
+        <i class="fas fa-clock"></i>
+      </div>
+      <div class="stat-content">
+        <h3 class="stat-value">{{ getTotalPendingCodes() }}</h3>
+        <p class="stat-label">Pending Codes</p>
+      </div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon">
+        <i class="fas fa-exclamation-triangle"></i>
+      </div>
+      <div class="stat-content">
+        <h3 class="stat-value">{{ getTotalExpiredCodes() }}</h3>
+        <p class="stat-label">Expired Codes</p>
+      </div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon">
+        <i class="fas fa-list"></i>
+      </div>
+      <div class="stat-content">
+        <h3 class="stat-value">{{ eanCodes.length }}</h3>
+        <p class="stat-label">Total Codes</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters and Search -->
+  <div class="filters-section">
+    <div class="search-bar">
+      <i class="fas fa-search"></i>
+      <input 
+        type="text" 
+        placeholder="Search EAN codes or product names..." 
+        [(ngModel)]="searchTerm"
+        (ngModelChange)="onSearchChange($event)">
+    </div>
+    
+    <div class="status-filter">
+      <select [(ngModel)]="selectedStatus" (ngModelChange)="onStatusChange($event)">
+        <option *ngFor="let status of statuses" [value]="status.value">
+          {{ status.label }}
+        </option>
+      </select>
+    </div>
+  </div>
+
+  <!-- EAN Codes Table -->
+  <div class="ean-table-container">
+    <div class="table-header">
+      <h3>EAN Codes</h3>
+      <div class="table-actions">
+        <button class="btn btn-outline">
+          <i class="fas fa-filter"></i>
+          Advanced Filter
+        </button>
+        <button class="btn btn-outline">
+          <i class="fas fa-sort"></i>
+          Sort
+        </button>
+      </div>
+    </div>
+
+    <div class="table-wrapper" *ngIf="!loading; else loadingTemplate">
+      <table class="ean-table">
+        <thead>
+          <tr>
+            <th>EAN Code</th>
+            <th>Product Name</th>
+            <th>Product ID</th>
+            <th>Status</th>
+            <th>Created</th>
+            <th>Expires</th>
+            <th>Last Used</th>
+            <th>Usage Count</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let ean of eanCodes" class="ean-row">
+            <td class="ean-code-cell">
+              <div class="ean-code">
+                <span class="code-value">{{ ean.eanCode }}</span>
+                <button class="btn-copy" (click)="copyToClipboard(ean.eanCode)">
+                  <i class="fas fa-copy"></i>
+                </button>
+              </div>
+            </td>
+            <td class="product-cell">
+              <div class="product-info">
+                <h4 class="product-name">{{ ean.productName }}</h4>
+              </div>
+            </td>
+            <td class="product-id-cell">{{ ean.productId }}</td>
+            <td class="status-cell">
+              <span class="status-badge" [ngClass]="getStatusClass(ean.status)">
+                {{ getStatusLabel(ean.status) }}
+              </span>
+            </td>
+            <td class="date-cell">{{ ean.createdAt }}</td>
+            <td class="date-cell">{{ ean.expiresAt }}</td>
+            <td class="date-cell">{{ ean.lastUsed || 'Never' }}</td>
+            <td class="usage-cell">{{ ean.usageCount }}</td>
+            <td class="actions-cell">
+              <div class="action-buttons">
+                <button class="btn btn-sm btn-primary" (click)="editEanCode(ean)">
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button 
+                  class="btn btn-sm btn-secondary" 
+                  (click)="ean.status === 'active' ? deactivateEanCode(ean) : activateEanCode(ean)">
+                  <i class="fas" [ngClass]="ean.status === 'active' ? 'fa-pause' : 'fa-play'"></i>
+                </button>
+                <button class="btn btn-sm btn-danger" (click)="deleteEanCode(ean)">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <ng-template #loadingTemplate>
+      <div class="loading-container">
+        <div class="loading-spinner"></div>
+        <p>Loading EAN codes...</p>
+      </div>
+    </ng-template>
+  </div>
+
+  <!-- Add EAN Modal -->
+  <div class="modal-overlay" *ngIf="showAddModal" (click)="showAddModal = false">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Add New EAN Code</h3>
+        <button class="btn-close" (click)="showAddModal = false">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Generated EAN Code:</label>
+          <div class="ean-input-group">
+            <input 
+              type="text" 
+              [(ngModel)]="newEanCode" 
+              placeholder="EAN Code will be generated automatically"
+              readonly>
+            <button class="btn btn-outline" (click)="newEanCode = generateRandomEan()">
+              <i class="fas fa-sync"></i>
+              Regenerate
+            </button>
+          </div>
+          <small class="form-help">This is a valid 13-digit EAN code</small>
+        </div>
+        
+        <div class="validation-status" [ngClass]="validateEanCode(newEanCode) ? 'valid' : 'invalid'">
+          <i class="fas" [ngClass]="validateEanCode(newEanCode) ? 'fa-check-circle' : 'fa-exclamation-circle'"></i>
+          <span>{{ validateEanCode(newEanCode) ? 'Valid EAN Code' : 'Invalid EAN Code' }}</span>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn btn-outline" (click)="showAddModal = false">Cancel</button>
+        <button 
+          class="btn btn-primary" 
+          (click)="addEanCode()"
+          [disabled]="!validateEanCode(newEanCode)">
+          Add EAN Code
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

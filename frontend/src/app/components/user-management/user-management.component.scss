@@ -1,0 +1,497 @@
+// User Management Component Styles
+.user-management-container {
+  padding: 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  color: white;
+
+  // Header Section
+  .header-section {
+    margin-bottom: 32px;
+    
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 24px;
+      
+      .title-section {
+        .page-title {
+          font-size: 2.5rem;
+          font-weight: 700;
+          margin: 0 0 8px 0;
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          
+          .title-icon {
+            font-size: 2.5rem;
+            width: 2.5rem;
+            height: 2.5rem;
+          }
+        }
+        
+        .page-subtitle {
+          font-size: 1.1rem;
+          opacity: 0.9;
+          margin: 0;
+        }
+      }
+      
+      .header-actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        
+        .add-button {
+          background: rgba(255, 255, 255, 0.2);
+          border: 1px solid rgba(255, 255, 255, 0.3);
+          color: white;
+          backdrop-filter: blur(10px);
+          
+          &:hover {
+            background: rgba(255, 255, 255, 0.3);
+          }
+        }
+        
+        .import-button, .export-button {
+          background: rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.3);
+          color: white;
+          backdrop-filter: blur(10px);
+          
+          &:hover {
+            background: rgba(255, 255, 255, 0.2);
+          }
+        }
+      }
+    }
+  }
+
+  // Navigation Tabs
+  .navigation-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 32px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 8px;
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+    
+    .tab-button {
+      color: rgba(255, 255, 255, 0.8);
+      border-radius: 8px;
+      padding: 12px 24px;
+      transition: all 0.3s ease;
+      
+      &.active {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+      
+      &:hover:not(.active) {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+      }
+    }
+  }
+
+  // Stats Cards
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 24px;
+    margin-bottom: 32px;
+    
+    .stat-card {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      
+      .stat-content {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        
+        .stat-icon {
+          width: 60px;
+          height: 60px;
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          
+          &.total {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+          }
+          
+          &.active {
+            background: linear-gradient(135deg, #4caf50, #45a049);
+          }
+          
+          &.pending {
+            background: linear-gradient(135deg, #8BC34A, #66BB6A);
+          }
+          
+          &.suspended {
+            background: linear-gradient(135deg, #2E7D32, #1B5E20);
+          }
+          
+          mat-icon {
+            font-size: 2rem;
+            color: white;
+          }
+        }
+        
+        .stat-details {
+          .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0 0 4px 0;
+            color: white;
+          }
+          
+          .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin: 0;
+          }
+        }
+      }
+    }
+  }
+
+  // Filters Section
+  .filters-section {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    align-items: center;
+    
+    .search-field, .role-field, .status-field, .company-field, .sort-field {
+      flex: 1;
+      min-width: 200px;
+      
+      ::ng-deep .mat-mdc-form-field {
+        .mat-mdc-text-field-wrapper {
+          background: rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          border-radius: 12px;
+          backdrop-filter: blur(10px);
+        }
+        
+        .mat-mdc-form-field-label {
+          color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .mat-mdc-input-element {
+          color: white;
+          
+          &::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+          }
+        }
+        
+        .mat-mdc-form-field-icon-suffix {
+          color: rgba(255, 255, 255, 0.8);
+        }
+      }
+    }
+    
+    .sort-order-button {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: white;
+      
+      &:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+    }
+  }
+
+  // Users Table
+  .users-table-card {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    
+    .table-container {
+      overflow-x: auto;
+      
+      .users-table {
+        width: 100%;
+        background: transparent;
+        
+        ::ng-deep {
+          .mat-mdc-header-row {
+            background: rgba(255, 255, 255, 0.1);
+          }
+          
+          .mat-mdc-header-cell {
+            color: white;
+            font-weight: 600;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+          }
+          
+          .mat-mdc-row {
+            &:hover {
+              background: rgba(255, 255, 255, 0.05);
+            }
+          }
+          
+          .mat-mdc-cell {
+            color: white;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+          }
+        }
+        
+        .user-avatar-cell {
+          .user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 1.2rem;
+          }
+        }
+        
+        .user-name-cell {
+          .user-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 0 0 4px 0;
+            color: white;
+          }
+          
+          .user-email {
+            font-size: 0.85rem;
+            opacity: 0.8;
+          }
+        }
+        
+        .role-badge {
+          padding: 6px 12px;
+          border-radius: 20px;
+          font-size: 0.8rem;
+          font-weight: 600;
+          text-transform: uppercase;
+          color: white;
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+        }
+        
+        .status-badge {
+          padding: 6px 12px;
+          border-radius: 20px;
+          font-size: 0.8rem;
+          font-weight: 600;
+          text-transform: uppercase;
+          color: white;
+        }
+        
+        .actions-cell {
+          display: flex;
+          gap: 4px;
+          flex-wrap: wrap;
+          
+          .edit-button, .suspend-button, .reset-button, .delete-button {
+            color: rgba(255, 255, 255, 0.8);
+            width: 32px;
+            height: 32px;
+            line-height: 32px;
+            
+            &:hover {
+              color: white;
+              background: rgba(255, 255, 255, 0.1);
+            }
+          }
+          
+          .delete-button:hover {
+            color: #2E7D32;
+          }
+          
+          .suspend-button:hover {
+            color: #8BC34A;
+          }
+          
+          .reset-button:hover {
+            color: #4CAF50;
+          }
+        }
+      }
+    }
+  }
+
+  // Form Section
+  .form-section {
+    max-width: 1000px;
+    
+    .form-card {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      
+      .form-section-title {
+        grid-column: 1 / -1;
+        margin: 24px 0 16px 0;
+        
+        h3 {
+          font-size: 1.2rem;
+          font-weight: 600;
+          color: white;
+          margin: 0;
+          padding-bottom: 8px;
+          border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+        }
+      }
+      
+      ::ng-deep .mat-mdc-form-field {
+        .mat-mdc-text-field-wrapper {
+          background: rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          border-radius: 12px;
+          backdrop-filter: blur(10px);
+        }
+        
+        .mat-mdc-form-field-label {
+          color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .mat-mdc-input-element {
+          color: white;
+          
+          &::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+          }
+        }
+        
+        .mat-mdc-select-value {
+          color: white;
+        }
+        
+        .mat-mdc-select-arrow {
+          color: rgba(255, 255, 255, 0.8);
+        }
+      }
+      
+      .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 24px;
+        margin-bottom: 32px;
+        
+        .full-width {
+          grid-column: 1 / -1;
+        }
+      }
+      
+      .permissions-section {
+        grid-column: 1 / -1;
+        margin-top: 24px;
+        
+        .permissions-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 16px;
+          margin-top: 16px;
+          
+          .permission-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            
+            ::ng-deep .mat-mdc-checkbox {
+              .mat-mdc-checkbox-label {
+                color: white;
+              }
+            }
+          }
+        }
+      }
+      
+      .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 16px;
+        
+        .cancel-button {
+          color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .save-button {
+          background: rgba(255, 255, 255, 0.2);
+          border: 1px solid rgba(255, 255, 255, 0.3);
+          color: white;
+          
+          &:hover {
+            background: rgba(255, 255, 255, 0.3);
+          }
+          
+          &:disabled {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.5);
+          }
+        }
+      }
+    }
+  }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .user-management-container {
+    padding: 16px;
+    
+    .header-section .header-content {
+      flex-direction: column;
+      align-items: stretch;
+      
+      .header-actions {
+        justify-content: center;
+      }
+    }
+    
+    .navigation-tabs {
+      flex-direction: column;
+      
+      .tab-button {
+        width: 100%;
+      }
+    }
+    
+    .stats-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .filters-section {
+      flex-direction: column;
+      
+      .search-field, .role-field, .status-field, .company-field, .sort-field {
+        width: 100%;
+      }
+    }
+    
+    .form-section .form-card .form-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .permissions-section .permissions-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+

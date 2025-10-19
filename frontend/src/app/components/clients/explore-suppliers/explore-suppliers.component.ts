@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { I18nService } from '../../../core/services/i18n.service';
 
 interface Category {
   id: string;
@@ -40,6 +41,8 @@ export class ExploreSuppliersComponent implements OnInit {
     onSale: false,
     newProducts: false
   };
+
+  constructor(public i18n: I18nService) {}
 
   categories: Category[] = [
     { id: 'dairy', name: 'Dairy', icon: '🥛' },
@@ -138,6 +141,10 @@ export class ExploreSuppliersComponent implements OnInit {
 
   onFilterChange(filter: string): void {
     this.selectedFilters[filter as keyof SupplierFilters] = !this.selectedFilters[filter as keyof SupplierFilters];
+    this.filterSuppliers();
+  }
+
+  onSearchChange(): void {
     this.filterSuppliers();
   }
 

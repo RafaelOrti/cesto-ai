@@ -1,7 +1,8 @@
 .client-insights {
   padding: 2rem;
   background-color: #f8f9fa;
-  min-height: 100vh;
+  min-height: calc(100vh - 128px); // Ajustar para el header y padding
+  overflow-y: auto;
 }
 
 .insights-header {
@@ -231,6 +232,12 @@
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   margin-bottom: 2rem;
+
+  .table-container {
+    max-height: 400px; // Limitar altura de la tabla
+    overflow-y: auto;
+    border-radius: 4px;
+  }
 
   .performance-table {
     width: 100%;

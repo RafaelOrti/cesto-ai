@@ -9,8 +9,8 @@ import { Buyer } from '../buyers/entities/buyer.entity';
 import { Client } from '../clients/entities/client.entity';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
-import { InjectRedis } from '@nestjs-modules/ioredis';
-import { Redis } from 'ioredis';
+// import { InjectRedis } from '@nestjs-modules/ioredis';
+// import { Redis } from 'ioredis';
 
 @Injectable()
 export class AuthService {
@@ -28,83 +28,115 @@ export class AuthService {
     @InjectRepository(Client)
     private clientsRepository: Repository<Client>,
     private jwtService: JwtService,
-    @InjectRedis() private redis: Redis,
+    // @InjectRedis() private redis: Redis,
   ) {}
 
   async validateUser(email: string, password: string): Promise<any> {
-    const user = await this.usersRepository.findOne({
-      where: { email: email.toLowerCase().trim() },
-      relations: ['supplier', 'buyer', 'client'],
-    });
+    console.log(`[AUTH] Validating user: ${email}`);
+    
+    try {
+      const user = await this.usersRepository.findOne({
+        where: { email: email.toLowerCase().trim() },
+        relations: ['supplier', 'buyer', 'client'],
+      });
 
-    if (!user) {
+      if (!user) {
+        console.log(`[AUTH] User not found: ${email}`);
+        return null;
+      }
+
+      console.log(`[AUTH] User found: ${user.email}, isActive: ${user.isActive}`);
+
+      const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+      if (!isPasswordValid) {
+        console.log(`[AUTH] Invalid password for user: ${email}`);
+        return null;
+      }
+
+      console.log(`[AUTH] Password valid for user: ${email}`);
+      const { passwordHash, ...result } = user;
+      return result;
+    } catch (error) {
+      console.error(`[AUTH] Error validating user ${email}:`, error);
       return null;
     }
-
-    const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
-    if (!isPasswordValid) {
-      return null;
-    }
-
-    const { passwordHash, ...result } = user;
-    return result;
   }
 
 
   async login(loginDto: LoginDto) {
-    const user = await this.validateUser(loginDto.email, loginDto.password);
+    console.log(`[AUTH] Login attempt for email: ${loginDto.email}`);
     
-    if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
+    try {
+      const user = await this.validateUser(loginDto.email, loginDto.password);
+      
+      if (!user) {
+        console.log(`[AUTH] Invalid credentials for email: ${loginDto.email}`);
+        throw new UnauthorizedException('Invalid credentials');
+      }
 
-    if (!user.isActive) {
-      throw new UnauthorizedException('Account is deactivated. Please contact support.');
-    }
+      if (!user.isActive) {
+        console.log(`[AUTH] Account deactivated for email: ${loginDto.email}`);
+        throw new UnauthorizedException('Account is deactivated. Please contact support.');
+      }
 
-    const payload = { 
-      email: user.email, 
-      sub: user.id, 
-      role: user.role,
-      companyName: user.companyName,
-      iat: Math.floor(Date.now() / 1000),
-    };
+      console.log(`[AUTH] User validated successfully: ${user.email}`);
 
-    const accessToken = this.jwtService.sign(payload, {
-      expiresIn: this.JWT_EXPIRES_IN,
-    });
-
-    const refreshToken = this.jwtService.sign(
-      { sub: user.id, type: 'refresh' },
-      { expiresIn: this.REFRESH_TOKEN_EXPIRES_IN }
-    );
-
-    await this.redis.setex(
-      `refresh_token:${user.id}`,
-      this.parseExpirationTime(this.REFRESH_TOKEN_EXPIRES_IN),
-      refreshToken
-    );
-
-    await this.usersRepository.update(user.id, {
-      lastLoginAt: new Date(),
-    });
-
-    return {
-      access_token: accessToken,
-      refresh_token: refreshToken,
-      expires_in: this.parseExpirationTime(this.JWT_EXPIRES_IN),
-      user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
+      const payload = { 
+        email: user.email, 
+        sub: user.id, 
         role: user.role,
         companyName: user.companyName,
-        supplier: user.supplier,
-        client: user.client,
-        lastLoginAt: user.lastLoginAt,
-      },
-    };
+        iat: Math.floor(Date.now() / 1000),
+      };
+
+      const accessToken = this.jwtService.sign(payload, {
+        expiresIn: this.JWT_EXPIRES_IN,
+      });
+
+      const refreshToken = this.jwtService.sign(
+        { sub: user.id, type: 'refresh' },
+        { expiresIn: this.REFRESH_TOKEN_EXPIRES_IN }
+      );
+
+      // // await // this.redis.setex(
+      //   `refresh_token:${user.id}`,
+      //   this.parseExpirationTime(this.REFRESH_TOKEN_EXPIRES_IN),
+      //   refreshToken
+      // );
+
+      // Update lastLoginAt with proper error handling
+      try {
+        await this.usersRepository.update(user.id, {
+          lastLoginAt: new Date(),
+        });
+        console.log(`[AUTH] Last login updated for user: ${user.email}`);
+      } catch (updateError) {
+        console.error(`[AUTH] Error updating lastLoginAt for user ${user.email}:`, updateError);
+        // Don't fail the login if lastLoginAt update fails
+      }
+
+      console.log(`[AUTH] Login successful for user: ${user.email}`);
+      
+      return {
+        access_token: accessToken,
+        refresh_token: refreshToken,
+        expires_in: this.parseExpirationTime(this.JWT_EXPIRES_IN),
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role,
+          companyName: user.companyName,
+          supplier: user.supplier,
+          client: user.client,
+          lastLoginAt: user.lastLoginAt,
+        },
+      };
+    } catch (error) {
+      console.error(`[AUTH] Login error for email ${loginDto.email}:`, error);
+      throw error;
+    }
   }
 
   async register(registerDto: RegisterDto) {
@@ -182,11 +214,11 @@ export class AuthService {
       { expiresIn: this.REFRESH_TOKEN_EXPIRES_IN }
     );
 
-    await this.redis.setex(
-      `refresh_token:${savedUser.id}`,
-      this.parseExpirationTime(this.REFRESH_TOKEN_EXPIRES_IN),
-      refreshToken
-    );
+    // // await // this.redis.setex(
+    //   `refresh_token:${savedUser.id}`,
+    //   this.parseExpirationTime(this.REFRESH_TOKEN_EXPIRES_IN),
+    //   refreshToken
+    // );
 
     const { passwordHash, ...result } = savedUser;
 
@@ -267,10 +299,10 @@ export class AuthService {
         throw new UnauthorizedException('Invalid token type');
       }
 
-      const storedToken = await this.redis.get(`refresh_token:${payload.sub}`);
-      if (!storedToken || storedToken !== refreshToken) {
-        throw new UnauthorizedException('Invalid refresh token');
-      }
+    // const storedToken = await this.redis.get(`refresh_token:${payload.sub}`);
+    // if (!storedToken || storedToken !== refreshToken) {
+    //   throw new UnauthorizedException('Invalid refresh token');
+    // }
 
       const user = await this.usersRepository.findOne({
         where: { id: payload.sub },
@@ -304,7 +336,7 @@ export class AuthService {
 
   async logout(userId: string, refreshToken?: string) {
     if (refreshToken) {
-      await this.redis.del(`refresh_token:${userId}`);
+    // // await // this.redis.del(`refresh_token:${userId}`);
     }
 
     return { message: 'Logged out successfully' };
@@ -331,7 +363,7 @@ export class AuthService {
       passwordHash: hashedPassword,
     });
 
-    await this.redis.del(`refresh_token:${userId}`);
+    // // await // this.redis.del(`refresh_token:${userId}`);
 
     return { message: 'Password changed successfully' };
   }
@@ -350,11 +382,11 @@ export class AuthService {
       { expiresIn: '1h' }
     );
 
-    await this.redis.setex(
-      `password_reset:${user.id}`,
-      3600,
-      resetToken
-    );
+    // await this.redis.setex(
+    //   `password_reset:${user.id}`,
+    //   3600,
+    //   resetToken
+    // );
 
     return { message: 'If the email exists, a password reset link has been sent' };
   }
@@ -367,10 +399,10 @@ export class AuthService {
         throw new UnauthorizedException('Invalid token type');
       }
 
-      const storedToken = await this.redis.get(`password_reset:${payload.sub}`);
-      if (!storedToken || storedToken !== resetToken) {
-        throw new UnauthorizedException('Invalid or expired reset token');
-      }
+    // const storedToken = await this.redis.get(`password_reset:${payload.sub}`);
+    // if (!storedToken || storedToken !== resetToken) {
+    //   throw new UnauthorizedException('Invalid or expired reset token');
+    // }
 
       const user = await this.usersRepository.findOne({
         where: { id: payload.sub },
@@ -388,8 +420,8 @@ export class AuthService {
       });
 
       await Promise.all([
-        this.redis.del(`password_reset:${user.id}`),
-        this.redis.del(`refresh_token:${user.id}`),
+    // // this.redis.del(`password_reset:${user.id}`),
+    // // this.redis.del(`refresh_token:${user.id}`),
       ]);
 
       return { message: 'Password reset successfully' };

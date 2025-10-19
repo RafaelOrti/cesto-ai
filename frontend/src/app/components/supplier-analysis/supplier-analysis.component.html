@@ -1,0 +1,248 @@
+<div class="supplier-analysis-container">
+  <!-- Header Section -->
+  <div class="analysis-header">
+    <div class="header-content">
+      <div class="title-section">
+        <h1 class="analysis-title">
+          <i class="fas fa-chart-line"></i>
+          Supplier Analysis Dashboard
+        </h1>
+        <p class="analysis-subtitle">Comprehensive analytics and insights for your business</p>
+      </div>
+      
+      <div class="header-actions">
+        <button class="btn btn-primary" (click)="generateInsights()">
+          <i class="fas fa-brain"></i>
+          Generate AI Insights
+        </button>
+        <button class="btn btn-secondary" (click)="exportReport()">
+          <i class="fas fa-download"></i>
+          Export Report
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controls Section -->
+  <div class="controls-section">
+    <div class="time-range-selector">
+      <label>Time Range:</label>
+      <select [(ngModel)]="selectedTimeRange" (ngModelChange)="onTimeRangeChange($event)">
+        <option *ngFor="let range of timeRanges" [value]="range.value">
+          {{ range.label }}
+        </option>
+      </select>
+    </div>
+    
+    <div class="metric-selector">
+      <label>Analysis Type:</label>
+      <select [(ngModel)]="selectedMetric" (ngModelChange)="onMetricChange($event)">
+        <option *ngFor="let metric of metrics" [value]="metric.value">
+          {{ metric.label }}
+        </option>
+      </select>
+    </div>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-icon">
+        <i class="fas fa-dollar-sign"></i>
+      </div>
+      <div class="kpi-content">
+        <h3 class="kpi-value">${{ kpis.totalSales | number:'1.0-0' }}</h3>
+        <p class="kpi-label">Total Sales</p>
+        <span class="kpi-change positive">+12.5%</span>
+      </div>
+    </div>
+    
+    <div class="kpi-card">
+      <div class="kpi-icon">
+        <i class="fas fa-shopping-cart"></i>
+      </div>
+      <div class="kpi-content">
+        <h3 class="kpi-value">{{ kpis.totalOrders }}</h3>
+        <p class="kpi-label">Total Orders</p>
+        <span class="kpi-change positive">+8.3%</span>
+      </div>
+    </div>
+    
+    <div class="kpi-card">
+      <div class="kpi-icon">
+        <i class="fas fa-receipt"></i>
+      </div>
+      <div class="kpi-content">
+        <h3 class="kpi-value">${{ kpis.averageOrderValue | number:'1.0-0' }}</h3>
+        <p class="kpi-label">Avg Order Value</p>
+        <span class="kpi-change positive">+5.2%</span>
+      </div>
+    </div>
+    
+    <div class="kpi-card">
+      <div class="kpi-icon">
+        <i class="fas fa-star"></i>
+      </div>
+      <div class="kpi-content">
+        <h3 class="kpi-value">{{ kpis.customerSatisfaction }}</h3>
+        <p class="kpi-label">Customer Rating</p>
+        <span class="kpi-change positive">+0.2</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts Section -->
+  <div class="charts-grid">
+    <!-- Sales Performance Chart -->
+    <div class="chart-card" *ngIf="selectedMetric === 'sales'">
+      <div class="chart-header">
+        <h3>Sales Performance</h3>
+        <div class="chart-actions">
+          <button class="btn btn-sm btn-outline">
+            <i class="fas fa-expand"></i>
+          </button>
+        </div>
+      </div>
+      <div class="chart-content">
+        <div class="chart-placeholder">
+          <i class="fas fa-chart-area"></i>
+          <p>Sales trend chart would be displayed here</p>
+          <small>Data points: {{ salesData.length }}</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Inventory Analysis Chart -->
+    <div class="chart-card" *ngIf="selectedMetric === 'inventory'">
+      <div class="chart-header">
+        <h3>Inventory Analysis</h3>
+        <div class="chart-actions">
+          <button class="btn btn-sm btn-outline">
+            <i class="fas fa-expand"></i>
+          </button>
+        </div>
+      </div>
+      <div class="chart-content">
+        <div class="inventory-table">
+          <div class="inventory-row header">
+            <div class="col-category">Category</div>
+            <div class="col-stock">Current Stock</div>
+            <div class="col-sold">Sold</div>
+            <div class="col-turnover">Turnover</div>
+          </div>
+          <div class="inventory-row" *ngFor="let item of inventoryData">
+            <div class="col-category">{{ item.category }}</div>
+            <div class="col-stock">{{ item.currentStock }}</div>
+            <div class="col-sold">{{ item.sold }}</div>
+            <div class="col-turnover">{{ item.turnover }}x</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Order Trends Chart -->
+    <div class="chart-card" *ngIf="selectedMetric === 'orders'">
+      <div class="chart-header">
+        <h3>Order Trends</h3>
+        <div class="chart-actions">
+          <button class="btn btn-sm btn-outline">
+            <i class="fas fa-expand"></i>
+          </button>
+        </div>
+      </div>
+      <div class="chart-content">
+        <div class="chart-placeholder">
+          <i class="fas fa-chart-bar"></i>
+          <p>Order trends chart would be displayed here</p>
+          <small>Monthly data: {{ orderData.length }} months</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Customer Insights Chart -->
+    <div class="chart-card" *ngIf="selectedMetric === 'customers'">
+      <div class="chart-header">
+        <h3>Customer Insights</h3>
+        <div class="chart-actions">
+          <button class="btn btn-sm btn-outline">
+            <i class="fas fa-expand"></i>
+          </button>
+        </div>
+      </div>
+      <div class="chart-content">
+        <div class="customer-segments">
+          <div class="segment-item" *ngFor="let segment of customerData">
+            <div class="segment-info">
+              <h4>{{ segment.segment }}</h4>
+              <p>{{ segment.count }} customers</p>
+            </div>
+            <div class="segment-metrics">
+              <div class="metric">
+                <span class="metric-value">${{ segment.revenue | number:'1.0-0' }}</span>
+                <span class="metric-label">Revenue</span>
+              </div>
+              <div class="metric">
+                <span class="metric-value">{{ segment.growth }}%</span>
+                <span class="metric-label">Growth</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Insights Section -->
+  <div class="insights-section">
+    <div class="insights-header">
+      <h3>
+        <i class="fas fa-brain"></i>
+        AI-Powered Insights
+      </h3>
+      <button class="btn btn-outline" (click)="generateInsights()">
+        <i class="fas fa-refresh"></i>
+        Refresh Insights
+      </button>
+    </div>
+    
+    <div class="insights-grid">
+      <div class="insight-card">
+        <div class="insight-icon">
+          <i class="fas fa-trending-up"></i>
+        </div>
+        <div class="insight-content">
+          <h4>Sales Trend</h4>
+          <p>Your sales have increased by 12.5% compared to last month. The dairy category is showing the strongest growth.</p>
+        </div>
+      </div>
+      
+      <div class="insight-card">
+        <div class="insight-icon">
+          <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="insight-content">
+          <h4>Inventory Alert</h4>
+          <p>Consider restocking frozen products. Current turnover rate is below optimal levels.</p>
+        </div>
+      </div>
+      
+      <div class="insight-card">
+        <div class="insight-icon">
+          <i class="fas fa-users"></i>
+        </div>
+        <div class="insight-content">
+          <h4>Customer Growth</h4>
+          <p>Hotel segment customers show 15.2% growth. Consider expanding your hotel-focused product offerings.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-overlay" *ngIf="loading">
+    <div class="loading-content">
+      <div class="loading-spinner"></div>
+      <p>Loading analysis data...</p>
+    </div>
+  </div>
+</div>

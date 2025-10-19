@@ -52,6 +52,13 @@ export class SuppliersService {
     };
   }
 
+  async getMySuppliers(userId: string, query: any) {
+    return { 
+      data: [], 
+      pagination: { page: 1, limit: 10, total: 0 }
+    };
+  }
+
   async getStats() {
     return {};
   }
@@ -60,7 +67,7 @@ export class SuppliersService {
     return null;
   }
 
-  async getSupplierProducts(id: string, query: any) {
+  async getSupplierProductsById(id: string, query: any) {
     return { 
       data: [], 
       pagination: { page: 1, limit: 10, total: 0 }
@@ -152,5 +159,46 @@ export class SuppliersService {
 
   async getOrderHistory(id: string, query: any) {
     return [];
+  }
+
+  async findByUserId(userId: string): Promise<Supplier | null> {
+    return this.supplierRepository.findOne({
+      where: { userId },
+      relations: ['user']
+    });
+  }
+
+  async updateByUserId(userId: string, updateData: Partial<Supplier>): Promise<Supplier | null> {
+    const supplier = await this.findByUserId(userId);
+    if (!supplier) {
+      return null;
+    }
+    
+    Object.assign(supplier, updateData);
+    return this.supplierRepository.save(supplier);
+  }
+
+  async getSupplierProducts(supplierId: string): Promise<any[]> {
+    // This would typically join with products table
+    // For now, return empty array
+    return [];
+  }
+
+  async getSupplierOrders(supplierId: string): Promise<any[]> {
+    // This would typically join with orders table
+    // For now, return empty array
+    return [];
+  }
+
+  async getDashboard(supplierId: string): Promise<any> {
+    // This would typically aggregate data from various tables
+    // For now, return basic dashboard data
+    return {
+      totalProducts: 0,
+      totalOrders: 0,
+      totalRevenue: 0,
+      recentOrders: [],
+      topProducts: []
+    };
   }
 }

@@ -1,0 +1,347 @@
+<div class="system-settings-container">
+  <!-- Header -->
+  <div class="settings-header">
+    <h1>System Settings</h1>
+    <p>Configure platform settings, security, and integrations</p>
+    
+    <div class="header-actions">
+      <button mat-button (click)="exportSettings()" [disabled]="isSaving">
+        <mat-icon>download</mat-icon>
+        Export Settings
+      </button>
+      
+      <button mat-button (click)="resetToDefaults()" [disabled]="isSaving">
+        <mat-icon>refresh</mat-icon>
+        Reset to Defaults
+      </button>
+      
+      <button mat-raised-button color="primary" (click)="saveAllSettings()" [disabled]="isSaving">
+        <mat-icon>save</mat-icon>
+        {{ isSaving ? 'Saving...' : 'Save All Settings' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner></mat-spinner>
+    <p>Loading settings...</p>
+  </div>
+
+  <!-- Settings Content -->
+  <div *ngIf="!isLoading" class="settings-content">
+    <!-- Tab Navigation -->
+    <mat-tab-group [(selectedIndex)]="currentTab" class="settings-tabs">
+      
+      <!-- General Settings Tab -->
+      <mat-tab label="General">
+        <div class="tab-content">
+          <form [formGroup]="generalForm" (ngSubmit)="saveGeneralSettings()">
+            <mat-card class="settings-card">
+              <mat-card-header>
+                <mat-card-title>General Settings</mat-card-title>
+                <mat-card-subtitle>Basic platform configuration</mat-card-subtitle>
+              </mat-card-header>
+              
+              <mat-card-content>
+                <div class="form-row">
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Platform Name</mat-label>
+                    <input matInput formControlName="platformName" placeholder="Enter platform name">
+                    <mat-error *ngIf="generalForm.get('platformName')?.hasError('required')">
+                      Platform name is required
+                    </mat-error>
+                  </mat-form-field>
+                </div>
+                
+                <div class="form-row">
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Platform Description</mat-label>
+                    <textarea matInput formControlName="platformDescription" rows="3" placeholder="Enter platform description"></textarea>
+                    <mat-error *ngIf="generalForm.get('platformDescription')?.hasError('required')">
+                      Platform description is required
+                    </mat-error>
+                  </mat-form-field>
+                </div>
+                
+                <div class="form-row">
+                  <mat-form-field appearance="outline">
+                    <mat-label>Timezone</mat-label>
+                    <mat-select formControlName="timezone">
+                      <mat-option *ngFor="let tz of timezones" [value]="tz">{{ tz }}</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                  
+                  <mat-form-field appearance="outline">
+                    <mat-label>Language</mat-label>
+                    <mat-select formControlName="language">
+                      <mat-option *ngFor="let lang of languages" [value]="lang.code">{{ lang.name }}</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+                
+                <div class="form-row">
+                  <mat-form-field appearance="outline">
+                    <mat-label>Currency</mat-label>
+                    <mat-select formControlName="currency">
+                      <mat-option *ngFor="let currency of currencies" [value]="currency">{{ currency }}</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                  
+                  <mat-form-field appearance="outline">
+                    <mat-label>Date Format</mat-label>
+                    <mat-select formControlName="dateFormat">
+                      <mat-option *ngFor="let format of dateFormats" [value]="format">{{ format }}</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+              </mat-card-content>
+              
+              <mat-card-actions>
+                <button mat-raised-button color="primary" type="submit" [disabled]="generalForm.invalid || isSaving">
+                  Save General Settings
+                </button>
+              </mat-card-actions>
+            </mat-card>
+          </form>
+        </div>
+      </mat-tab>
+
+      <!-- Security Settings Tab -->
+      <mat-tab label="Security">
+        <div class="tab-content">
+          <form [formGroup]="securityForm" (ngSubmit)="saveSecuritySettings()">
+            <mat-card class="settings-card">
+              <mat-card-header>
+                <mat-card-title>Security Settings</mat-card-title>
+                <mat-card-subtitle>Configure security policies and access controls</mat-card-subtitle>
+              </mat-card-header>
+              
+              <mat-card-content>
+                <div class="form-row">
+                  <mat-form-field appearance="outline">
+                    <mat-label>Minimum Password Length</mat-label>
+                    <input matInput type="number" formControlName="passwordMinLength" min="6" max="20">
+                    <mat-error *ngIf="securityForm.get('passwordMinLength')?.hasError('min')">
+                      Minimum length is 6 characters
+                    </mat-error>
+                  </mat-form-field>
+                  
+                  <mat-form-field appearance="outline">
+                    <mat-label>Session Timeout (minutes)</mat-label>
+                    <input matInput type="number" formControlName="sessionTimeout" min="5" max="480">
+                  </mat-form-field>
+                </div>
+                
+                <div class="form-row">
+                  <mat-checkbox formControlName="passwordRequireSpecialChars">
+                    Require special characters in passwords
+                  </mat-checkbox>
+                  
+                  <mat-checkbox formControlName="twoFactorAuth">
+                    Enable Two-Factor Authentication
+                  </mat-checkbox>
+                </div>
+                
+                <div class="form-section">
+                  <h3>IP Whitelist</h3>
+                  <div class="ip-list">
+                    <div *ngFor="let ip of securityForm.get('ipWhitelist')?.value" class="ip-item">
+                      <span>{{ ip }}</span>
+                      <button mat-icon-button (click)="removeIpAddress(ip)">
+                        <mat-icon>close</mat-icon>
+                      </button>
+                    </div>
+                    <button mat-button (click)="addIpAddress()">
+                      <mat-icon>add</mat-icon>
+                      Add IP Address
+                    </button>
+                  </div>
+                </div>
+              </mat-card-content>
+              
+              <mat-card-actions>
+                <button mat-raised-button color="primary" type="submit" [disabled]="securityForm.invalid || isSaving">
+                  Save Security Settings
+                </button>
+              </mat-card-actions>
+            </mat-card>
+          </form>
+        </div>
+      </mat-tab>
+
+      <!-- Notifications Tab -->
+      <mat-tab label="Notifications">
+        <div class="tab-content">
+          <form [formGroup]="notificationsForm" (ngSubmit)="saveNotificationSettings()">
+            <mat-card class="settings-card">
+              <mat-card-header>
+                <mat-card-title>Notification Settings</mat-card-title>
+                <mat-card-subtitle>Configure notification preferences</mat-card-subtitle>
+              </mat-card-header>
+              
+              <mat-card-content>
+                <div class="form-section">
+                  <h3>Notification Channels</h3>
+                  <div class="form-row">
+                    <mat-checkbox formControlName="emailNotifications">
+                      Email Notifications
+                    </mat-checkbox>
+                    
+                    <mat-checkbox formControlName="smsNotifications">
+                      SMS Notifications
+                    </mat-checkbox>
+                  </div>
+                  
+                  <div class="form-row">
+                    <mat-checkbox formControlName="pushNotifications">
+                      Push Notifications
+                    </mat-checkbox>
+                  </div>
+                </div>
+                
+                <div class="form-section">
+                  <h3>Notification Frequency</h3>
+                  <mat-form-field appearance="outline">
+                    <mat-label>Frequency</mat-label>
+                    <mat-select formControlName="notificationFrequency">
+                      <mat-option *ngFor="let freq of notificationFrequencies" [value]="freq.value">
+                        {{ freq.label }}
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+              </mat-card-content>
+              
+              <mat-card-actions>
+                <button mat-raised-button color="primary" type="submit" [disabled]="notificationsForm.invalid || isSaving">
+                  Save Notification Settings
+                </button>
+              </mat-card-actions>
+            </mat-card>
+          </form>
+        </div>
+      </mat-tab>
+
+      <!-- Integrations Tab -->
+      <mat-tab label="Integrations">
+        <div class="tab-content">
+          <form [formGroup]="integrationsForm" (ngSubmit)="saveIntegrationSettings()">
+            <mat-card class="settings-card">
+              <mat-card-header>
+                <mat-card-title>Integration Settings</mat-card-title>
+                <mat-card-subtitle>Configure external integrations and APIs</mat-card-subtitle>
+              </mat-card-header>
+              
+              <mat-card-content>
+                <div class="form-section">
+                  <h3>Integration Features</h3>
+                  <div class="form-row">
+                    <mat-checkbox formControlName="ediEnabled">
+                      Enable EDI Integration
+                    </mat-checkbox>
+                    
+                    <mat-checkbox formControlName="apiEnabled">
+                      Enable API Access
+                    </mat-checkbox>
+                  </div>
+                </div>
+                
+                <div class="form-section">
+                  <h3>API Configuration</h3>
+                  <div class="form-row">
+                    <mat-form-field appearance="outline" class="full-width">
+                      <mat-label>Webhook URL</mat-label>
+                      <input matInput formControlName="webhookUrl" placeholder="https://example.com/webhook">
+                      <mat-error *ngIf="integrationsForm.get('webhookUrl')?.hasError('pattern')">
+                        Please enter a valid URL
+                      </mat-error>
+                    </mat-form-field>
+                  </div>
+                  
+                  <div class="form-row">
+                    <mat-form-field appearance="outline" class="full-width">
+                      <mat-label>API Key</mat-label>
+                      <input matInput formControlName="apiKey" placeholder="Enter API key">
+                    </mat-form-field>
+                    <button mat-button (click)="generateApiKey()">
+                      <mat-icon>refresh</mat-icon>
+                      Generate New Key
+                    </button>
+                  </div>
+                  
+                  <div class="form-row">
+                    <button mat-button (click)="testWebhook()">
+                      <mat-icon>send</mat-icon>
+                      Test Webhook
+                    </button>
+                  </div>
+                </div>
+              </mat-card-content>
+              
+              <mat-card-actions>
+                <button mat-raised-button color="primary" type="submit" [disabled]="integrationsForm.invalid || isSaving">
+                  Save Integration Settings
+                </button>
+              </mat-card-actions>
+            </mat-card>
+          </form>
+        </div>
+      </mat-tab>
+
+      <!-- Maintenance Tab -->
+      <mat-tab label="Maintenance">
+        <div class="tab-content">
+          <form [formGroup]="maintenanceForm" (ngSubmit)="saveMaintenanceSettings()">
+            <mat-card class="settings-card">
+              <mat-card-header>
+                <mat-card-title>Maintenance Settings</mat-card-title>
+                <mat-card-subtitle>Configure system maintenance and downtime</mat-card-subtitle>
+              </mat-card-header>
+              
+              <mat-card-content>
+                <div class="form-section">
+                  <h3>Maintenance Mode</h3>
+                  <div class="form-row">
+                    <mat-checkbox formControlName="maintenanceMode">
+                      Enable Maintenance Mode
+                    </mat-checkbox>
+                  </div>
+                  
+                  <div class="form-row">
+                    <mat-form-field appearance="outline" class="full-width">
+                      <mat-label>Maintenance Message</mat-label>
+                      <textarea matInput formControlName="maintenanceMessage" rows="3" placeholder="Enter maintenance message"></textarea>
+                    </mat-form-field>
+                  </div>
+                  
+                  <div class="form-row">
+                    <mat-form-field appearance="outline">
+                      <mat-label>Scheduled Maintenance</mat-label>
+                      <input matInput type="datetime-local" formControlName="scheduledMaintenance">
+                    </mat-form-field>
+                  </div>
+                </div>
+              </mat-card-content>
+              
+              <mat-card-actions>
+                <button mat-raised-button color="primary" type="submit" [disabled]="maintenanceForm.invalid || isSaving">
+                  Save Maintenance Settings
+                </button>
+              </mat-card-actions>
+            </mat-card>
+          </form>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  </div>
+
+  <!-- Import Settings -->
+  <div class="import-section">
+    <input #fileInput type="file" accept=".json" (change)="importSettings($event)" style="display: none;">
+    <button mat-button (click)="fileInput.click()">
+      <mat-icon>upload</mat-icon>
+      Import Settings
+    </button>
+  </div>
+</div>

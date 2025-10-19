@@ -1,0 +1,284 @@
+<div class="ean-container">
+  <!-- Header -->
+  <div class="header">
+    <h1>{{ i18n.translate('navigation.ean') }}</h1>
+    <div class="header-actions">
+      <button class="btn btn-outline" (click)="onScanBarcode()">
+        <mat-icon>qr_code_scanner</mat-icon>
+        Escanear Código
+      </button>
+      <button class="btn btn-outline" (click)="onBulkImport()">
+        <mat-icon>upload_file</mat-icon>
+        Importar Masivo
+      </button>
+      <button class="btn btn-primary" (click)="onCreateEAN()">
+        <mat-icon>add</mat-icon>
+        Crear EAN
+      </button>
+    </div>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">
+        <mat-icon>inventory</mat-icon>
+      </div>
+      <div class="stat-content">
+        <h3>{{ statistics.totalProducts }}</h3>
+        <p>Total Productos</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon active">
+        <mat-icon>check_circle</mat-icon>
+      </div>
+      <div class="stat-content">
+        <h3>{{ statistics.activeProducts }}</h3>
+        <p>Productos Activos</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon pending">
+        <mat-icon>schedule</mat-icon>
+      </div>
+      <div class="stat-content">
+        <h3>{{ statistics.pendingProducts }}</h3>
+        <p>Pendientes</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">
+        <mat-icon>category</mat-icon>
+      </div>
+      <div class="stat-content">
+        <h3>{{ statistics.totalCategories }}</h3>
+        <p>Categorías</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button 
+      class="tab-button" 
+      [class.active]="selectedTab === 'products'"
+      (click)="onTabChange('products')">
+      <mat-icon>inventory</mat-icon>
+      Productos EAN
+    </button>
+    <button 
+      class="tab-button" 
+      [class.active]="selectedTab === 'generator'"
+      (click)="onTabChange('generator')">
+      <mat-icon>qr_code</mat-icon>
+      Generador
+    </button>
+    <button 
+      class="tab-button" 
+      [class.active]="selectedTab === 'validation'"
+      (click)="onTabChange('validation')">
+      <mat-icon>verified</mat-icon>
+      Validación
+    </button>
+  </div>
+
+  <!-- Products Tab -->
+  <div *ngIf="selectedTab === 'products'" class="tab-content">
+    <!-- Search and Filters -->
+    <div class="filters-section">
+      <div class="search-bar">
+        <input 
+          type="text" 
+          placeholder="Buscar por nombre, EAN, marca..." 
+          [(ngModel)]="searchQuery"
+          (input)="onSearch()">
+        <mat-icon class="search-icon">search</mat-icon>
+      </div>
+      
+      <div class="filter-controls">
+        <select [(ngModel)]="selectedCategory" (change)="onCategoryChange(selectedCategory)">
+          <option *ngFor="let category of categories" [value]="category.id">
+            {{ category.name }}
+          </option>
+        </select>
+        
+        <select [(ngModel)]="selectedStatus" (change)="onStatusChange(selectedStatus)">
+          <option *ngFor="let status of statusOptions" [value]="status.id">
+            {{ status.name }}
+          </option>
+        </select>
+        
+        <button class="btn btn-outline" (click)="onExportEAN()">
+          <mat-icon>download</mat-icon>
+          Exportar
+        </button>
+      </div>
+    </div>
+
+    <!-- Products Table -->
+    <div class="products-table">
+      <div class="table-header">
+        <div class="col-ean">Código EAN</div>
+        <div class="col-product">Producto</div>
+        <div class="col-category">Categoría</div>
+        <div class="col-brand">Marca</div>
+        <div class="col-price">Precio</div>
+        <div class="col-status">Estado</div>
+        <div class="col-actions">Acciones</div>
+      </div>
+
+      <div class="table-body">
+        <div 
+          *ngFor="let product of getFilteredProducts()" 
+          class="table-row">
+          <div class="col-ean">
+            <span class="ean-code">{{ product.eanCode }}</span>
+            <button class="btn-icon" (click)="onPrintBarcode(product)">
+              <mat-icon>print</mat-icon>
+            </button>
+          </div>
+          <div class="col-product">
+            <h4>{{ product.productName }}</h4>
+            <p>{{ product.description }}</p>
+          </div>
+          <div class="col-category">{{ product.category }}</div>
+          <div class="col-brand">{{ product.brand }}</div>
+          <div class="col-price">{{ formatPrice(product.price) }}</div>
+          <div class="col-status">
+            <span class="status-badge" [class]="getStatusClass(product.status)">
+              {{ getStatusText(product.status) }}
+            </span>
+          </div>
+          <div class="col-actions">
+            <button class="btn-icon" (click)="onEditEAN(product)">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button 
+              *ngIf="product.status === 'active'"
+              class="btn-icon" 
+              (click)="onDeactivateEAN(product)">
+              <mat-icon>pause</mat-icon>
+            </button>
+            <button 
+              *ngIf="product.status === 'inactive'"
+              class="btn-icon" 
+              (click)="onActivateEAN(product)">
+              <mat-icon>play_arrow</mat-icon>
+            </button>
+            <button class="btn-icon danger" (click)="onDeleteEAN(product)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Generator Tab -->
+  <div *ngIf="selectedTab === 'generator'" class="tab-content">
+    <div class="generator-section">
+      <h2>Generador de Códigos EAN</h2>
+      <p>Genera códigos EAN-13 únicos para tus productos</p>
+      
+      <div class="generator-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nombre del Producto</label>
+            <input 
+              type="text" 
+              [(ngModel)]="eanForm.productName"
+              placeholder="Ingresa el nombre del producto">
+          </div>
+          <div class="form-group">
+            <label>Categoría</label>
+            <select [(ngModel)]="eanForm.category">
+              <option value="">Seleccionar categoría</option>
+              <option *ngFor="let category of categories.slice(1)" [value]="category.id">
+                {{ category.name }}
+              </option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label>Marca</label>
+            <input 
+              type="text" 
+              [(ngModel)]="eanForm.brand"
+              placeholder="Ingresa la marca">
+          </div>
+          <div class="form-group">
+            <label>Precio (EUR)</label>
+            <input 
+              type="number" 
+              [(ngModel)]="eanForm.price"
+              placeholder="0.00"
+              step="0.01">
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label>Descripción</label>
+          <textarea 
+            [(ngModel)]="eanForm.description"
+            placeholder="Descripción del producto"
+            rows="3"></textarea>
+        </div>
+        
+        <div class="form-actions">
+          <button class="btn btn-outline" (click)="resetForm()">
+            Limpiar
+          </button>
+          <button class="btn btn-primary" (click)="onGenerateEAN()">
+            <mat-icon>qr_code</mat-icon>
+            Generar EAN
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Validation Tab -->
+  <div *ngIf="selectedTab === 'validation'" class="tab-content">
+    <div class="validation-section">
+      <h2>Validador de Códigos EAN</h2>
+      <p>Valida códigos EAN-13 existentes</p>
+      
+      <div class="validation-form">
+        <div class="form-group">
+          <label>Código EAN a Validar</label>
+          <input 
+            type="text" 
+            placeholder="Ingresa el código EAN-13"
+            maxlength="13"
+            #eanInput>
+        </div>
+        
+        <button class="btn btn-primary" (click)="onValidateEAN(eanInput.value)">
+          <mat-icon>verified</mat-icon>
+          Validar Código
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create EAN Modal -->
+  <div *ngIf="showCreateForm" class="modal-overlay" (click)="showCreateForm = false">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Crear Nuevo Producto EAN</h3>
+        <button class="btn-close" (click)="showCreateForm = false">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <!-- Form content would go here -->
+        <p>Formulario de creación de EAN...</p>
+      </div>
+    </div>
+  </div>
+</div>
+

@@ -8,19 +8,24 @@ import { SuppliersModule } from './suppliers/suppliers.module';
 import { AdminModule } from './admin/admin.module';
 import { UsersModule } from './users/users.module';
 import { EcommerceModule } from './ecommerce/ecommerce.module';
+import { ProductsModule } from './products/products.module';
+import { OrdersModule } from './orders/orders.module';
+import { ShoppingListsModule } from './shopping-lists/shopping-lists.module';
+import { InventoryModule } from './inventory/inventory.module';
 import { SharedModule } from './shared/shared.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { HealthController } from './health.controller';
 import databaseConfig from './config/database.config';
 import appConfig from './config/app.config';
-import redisConfig from './config/redis.config';
+// import redisConfig from './config/redis.config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['.env.local', '.env'],
-      load: [appConfig, databaseConfig, redisConfig],
+      load: [appConfig, databaseConfig],
       expandVariables: true,
     }),
     TypeOrmModule.forRootAsync({
@@ -40,8 +45,12 @@ import redisConfig from './config/redis.config';
     AdminModule,
     UsersModule,
     EcommerceModule,
+    ProductsModule,
+    OrdersModule,
+    ShoppingListsModule,
+    InventoryModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, HealthController],
   providers: [AppService],
 })
 export class AppModule {}

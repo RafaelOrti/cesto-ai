@@ -2,34 +2,10 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { User } from '../../shared/types/common.types';
 
-export interface User {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  role: 'admin' | 'buyer' | 'supplier';
-  isActive: boolean;
-  createdAt: Date;
-  lastLogin?: Date;
-  companyName?: string;
-  phone?: string;
-  address?: string;
-  city?: string;
-  country?: string;
-  postalCode?: string;
-  profile?: {
-    company?: string;
-    phone?: string;
-    address?: string;
-    avatar?: string;
-  };
-  preferences?: {
-    language: string;
-    notifications: boolean;
-    theme: string;
-  };
-}
+// Re-export User type for convenience
+export { User };
 
 export interface UserFilters {
   role?: string;
@@ -49,7 +25,7 @@ export interface CreateUserRequest {
   email: string;
   firstName: string;
   lastName: string;
-  role: 'admin' | 'buyer' | 'supplier';
+  role: 'admin' | 'client' | 'supplier';
   companyName?: string;
   phone?: string;
   address?: string;
@@ -63,7 +39,7 @@ export interface UpdateUserRequest {
   email?: string;
   firstName?: string;
   lastName?: string;
-  role?: 'admin' | 'buyer' | 'supplier';
+  role?: 'admin' | 'client' | 'supplier';
   companyName?: string;
   phone?: string;
   address?: string;
@@ -286,7 +262,7 @@ export class UserManagementService {
   getUserRoleText(user: User): string {
     const roleMap = {
       admin: 'Administrador',
-      buyer: 'Comprador',
+      client: 'Cliente',
       supplier: 'Proveedor'
     };
     return roleMap[user.role] || user.role;
@@ -323,7 +299,7 @@ export class UserManagementService {
       errors.push('Apellido debe tener al menos 2 caracteres');
     }
 
-    if (!userData.role || !['admin', 'buyer', 'supplier'].includes(userData.role)) {
+    if (!userData.role || !['admin', 'client', 'supplier'].includes(userData.role)) {
       errors.push('Rol válido es requerido');
     }
 

@@ -2,24 +2,40 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { filter, takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
-import { AuthService } from '../../../services/auth.service';
+import { trigger, state, style, transition, animate } from '@angular/animations';
+import { AuthService } from '../../../core/services/auth.service';
+import { I18nService } from '../../../core/services/i18n.service';
 
 interface MenuItem {
-  label: string;
+  labelKey?: string;
+  label?: string;
   icon: string;
   route: string;
   subItems?: MenuItem[];
   expanded?: boolean;
+  badge?: string | number;
 }
 
 interface User {
-  role: 'buyer' | 'supplier' | 'admin';
+  role: 'client' | 'supplier' | 'admin';
+  name?: string;
 }
 
 @Component({
   selector: 'app-sidebar',
   templateUrl: './sidebar.component.html',
-  styleUrls: ['./sidebar.component.scss']
+  styleUrls: ['./sidebar.component.scss'],
+  animations: [
+    trigger('slideInOut', [
+      transition(':enter', [
+        style({ height: '0', opacity: 0 }),
+        animate('300ms cubic-bezier(0.4, 0.0, 0.2, 1)', style({ height: '*', opacity: 1 }))
+      ]),
+      transition(':leave', [
+        animate('300ms cubic-bezier(0.4, 0.0, 0.2, 1)', style({ height: '0', opacity: 0 }))
+      ])
+    ])
+  ]
 })
 export class SidebarComponent implements OnInit, OnDestroy {
   currentRoute = '';
@@ -27,17 +43,24 @@ export class SidebarComponent implements OnInit, OnDestroy {
   isSupplier = false;
   isAdmin = false;
   menuItems: MenuItem[] = [];
+  currentUser: User | null = null;
+  searchQuery = '';
 
   private destroy$ = new Subject<void>();
 
   constructor(
     private router: Router,
-    private authService: AuthService
+    private authService: AuthService,
+    public i18n: I18nService
   ) {}
 
   ngOnInit(): void {
+    console.log('Sidebar - OnInit called');
     this.trackCurrentRoute();
     this.subscribeToUserChanges();
+    // Set default menu items to ensure sidebar is always visible
+    this.setDefaultMenuItems();
+    console.log('Sidebar - Initial menu items:', this.menuItems);
   }
 
   ngOnDestroy(): void {
@@ -46,7 +69,12 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   navigateTo(route: string): void {
-    this.router.navigate([route]);
+    console.log('Navigating to:', route);
+    this.router.navigate([route]).then(success => {
+      console.log('Navigation successful:', success);
+    }).catch(error => {
+      console.error('Navigation error:', error);
+    });
   }
 
   toggleSubItems(menuItem: MenuItem): void {
@@ -74,157 +102,212 @@ export class SidebarComponent implements OnInit, OnDestroy {
     this.authService.currentUser$
       .pipe(takeUntil(this.destroy$))
       .subscribe(user => {
+        console.log('Sidebar - User changed:', user);
+        this.currentUser = user;
         if (user) {
           this.setUserRole(user);
           this.setMenuItems();
+          console.log('Sidebar - Menu items set:', this.menuItems);
         }
       });
   }
 
   private setUserRole(user: User): void {
-    this.isClient = user.role === 'buyer';
+    this.isClient = user.role === 'client';
     this.isSupplier = user.role === 'supplier';
     this.isAdmin = user.role === 'admin';
   }
 
   private setMenuItems(): void {
+    console.log('Sidebar - Setting menu items. User role flags:', {
+      isAdmin: this.isAdmin,
+      isClient: this.isClient,
+      isSupplier: this.isSupplier
+    });
+    
     if (this.isAdmin) {
       this.menuItems = this.getAdminMenuItems();
+      console.log('Sidebar - Set admin menu items');
     } else if (this.isClient) {
       this.menuItems = this.getClientMenuItems();
+      console.log('Sidebar - Set client menu items');
     } else if (this.isSupplier) {
       this.menuItems = this.getSupplierMenuItems();
+      console.log('Sidebar - Set supplier menu items');
+    } else {
+      // Fallback to default menu items
+      this.setDefaultMenuItems();
+      console.log('Sidebar - Set default menu items');
     }
+  }
+
+  private setDefaultMenuItems(): void {
+    // This will be overridden by role-specific menus
+    this.menuItems = this.getClientMenuItems();
+  }
+
+  private getClientMenuItems(): MenuItem[] {
+    return [
+      {
+        labelKey: 'navigation.dashboard',
+        icon: 'dashboard',
+        route: '/client/dashboard'
+      },
+      {
+        labelKey: 'navigation.suppliers',
+        icon: 'store',
+        route: '/client/suppliers',
+        subItems: [
+          { labelKey: 'suppliers.insights', icon: 'insights', route: '/client/suppliers/insights' },
+          { labelKey: 'common.explore', icon: 'search', route: '/client/suppliers/explore' },
+          { labelKey: 'suppliers.mySuppliers', icon: 'list', route: '/client/suppliers/my-suppliers' }
+        ]
+      },
+      {
+        labelKey: 'navigation.products',
+        icon: 'inventory',
+        route: '/client/products'
+      },
+      {
+        labelKey: 'navigation.orders',
+        icon: 'shopping_cart',
+        route: '/client/orders'
+      },
+      {
+        labelKey: 'navigation.shoppingList',
+        icon: 'shopping_list',
+        route: '/client/shopping-lists'
+      },
+      {
+        labelKey: 'navigation.inventory',
+        icon: 'warehouse',
+        route: '/client/inventory'
+      },
+      {
+        labelKey: 'navigation.analysis',
+        icon: 'analytics',
+        route: '/client/analysis'
+      },
+      {
+        labelKey: 'navigation.team',
+        icon: 'group',
+        route: '/client/team'
+      },
+      {
+        labelKey: 'navigation.transactions',
+        icon: 'receipt',
+        route: '/client/transactions'
+      }
+    ];
+  }
+
+  private getSupplierMenuItems(): MenuItem[] {
+    return [
+      {
+        labelKey: 'navigation.supplierDashboard',
+        icon: 'dashboard',
+        route: '/supplier/dashboard'
+      },
+      {
+        labelKey: 'navigation.products',
+        icon: 'inventory',
+        route: '/supplier/products'
+      },
+      {
+        labelKey: 'navigation.inventory',
+        icon: 'warehouse',
+        route: '/supplier/inventory'
+      },
+      {
+        labelKey: 'navigation.ean',
+        icon: 'qr_code',
+        route: '/supplier/ean'
+      },
+      {
+        labelKey: 'navigation.edi',
+        icon: 'integration_instructions',
+        route: '/supplier/edi'
+      },
+      {
+        labelKey: 'navigation.analysis',
+        icon: 'analytics',
+        route: '/supplier/analysis'
+      }
+    ];
   }
 
   private getAdminMenuItems(): MenuItem[] {
     return [
       {
-        label: 'DASHBOARD',
-        icon: 'dashboard',
-        route: '/admin'
+        labelKey: 'navigation.adminDashboard',
+        icon: 'admin_panel_settings',
+        route: '/admin/dashboard'
       },
       {
-        label: 'USER MANAGEMENT',
+        labelKey: 'navigation.userManagement',
         icon: 'people',
-        route: '/admin/users',
-        subItems: [
-          { label: 'All Users', icon: 'list', route: '/admin/users' },
-          { label: 'Create User', icon: 'person_add', route: '/admin/users/create' },
-          { label: 'User Roles', icon: 'admin_panel_settings', route: '/admin/users/roles' }
-        ]
+        route: '/admin/users'
       },
       {
-        label: 'SYSTEM SETTINGS',
+        labelKey: 'navigation.systemSettings',
         icon: 'settings',
-        route: '/admin/settings',
+        route: '/admin/settings'
+      },
+      {
+        labelKey: 'navigation.clients',
+        icon: 'business',
+        route: '/admin/client',
         subItems: [
-          { label: 'General Config', icon: 'tune', route: '/admin/settings/general' },
-          { label: 'Security', icon: 'security', route: '/admin/settings/security' },
-          { label: 'Notifications', icon: 'notifications', route: '/admin/settings/notifications' },
-          { label: 'System Limits', icon: 'speed', route: '/admin/settings/limits' }
+          { labelKey: 'navigation.clientDashboard', icon: 'dashboard', route: '/admin/client/dashboard' },
+          { labelKey: 'navigation.suppliers', icon: 'store', route: '/admin/client/suppliers' },
+          { labelKey: 'navigation.products', icon: 'inventory', route: '/admin/client/products' },
+          { labelKey: 'navigation.orders', icon: 'shopping_cart', route: '/admin/client/orders' },
+          { labelKey: 'navigation.shoppingList', icon: 'shopping_list', route: '/admin/client/shopping-lists' },
+          { labelKey: 'navigation.inventory', icon: 'warehouse', route: '/admin/client/inventory' },
+          { labelKey: 'navigation.analysis', icon: 'analytics', route: '/admin/client/analysis' },
+          { labelKey: 'navigation.team', icon: 'group', route: '/admin/client/team' },
+          { labelKey: 'navigation.transactions', icon: 'receipt', route: '/admin/client/transactions' }
+        ]
+      },
+      {
+        labelKey: 'navigation.suppliers',
+        icon: 'store',
+        route: '/admin/supplier',
+        subItems: [
+          { labelKey: 'navigation.supplierDashboard', icon: 'dashboard', route: '/admin/supplier/dashboard' },
+          { labelKey: 'navigation.products', icon: 'inventory', route: '/admin/supplier/products' },
+          { labelKey: 'navigation.inventory', icon: 'warehouse', route: '/admin/supplier/inventory' },
+          { labelKey: 'navigation.ean', icon: 'qr_code', route: '/admin/supplier/ean' },
+          { labelKey: 'navigation.edi', icon: 'integration_instructions', route: '/admin/supplier/edi' },
+          { labelKey: 'navigation.analysis', icon: 'analytics', route: '/admin/supplier/analysis' }
         ]
       }
     ];
   }
 
-         private getClientMenuItems(): MenuItem[] {
-           return [
-             {
-               label: 'DASHBOARD',
-               icon: 'dashboard',
-               route: '/dashboard'
-             },
-             {
-               label: 'SUPPLIERS',
-               icon: 'store',
-               route: '/suppliers',
-               subItems: [
-                 { label: 'Demo', icon: 'star', route: '/suppliers/demo' },
-                 { label: 'Search for suppliers', icon: 'search', route: '/suppliers/search' },
-                 { label: 'My Suppliers', icon: 'list', route: '/suppliers' }
-               ]
-             },
-             {
-               label: 'PRODUCTS',
-               icon: 'inventory',
-               route: '/products'
-             },
-             {
-               label: 'ORDERS',
-               icon: 'shopping_cart',
-               route: '/orders'
-             },
-             {
-               label: 'SHOPPING LIST',
-               icon: 'shopping_list',
-               route: '/shopping-list'
-             },
-             {
-               label: 'INVENTORY',
-               icon: 'warehouse',
-               route: '/inventory'
-             },
-             {
-               label: 'ANALYSIS',
-               icon: 'analytics',
-               route: '/analysis'
-             },
-             {
-               label: 'TEAM',
-               icon: 'group',
-               route: '/team'
-             },
-             {
-               label: 'INVOICES',
-               icon: 'receipt',
-               route: '/invoices'
-             }
-           ];
-         }
 
-  private getSupplierMenuItems(): MenuItem[] {
-    return [
-      {
-        label: 'Dashboard',
-        icon: 'dashboard',
-        route: '/dashboard'
-      },
-      {
-        label: 'Products',
-        icon: 'inventory',
-        route: '/products',
-        subItems: [
-          { label: 'All Products', icon: 'category', route: '/products/all' },
-          { label: 'Campaigns', icon: 'campaign', route: '/products/campaigns' },
-          { label: 'On Sale', icon: 'local_offer', route: '/products/sale' }
-        ]
-      },
-      {
-        label: 'Orders',
-        icon: 'shopping_cart',
-        route: '/orders',
-        subItems: [
-          { label: 'Incoming Orders', icon: 'inbox', route: '/orders/incoming' },
-          { label: 'Order History', icon: 'history', route: '/orders/history' },
-          { label: 'Issues', icon: 'error', route: '/orders/issues' }
-        ]
-      },
-      {
-        label: 'Inventory',
-        icon: 'warehouse',
-        route: '/inventory'
-      },
-      {
-        label: 'Invoices',
-        icon: 'receipt_long',
-        route: '/invoices'
-      },
-      {
-        label: 'Analysis',
-        icon: 'analytics',
-        route: '/analysis'
-      }
-    ];
+  onSearch(): void {
+    // Implement search functionality
+    console.log('Searching for:', this.searchQuery);
   }
+
+  clearSearch(): void {
+    this.searchQuery = '';
+  }
+
+  getUserRoleLabel(): string {
+    if (!this.currentUser) return '';
+    
+    switch (this.currentUser.role) {
+      case 'admin':
+        return this.i18n.translate('roles.admin');
+      case 'client':
+        return this.i18n.translate('roles.client');
+      case 'supplier':
+        return this.i18n.translate('roles.supplier');
+      default:
+        return this.i18n.translate('roles.user');
+    }
+  }
+
 }

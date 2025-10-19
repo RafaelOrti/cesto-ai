@@ -1,5 +1,5 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
-import { ValidationError } from '../../../../shared/types/common.types';
+import { ValidationError } from '../types/common.types';
 
 /**
  * Advanced validation service for backend

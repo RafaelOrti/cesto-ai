@@ -181,6 +181,7 @@ export class OrdersComponent implements OnInit {
     this.loadOrders();
   }
 
+
   onTabSelect(tab: string): void {
     this.selectedTab = tab;
   }
@@ -283,6 +284,11 @@ export class OrdersComponent implements OnInit {
 
   getTotalOrders(): number {
     return this.pastOrders.length + this.purchaseOrders.length + this.unfulfilledOrders.length;
+  }
+
+  getOrdersByStatus(status: string): Order[] {
+    const allOrders = [...this.pastOrders, ...this.unfulfilledOrders];
+    return allOrders.filter(order => order.status === status);
   }
 
   isOrderExpanded(orderId: string): boolean {

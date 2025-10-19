@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError, timer, of } from 'rxjs';
 import { map, tap, catchError, switchMap, retry } from 'rxjs/operators';
@@ -22,13 +22,18 @@ export class AuthService {
   private readonly tokenRefreshSubject = new BehaviorSubject<boolean>(false);
   public readonly isRefreshing$ = this.tokenRefreshSubject.asObservable();
 
+  // Observable properties for compatibility with existing components
+  public readonly currentUser$ = this.stateService.currentUser$;
+  public readonly isAuthenticated$ = this.stateService.isAuthenticated$;
+
   private refreshTimer?: any;
 
   constructor(
     private http: HttpClient,
     private router: Router,
     private stateService: StateService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    @Inject('API_BASE_URL') private apiBaseUrl: string
   ) {
     this.initializeAuth();
   }
@@ -56,7 +61,7 @@ export class AuthService {
    */
   login(email: string, password: string, rememberMe: boolean = false): Observable<User> {
     return this.http.post<{ access_token: string; refresh_token: string; user: User }>(
-      '/api/v1/auth/login',
+      `${this.apiBaseUrl}/auth/login`,
       { email, password }
     ).pipe(
       tap(({ access_token, refresh_token, user }) => {
@@ -80,7 +85,7 @@ export class AuthService {
     const refreshToken = this.getRefreshToken();
     
     if (refreshToken) {
-      return this.http.post<void>('/api/v1/auth/logout', { refreshToken }).pipe(
+      return this.http.post<void>(`${this.apiBaseUrl}/auth/logout`, { refreshToken }).pipe(
         tap(() => {
           this.clearAuthData();
           this.notificationService.info('Sesión cerrada correctamente');
@@ -105,9 +110,9 @@ export class AuthService {
     password: string;
     firstName: string;
     lastName: string;
-    role: 'admin' | 'supplier' | 'buyer';
+    role: 'admin' | 'supplier' | 'client';
   }): Observable<User> {
-    return this.http.post<{ user: User }>('/api/v1/auth/register', userData).pipe(
+    return this.http.post<{ user: User }>(`${this.apiBaseUrl}/auth/register`, userData).pipe(
       map(response => response.user),
       tap(user => {
         this.notificationService.success('Cuenta creada correctamente. Por favor, inicia sesión.');
@@ -127,7 +132,7 @@ export class AuthService {
    * Change password
    */
   changePassword(currentPassword: string, newPassword: string): Observable<void> {
-    return this.http.post<void>('/auth/change-password', {
+    return this.http.post<void>(`${this.apiBaseUrl}/auth/change-password`, {
       currentPassword,
       newPassword
     }).pipe(
@@ -145,7 +150,7 @@ export class AuthService {
    * Request password reset
    */
   requestPasswordReset(email: string): Observable<void> {
-    return this.http.post<void>('/auth/forgot-password', { email }).pipe(
+    return this.http.post<void>(`${this.apiBaseUrl}/auth/forgot-password`, { email }).pipe(
       tap(() => {
         this.notificationService.info('Se ha enviado un email con instrucciones para restablecer tu contraseña');
       }),
@@ -160,7 +165,7 @@ export class AuthService {
    * Reset password with token
    */
   resetPassword(token: string, newPassword: string): Observable<void> {
-    return this.http.post<void>('/auth/reset-password', {
+    return this.http.post<void>(`${this.apiBaseUrl}/auth/reset-password`, {
       token,
       newPassword
     }).pipe(
@@ -182,7 +187,7 @@ export class AuthService {
    * Send email verification
    */
   sendEmailVerification(): Observable<void> {
-    return this.http.post<void>('/auth/send-verification', {}).pipe(
+    return this.http.post<void>(`${this.apiBaseUrl}/auth/send-verification`, {}).pipe(
       tap(() => {
         this.notificationService.info('Email de verificación enviado');
       }),
@@ -197,7 +202,7 @@ export class AuthService {
    * Verify email with token
    */
   verifyEmail(token: string): Observable<void> {
-    return this.http.post<void>('/auth/verify-email', { token }).pipe(
+    return this.http.post<void>(`${this.apiBaseUrl}/auth/verify-email`, { token }).pipe(
       tap(() => {
         this.notificationService.success('Email verificado correctamente');
         this.updateUserEmailVerified(true);
@@ -227,7 +232,7 @@ export class AuthService {
     this.tokenRefreshSubject.next(true);
 
     return this.http.post<ApiResponse<{ accessToken: string }>>(
-      '/auth/refresh',
+      `${this.apiBaseUrl}/auth/refresh`,
       { refreshToken }
     ).pipe(
       map(response => response.data.accessToken),
@@ -290,7 +295,7 @@ export class AuthService {
    * Update user profile
    */
   updateProfile(profileData: Partial<User>): Observable<User> {
-    return this.http.put<ApiResponse<User>>('/auth/profile', profileData).pipe(
+    return this.http.put<ApiResponse<User>>(`${this.apiBaseUrl}/auth/profile`, profileData).pipe(
       map(response => response.data),
       tap(updatedUser => {
         this.stateService.setCurrentUser(updatedUser);
@@ -305,10 +310,17 @@ export class AuthService {
   }
 
   /**
+   * Update user profile (alias for compatibility)
+   */
+  updateUserProfile(profileData: any): Observable<User> {
+    return this.updateProfile(profileData);
+  }
+
+  /**
    * Delete user account
    */
   deleteAccount(password: string): Observable<void> {
-    return this.http.delete<void>('/auth/account', {
+    return this.http.delete<void>(`${this.apiBaseUrl}/auth/account`, {
       body: { password }
     }).pipe(
       tap(() => {
@@ -337,7 +349,7 @@ export class AuthService {
   /**
    * Check if user has specific role
    */
-  hasRole(role: 'admin' | 'supplier' | 'buyer'): boolean {
+  hasRole(role: 'admin' | 'supplier' | 'client'): boolean {
     const user = this.getCurrentUser();
     return user?.role === role;
   }
@@ -345,7 +357,7 @@ export class AuthService {
   /**
    * Check if user has any of the specified roles
    */
-  hasAnyRole(roles: ('admin' | 'supplier' | 'buyer')[]): boolean {
+  hasAnyRole(roles: ('admin' | 'supplier' | 'client')[]): boolean {
     const user = this.getCurrentUser();
     return user ? roles.includes(user.role) : false;
   }
@@ -364,7 +376,7 @@ export class AuthService {
   /**
    * Require specific role for route
    */
-  requireRole(role: 'admin' | 'supplier' | 'buyer'): boolean {
+  requireRole(role: 'admin' | 'supplier' | 'client'): boolean {
     if (!this.hasRole(role)) {
       this.router.navigate(['/unauthorized']);
       return false;
@@ -385,7 +397,7 @@ export class AuthService {
     localStorage.setItem(this.TOKEN_KEY, accessToken);
   }
 
-  private getToken(): string | null {
+  public getToken(): string | null {
     return localStorage.getItem(this.TOKEN_KEY);
   }
 

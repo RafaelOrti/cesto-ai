@@ -258,6 +258,14 @@ export class TeamComponent implements OnInit {
     return this.teamInvitations.filter(invitation => invitation.status === 'pending').length;
   }
 
+  getActiveMembersCount(): number {
+    return this.activeMembersCount;
+  }
+
+  getPendingInvitationsCount(): number {
+    return this.pendingInvitationsCount;
+  }
+
   get currentPlan(): TeamPlan {
     return this.teamPlans.find(plan => plan.current) || this.teamPlans[0];
   }

@@ -1,137 +1,409 @@
 <div class="products-container">
-  <!-- Tutorial Popup -->
-  <div *ngIf="showTutorial" class="tutorial-popup">
+  <!-- Modern Tutorial Dialog -->
+  <div *ngIf="showTutorial" class="tutorial-dialog">
     <div class="tutorial-content">
-      <p>You can add all products from one supplier, and also add products from other suppliers.</p>
-      <button class="tutorial-button" (click)="closeTutorial()">
-        Next
+      <mat-icon class="tutorial-icon">lightbulb_outline</mat-icon>
+      <p>Discover how to efficiently manage your product orders across multiple suppliers in one unified platform.</p>
+      <button mat-raised-button color="primary" (click)="closeTutorial()">
+        Got it!
       </button>
     </div>
   </div>
 
-  <div class="content-header">
-    <h1>All products</h1>
-  </div>
-
-  <!-- Category Filters -->
-  <div class="category-filters">
-    <div class="category-grid">
-      <button 
-        *ngFor="let category of categories"
-        class="category-btn"
-        [class.active]="selectedCategory === category.id"
-        (click)="onCategorySelect(category.id)">
-        <div class="category-icon">{{ category.icon }}</div>
-        <span class="category-name">{{ category.name }}</span>
+  <!-- Modern Header -->
+  <mat-toolbar class="catalog-header">
+    <mat-toolbar-row>
+      <div class="header-content">
+        <h1>Product Catalog</h1>
+        <p>Discover and purchase premium products from verified suppliers</p>
+      </div>
+      <span class="spacer"></span>
+      <button mat-icon-button matTooltip="More options">
+        <mat-icon>more_vert</mat-icon>
       </button>
-      <button class="see-more-btn">
-        <span class="see-more-text">See More</span>
-        <span class="arrow-icon">→</span>
-      </button>
-    </div>
-  </div>
+    </mat-toolbar-row>
+  </mat-toolbar>
+  
+  <!-- Modern Search Section -->
+  <mat-card class="search-section">
+    <mat-card-content>
+      <form [formGroup]="searchForm" class="search-form">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Search products, brands, suppliers...</mat-label>
+          <input
+            matInput
+            type="text"
+            formControlName="search"
+            placeholder="Try 'organic milk' or 'premium wine'..."
+          />
+          <mat-icon matPrefix>search</mat-icon>
+          <button mat-icon-button matSuffix type="button" (click)="onSearch()" matTooltip="Search">
+            <mat-icon>search</mat-icon>
+          </button>
+        </mat-form-field>
+        
+        <!-- Modern Quick Filters -->
+        <div class="quick-filters">
+          <mat-chip-set>
+            <mat-chip 
+              *ngFor="let filter of quickFilters" 
+              [selected]="filter.active"
+              (click)="toggleQuickFilter(filter)"
+              class="filter-chip">
+              <mat-icon *ngIf="filter.icon" class="chip-icon">{{ filter.icon }}</mat-icon>
+              {{ filter.label }}
+            </mat-chip>
+          </mat-chip-set>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
 
-  <!-- Popular Products Section -->
-  <div class="popular-products-section">
-    <h2>Popular products</h2>
-    <div class="products-grid">
-      <div *ngFor="let product of popularProducts" class="product-card">
-        <div class="product-image">
-          <img [src]="product.image" [alt]="product.name" class="product-img">
-          <div *ngIf="product.isCampaign" class="sale-badge">
-            {{ product.discount }}%
+  <!-- Main Content -->
+  <div class="catalog-main">
+    <!-- Modern Sidebar -->
+    <mat-card class="filters-sidebar">
+      <mat-card-header>
+        <mat-card-title>Filters</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <!-- Category Filter -->
+        <mat-expansion-panel class="filter-group">
+          <mat-expansion-panel-header>
+            <mat-panel-title>Category</mat-panel-title>
+          </mat-expansion-panel-header>
+          <div class="filter-options">
+            <mat-checkbox 
+              *ngFor="let category of categories" 
+              [checked]="selectedCategories.includes(category.id)"
+              (change)="onCategoryChange(category.id, $event)">
+              {{ category.name }}
+            </mat-checkbox>
           </div>
+        </mat-expansion-panel>
+
+        <!-- Price Range Filter -->
+        <mat-expansion-panel class="filter-group">
+          <mat-expansion-panel-header>
+            <mat-panel-title>Price Range</mat-panel-title>
+          </mat-expansion-panel-header>
+          <div class="price-range">
+            <input 
+              type="range"
+              [min]="filterOptions.priceRange.min"
+              [max]="filterOptions.priceRange.max"
+              [(ngModel)]="priceRange.max"
+              (ngModelChange)="onPriceRangeChange($event)"
+              class="price-slider">
+            <div class="price-labels">
+              <span>€{{ priceRange.min }}</span>
+              <span>€{{ priceRange.max }}</span>
+            </div>
+          </div>
+        </mat-expansion-panel>
+
+        <!-- Availability Filter -->
+        <mat-expansion-panel class="filter-group">
+          <mat-expansion-panel-header>
+            <mat-panel-title>Availability</mat-panel-title>
+          </mat-expansion-panel-header>
+          <div class="filter-options">
+            <mat-checkbox 
+              [checked]="selectedAvailability.includes('in-stock')"
+              (change)="onAvailabilityChange('in-stock', $event)">
+              In Stock
+            </mat-checkbox>
+            <mat-checkbox 
+              [checked]="selectedAvailability.includes('low-stock')"
+              (change)="onAvailabilityChange('low-stock', $event)">
+              Low Stock
+            </mat-checkbox>
+            <mat-checkbox 
+              [checked]="selectedAvailability.includes('out-of-stock')"
+              (change)="onAvailabilityChange('out-of-stock', $event)">
+              Out of Stock
+            </mat-checkbox>
+          </div>
+        </mat-expansion-panel>
+
+        <div class="filter-actions">
+          <button mat-stroked-button (click)="clearAllFilters()">
+            Clear All Filters
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Modern Products Grid -->
+    <div class="products-grid">
+      <!-- Results Header -->
+      <div class="results-header">
+        <div class="results-count">
+          <span class="highlight">{{ filteredProducts.length }}</span> products found
+          <span *ngIf="activeFiltersCount > 0" class="filter-indicator">
+            • {{ activeFiltersCount }} filter{{ activeFiltersCount > 1 ? 's' : '' }} applied
+          </span>
         </div>
         
-        <div class="product-info">
-          <h4 class="product-name">{{ product.name }}</h4>
-          <div class="product-details">
-            <span class="volume">{{ product.volume }}</span>
-          </div>
-          <div class="pricing">
-            <span class="current-price">{{ formatCurrency(product.totalPrice) }}</span>
+        <div class="sort-controls">
+          <mat-form-field appearance="outline">
+            <mat-label>Sort by</mat-label>
+            <mat-select [(value)]="sortBy" (selectionChange)="onSortChange()">
+              <mat-option value="createdAt">Newest First</mat-option>
+              <mat-option value="price-asc">Price: Low to High</mat-option>
+              <mat-option value="price-desc">Price: High to Low</mat-option>
+              <mat-option value="rating">Highest Rated</mat-option>
+              <mat-option value="salesCount">Best Selling</mat-option>
+              <mat-option value="name">Name A-Z</mat-option>
+            </mat-select>
+          </mat-form-field>
+          
+          <div class="view-toggle">
+            <button mat-icon-button 
+              [class.active]="viewMode === 'grid'"
+              (click)="setViewMode('grid')"
+              matTooltip="Grid view">
+              <mat-icon>view_module</mat-icon>
+            </button>
+            <button mat-icon-button 
+              [class.active]="viewMode === 'list'"
+              (click)="setViewMode('list')"
+              matTooltip="List view">
+              <mat-icon>view_list</mat-icon>
+            </button>
           </div>
         </div>
+      </div>
 
-        <div class="product-actions">
-          <button 
-            *ngIf="!product.originalPrice"
-            class="add-btn primary-btn"
-            (click)="addToCart(product)">
-            Add To Cart
-          </button>
-          <button 
-            *ngIf="product.originalPrice"
-            class="add-btn primary-btn"
-            (click)="addToCheckout(product)">
-            Add To Cart
-          </button>
-          <button class="view-details-btn secondary-btn">
-            View Details
-          </button>
+      <!-- Loading State -->
+      <div *ngIf="isLoading" class="loading">
+        <div class="spinner"></div>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="!isLoading && filteredProducts.length === 0" class="empty-state">
+        <mat-icon class="empty-icon">inventory_2</mat-icon>
+        <h3>No products found</h3>
+        <p>Try adjusting your search criteria or filters to find what you're looking for.</p>
+        <button class="action-button" (click)="clearAllFilters()">
+          Clear Filters
+        </button>
+      </div>
+
+      <!-- Products List -->
+      <div *ngIf="!isLoading && filteredProducts.length > 0" class="products-list">
+        <div *ngFor="let product of filteredProducts" class="product-card">
+          <!-- Product Image -->
+          <div class="product-image">
+            <img [src]="getProductImage(product)" 
+                 [alt]="product.name" 
+                 class="product-img">
+            
+            <!-- Status Badge -->
+            <div class="status-badge" 
+                 [class.in-stock]="getStockStatus(product) === 'in-stock'"
+                 [class.low-stock]="getStockStatus(product) === 'low-stock'"
+                 [class.out-of-stock]="getStockStatus(product) === 'out-of-stock'">
+              {{ getStockText(product.stockQuantity) }}
+            </div>
+
+            <!-- Campaign Badge -->
+            <div *ngIf="product.discount || product.campaign" class="campaign-badge">
+              <span class="discount" *ngIf="product.discount">-{{ product.discount }}%</span>
+              <span *ngIf="!product.discount && product.campaign">Special Offer</span>
+            </div>
+          </div>
+
+          <!-- Product Content -->
+          <div class="product-content">
+            <!-- Product Header -->
+            <div class="product-header">
+              <h3 class="product-name">{{ product.name }}</h3>
+              
+              <div class="supplier-info">
+                <span class="supplier-name">{{ product.supplier || product.supplierName }}</span>
+                <mat-icon *ngIf="product.isVerified" class="verified-icon" matTooltip="Verified Supplier">
+                  verified
+                </mat-icon>
+              </div>
+
+              <p class="product-description">
+                {{ product.shortDescription || product.description }}
+              </p>
+            </div>
+
+            <!-- Product Specs -->
+            <div class="product-specs">
+              <span *ngIf="product.volume" class="spec">{{ product.volume }}</span>
+              <span *ngIf="product.quantity" class="spec">{{ product.quantity }}</span>
+              <span *ngIf="product.leadTimeDays" class="spec">{{ product.leadTimeDays }} days lead</span>
+            </div>
+
+            <!-- Pricing -->
+            <div class="pricing">
+              <div *ngIf="product.pricePerPiece" class="price-per-unit">
+                €{{ product.pricePerPiece }} per piece
+              </div>
+              
+              <div class="price-container">
+                <span *ngIf="product.originalPrice" class="original-price">
+                  €{{ product.originalPrice }}
+                </span>
+                <span class="current-price">
+                  €{{ product.price || product.pricePerPiece }}
+                </span>
+              </div>
+
+              <div *ngIf="product.deliveryDate" class="delivery-info">
+                <mat-icon>local_shipping</mat-icon>
+                Delivery: {{ product.deliveryDate }}
+              </div>
+            </div>
+
+            <!-- Rating Section -->
+            <div *ngIf="product.rating" class="rating-section">
+              <div class="rating">
+                <div class="stars">
+                  <mat-icon *ngFor="let star of getStars(product.rating)">star</mat-icon>
+                </div>
+                <span class="rating-value">{{ product.rating }}</span>
+                <span class="review-count">({{ product.reviewCount || 0 }} reviews)</span>
+              </div>
+            </div>
+
+            <!-- Product Actions -->
+            <div class="product-actions">
+              <button class="primary-action" (click)="addToCart(product)">
+                <mat-icon>add_shopping_cart</mat-icon>
+                Add to Cart
+              </button>
+              <button class="secondary-action" (click)="toggleWishlist(product)">
+                <mat-icon [class.favorite]="isInWishlist(product)">
+                  {{ isInWishlist(product) ? 'favorite' : 'favorite_border' }}
+                </mat-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Popular Products Section -->
+      <div *ngIf="popularProducts.length > 0" class="popular-section">
+        <div class="section-header">
+          <h2>Popular Products</h2>
+          <p>Most ordered items this week</p>
+        </div>
+        
+        <div class="products-list">
+          <div *ngFor="let product of popularProducts" class="product-card">
+            <!-- Same structure as above -->
+            <div class="product-image">
+              <img [src]="getProductImage(product)" 
+                   [alt]="product.name" 
+                   class="product-img">
+              
+              <div class="status-badge in-stock">Popular</div>
+            </div>
+
+            <div class="product-content">
+              <div class="product-header">
+                <h3 class="product-name">{{ product.name }}</h3>
+                
+                <div class="supplier-info">
+                  <span class="supplier-name">{{ product.supplier || product.supplierName }}</span>
+                  <mat-icon *ngIf="product.isVerified" class="verified-icon" matTooltip="Verified Supplier">
+                    verified
+                  </mat-icon>
+                </div>
+
+                <p class="product-description">
+                  {{ product.shortDescription || product.description }}
+                </p>
+              </div>
+
+              <div class="product-specs">
+                <span *ngIf="product.volume" class="spec">{{ product.volume }}</span>
+                <span *ngIf="product.quantity" class="spec">{{ product.quantity }}</span>
+              </div>
+
+              <div class="pricing">
+                <div class="price-container">
+                  <span *ngIf="product.originalPrice" class="original-price">
+                    €{{ product.originalPrice }}
+                  </span>
+                  <span class="current-price">
+                    €{{ product.price || product.pricePerPiece }}
+                  </span>
+                </div>
+              </div>
+
+              <div *ngIf="product.rating" class="rating-section">
+                <div class="rating">
+                  <div class="stars">
+                    <mat-icon *ngFor="let star of getStars(product.rating)">star</mat-icon>
+                  </div>
+                  <span class="rating-value">{{ product.rating }}</span>
+                  <span class="review-count">({{ product.reviewCount || 0 }})</span>
+                </div>
+              </div>
+
+              <div class="product-actions">
+                <button class="primary-action" (click)="addToCart(product)">
+                  <mat-icon>add_shopping_cart</mat-icon>
+                  Add to Cart
+                </button>
+                <button class="secondary-action" (click)="toggleWishlist(product)">
+                  <mat-icon [class.favorite]="isInWishlist(product)">
+                    {{ isInWishlist(product) ? 'favorite' : 'favorite_border' }}
+                  </mat-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Special Offers Section -->
+      <div *ngIf="specialOffers.length > 0" class="offers-section">
+        <div class="offers-header">
+          <div class="offer-badge">Special Offers</div>
+          <h3>Limited Time Deals</h3>
+        </div>
+
+        <div class="offers-grid">
+          <div *ngFor="let offer of specialOffers" class="offer-card">
+            <div class="offer-image">
+              <img [src]="offer.image || '/assets/placeholder-product.png'" 
+                   [alt]="offer.name" 
+                   class="offer-img">
+              
+              <div class="discount-badge">-{{ offer.discount }}%</div>
+            </div>
+
+            <div class="offer-info">
+              <h4 class="offer-name">{{ offer.name }}</h4>
+              <div class="offer-volume">{{ offer.volume }}</div>
+              
+              <div class="offer-pricing">
+                <span class="original-price">€{{ offer.originalPrice }}</span>
+                <span class="discount-price">€{{ offer.discountPrice }}</span>
+              </div>
+
+              <div class="delivery-info">Delivery: {{ offer.deliveryDate }}</div>
+
+              <div class="offer-actions">
+                <button class="buy-btn" (click)="addToCart(offer)">
+                  <mat-icon>shopping_cart</mat-icon>
+                  Buy Now
+                </button>
+                <button class="cart-btn" (click)="addToCart(offer)">
+                  <mat-icon>add</mat-icon>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </div>
-
-    <!-- Offers Section (On Sale Tab) -->
-    <div *ngIf="selectedTab === 'on-sale'" class="offers-section">
-      <div class="offers-header">
-        <div class="psst-section">
-          <span class="psst">Psst</span>
-          <span class="campaign-text">Klipp och kampanjer för er</span>
-        </div>
-      </div>
-
-      <div class="offers-grid">
-        <div *ngFor="let offer of offers" class="offer-card">
-          <div class="offer-image">
-            <img [src]="offer.image" [alt]="offer.name" class="offer-img">
-            <div class="discount-badge">
-              -{{ offer.discount }}%
-            </div>
-          </div>
-          
-          <div class="offer-info">
-            <h4 class="offer-name">{{ offer.name }}</h4>
-            <div class="offer-volume">{{ offer.volume }}</div>
-            <div class="offer-pricing">
-              <span class="original-price">{{ formatCurrency(offer.originalPrice) }}</span>
-              <span class="discount-price">{{ formatCurrency(offer.discountPrice) }}</span>
-            </div>
-            <div class="delivery-info">{{ offer.deliveryDate }}</div>
-          </div>
-
-          <div class="offer-actions">
-            <button mat-raised-button color="primary" class="buy-btn" (click)="buyProduct(offer)">
-              <mat-icon>shopping_cart</mat-icon>
-              Köp
-            </button>
-            <button mat-button class="add-to-cart-btn" (click)="addToCart(offer)">
-              <mat-icon>add_shopping_cart</mat-icon>
-              Lägg i kassan
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Addresses Section -->
-    <div class="addresses-section">
-      <h3>Mina adresser</h3>
-      <p>Address management section</p>
-    </div>
-
-    <!-- Footer -->
-    <div class="footer-section">
-      <div class="language-selector">
-        <span>Svenska-SE</span>
-      </div>
-      <div class="support-link">
-        <span>Stockfiller Support</span>
-      </div>
-      <div class="stockfiller-brand">
-        <span>Verse This is STOCKFILLER</span>
-      </div>
-    </div>
 </div>

@@ -222,7 +222,7 @@ export class AdminController {
         database: { status: 'healthy', response_time: '12ms' },
         api: { status: 'healthy', response_time: '45ms' },
         ai_services: { status: 'healthy', response_time: '89ms' },
-        redis: { status: 'healthy', response_time: '2ms' }
+        // redis: { status: 'healthy', response_time: '2ms' }
       },
       metrics: {
         uptime: '99.9%',

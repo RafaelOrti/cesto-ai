@@ -15,15 +15,15 @@ export default registerAs('database', (): TypeOrmModuleOptions => {
     ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
     migrations: [__dirname + '/../migrations/*{.ts,.js}'],
     migrationsRun: false,
-    cache: {
-      type: 'redis',
-      options: {
-        host: process.env.REDIS_HOST || 'localhost',
-        port: parseInt(process.env.REDIS_PORT || '6379', 10),
-        password: process.env.REDIS_PASSWORD,
-        db: parseInt(process.env.REDIS_DB || '0', 10),
-      },
-    },
+    // cache: {
+    //   type: 'redis',
+    //   options: {
+    //     host: process.env.REDIS_HOST || 'localhost',
+    //     port: parseInt(process.env.REDIS_PORT || '6379', 10),
+    //     password: process.env.REDIS_PASSWORD,
+    //     db: parseInt(process.env.REDIS_DB || '0', 10),
+    //   },
+    // },
   };
 
   // Only add URL if it exists

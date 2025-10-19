@@ -52,8 +52,7 @@ export class ErrorInterceptor implements HttpInterceptor {
       apiError = {
         code: 'CLIENT_ERROR',
         message: 'Error de conexión. Verifique su conexión a internet.',
-        path: error.url,
-        method: 'CLIENT'
+        timestamp: new Date().toISOString()
       };
     } else {
       // Server-side error
@@ -63,8 +62,7 @@ export class ErrorInterceptor implements HttpInterceptor {
         code: serverError?.code || error.status.toString(),
         message: serverError?.message || this.getDefaultErrorMessage(error.status),
         details: serverError?.details,
-        path: error.url,
-        method: error.error?.method || 'SERVER'
+        timestamp: new Date().toISOString()
       };
     }
 

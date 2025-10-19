@@ -1,10 +1,28 @@
 <div class="inventory-container">
-  <h1>Inventory</h1>
-  <p>Track your inventory levels and manage stock.</p>
-  
-  <div class="coming-soon">
-    <mat-icon>warehouse</mat-icon>
-    <h2>Coming Soon</h2>
-    <p>Inventory management features are under development.</p>
-  </div>
+  <mat-toolbar color="primary">
+    <mat-toolbar-row>
+      <h1>
+        <mat-icon>inventory</mat-icon>
+        Inventory Management
+      </h1>
+      <span class="spacer"></span>
+      <button mat-icon-button>
+        <mat-icon>more_vert</mat-icon>
+      </button>
+    </mat-toolbar-row>
+  </mat-toolbar>
+
+  <mat-card class="inventory-content">
+    <mat-card-content>
+      <div class="coming-soon">
+        <mat-icon class="feature-icon">warehouse</mat-icon>
+        <h2>Coming Soon</h2>
+        <p>Inventory management features are under development.</p>
+        <button mat-raised-button color="primary" disabled>
+          <mat-icon>construction</mat-icon>
+          Under Development
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
 </div>

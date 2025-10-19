@@ -123,12 +123,43 @@ export class SuppliersPublicController {
     );
   }
 
+  @Get('my-suppliers')
+  @ApiOperation({ summary: 'Get user\'s suppliers (my suppliers)' })
+  @ApiPaginatedResponse(Supplier)
+  async getMySuppliers(
+    @CurrentUser() user: User,
+    @Query() query: SupplierQueryDto
+  ) {
+    const result = await this.suppliersService.getMySuppliers(user.id, query);
+    return ResponseUtil.paginated(
+      result.data,
+      result.pagination.page,
+      result.pagination.limit,
+      result.pagination.total
+    );
+  }
+
   @Get('stats')
   @ApiOperation({ summary: 'Get supplier statistics' })
   @ApiResponseDecorator(Object)
   async getStats() {
     const stats = await this.suppliersService.getStats();
     return ResponseUtil.success(stats);
+  }
+
+  @Get('profile')
+  @UseGuards(RolesGuard)
+  @Roles('supplier')
+  @ApiOperation({ summary: 'Get supplier profile (supplier only)' })
+  @ApiResponseDecorator(Supplier)
+  @ApiErrorResponse(403, 'Forbidden - Only suppliers can access this endpoint')
+  @ApiErrorResponse(404, 'Supplier profile not found')
+  async getProfile(@CurrentUser() user: User) {
+    const supplier = await this.suppliersService.findByUserId(user.id);
+    if (!supplier) {
+      return ResponseUtil.error('Supplier profile not found', '404');
+    }
+    return ResponseUtil.success(supplier, 'Supplier profile retrieved successfully');
   }
 
   @Get(':id')
@@ -147,7 +178,7 @@ export class SuppliersPublicController {
     @Param('id') id: string,
     @Query() query: SupplierQueryDto
   ) {
-    const result = await this.suppliersService.getSupplierProducts(id, query);
+    const result = await this.suppliersService.getSupplierProductsById(id, query);
     return ResponseUtil.paginated(
       result.data,
       result.pagination.page,

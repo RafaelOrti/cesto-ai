@@ -1,10 +1,155 @@
 <div class="analysis-container">
-  <h1>Analysis</h1>
-  <p>View analytics and performance insights.</p>
-  
-  <div class="coming-soon">
-    <mat-icon>analytics</mat-icon>
-    <h2>Coming Soon</h2>
-    <p>Analytics and reporting features are under development.</p>
+  <!-- Header Section -->
+  <div class="header">
+    <h1>Analytics & Insights</h1>
+    <div class="header-actions">
+      <button mat-raised-button color="primary" (click)="generateReport()">
+        <mat-icon>assessment</mat-icon>
+        Generate Report
+      </button>
+      <button mat-button (click)="exportData()">
+        <mat-icon>download</mat-icon>
+        Export Data
+      </button>
+    </div>
   </div>
+
+  <!-- Key Metrics Section -->
+  <div class="metrics-grid">
+    <mat-card *ngFor="let metric of performanceMetrics" class="metric-card" [ngClass]="getMetricTrendClass(metric.trend)">
+      <mat-card-content>
+        <div class="metric-header">
+          <mat-icon>{{ metric.icon }}</mat-icon>
+          <span class="metric-title">{{ metric.title }}</span>
+        </div>
+        <div class="metric-value">{{ formatValue(metric.value, metric.unit) }}</div>
+        <div class="metric-change" [ngClass]="getChangeClass(metric.changePercentage)">
+          <mat-icon>{{ getChangeIcon(metric.trend) }}</mat-icon>
+          <span>{{ getAbsoluteValue(metric.changePercentage) }}%</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Demand Forecasting Section -->
+  <mat-card *ngIf="showForecasting" class="forecasting-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>trending_up</mat-icon>
+        Demand Forecasting
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="forecasting-grid">
+        <div *ngFor="let forecast of forecastingData" class="forecast-item">
+          <div class="forecast-product">
+            <h3>{{ forecast.productName }}</h3>
+            <div class="forecast-trend-indicator" [ngClass]="forecast.trend">
+              <mat-icon>{{ getTrendIcon(forecast.trend) }}</mat-icon>
+            </div>
+          </div>
+          <div class="forecast-metrics">
+            <div class="confidence-badge">
+              <span class="confidence-label">Confidence:</span>
+              <span class="confidence-value">{{ (forecast.confidence * 100).toFixed(1) }}%</span>
+            </div>
+            <span class="trend-badge" [ngClass]="forecast.trend">
+              {{ forecast.trend === 'increasing' ? 'increasing' : forecast.trend === 'decreasing' ? 'decreasing' : 'stable' }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- AI Recommendations Section -->
+  <mat-card class="recommendations-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>psychology</mat-icon>
+        AI Recommendations
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="recommendations-list">
+        <div *ngFor="let rec of aiRecommendations" class="recommendation-item" [ngClass]="rec.priority">
+          <div class="recommendation-header">
+            <div class="recommendation-title-section">
+              <h3>{{ rec.title }}</h3>
+              <div class="recommendation-type">
+                <mat-icon>{{ getRecommendationIcon(rec.type) }}</mat-icon>
+                <span>{{ getRecommendationTypeLabel(rec.type) }}</span>
+              </div>
+            </div>
+            <span class="impact-badge" [ngClass]="rec.impact">{{ rec.impact }} impact</span>
+          </div>
+          
+          <p class="recommendation-description">{{ rec.description }}</p>
+          
+          <div class="recommendation-meta">
+            <div class="meta-item">
+              <mat-icon>savings</mat-icon>
+              <span class="savings">{{ formatCurrency(rec.estimatedSavings) }}</span>
+            </div>
+            <div class="meta-item">
+              <mat-icon>verified_user</mat-icon>
+              <span class="confidence">{{ (rec.confidence * 100).toFixed(1) }}% confidence</span>
+            </div>
+            <div class="meta-item">
+              <mat-icon>schedule</mat-icon>
+              <span class="implementation-time">{{ rec.implementationTime }}</span>
+            </div>
+          </div>
+          
+          <div class="recommendation-actions">
+            <button mat-raised-button color="primary" (click)="applyRecommendation(rec)">
+              <mat-icon>check_circle</mat-icon>
+              Apply Recommendation
+            </button>
+            <button mat-button (click)="dismissRecommendation(rec)">
+              <mat-icon>close</mat-icon>
+              Dismiss
+            </button>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Performance Comparison Section -->
+  <mat-card *ngIf="showComparison" class="comparison-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>compare_arrows</mat-icon>
+        Performance Comparison
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="comparison-grid">
+        <div *ngFor="let comparison of comparisonData" class="comparison-item">
+          <h3>{{ comparison.metric }}</h3>
+          <div class="comparison-values">
+            <div class="value-item current">
+              <span class="value-label">Current</span>
+              <span class="value">{{ formatValue(comparison.current, comparison.unit) }}</span>
+            </div>
+            <div class="value-item previous">
+              <span class="value-label">Previous</span>
+              <span class="value">{{ formatValue(comparison.previous, comparison.unit) }}</span>
+            </div>
+            <div class="value-item industry">
+              <span class="value-label">Industry Avg</span>
+              <span class="value">{{ formatValue(comparison.industry, comparison.unit) }}</span>
+            </div>
+          </div>
+          <div class="performance-indicator">
+            <mat-icon [ngClass]="getPerformanceClass(comparison.current, comparison.industry)">
+              {{ getPerformanceIcon(comparison.current, comparison.industry) }}
+            </mat-icon>
+            <span class="performance-text">{{ getPerformanceText(comparison.current, comparison.industry) }}</span>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
 </div>

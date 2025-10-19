@@ -2,14 +2,19 @@
 
 .login-container {
   height: 100vh;
+  width: 100vw;
   max-height: 100vh;
-  background: linear-gradient(135deg, #2d5016 0%, #3e7b23 30%, #4a8c2a 60%, #5ba031 90%, #6bb338 100%);
+  max-width: 100vw;
+  background: #2E7D32;
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
+  position: fixed;
+  top: 0;
+  left: 0;
   overflow: hidden;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  box-sizing: border-box;
 }
 
 
@@ -71,7 +76,7 @@
   height: 100%;
   padding: 20px;
   z-index: 5;
-  overflow-y: auto;
+  overflow: hidden;
   box-sizing: border-box;
 }
 
@@ -87,26 +92,29 @@
   width: 100%;
   max-width: 480px;
   max-height: calc(100vh - 40px);
-  overflow-y: auto;
+  overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.3);
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
 }
 
 .form-header {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 32px;
+  flex-shrink: 0;
 
   .logo-container {
     .logo {
       width: 80px;
       height: 80px;
-      background: linear-gradient(135deg, #00695c 0%, #00796b 50%, #00897b 100%);
+      background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 50%, #4CAF50 100%);
       border-radius: 20px;
       display: flex;
       align-items: center;
       justify-content: center;
       margin: 0 auto 24px;
-      box-shadow: 0 8px 24px rgba(0, 105, 92, 0.4);
+      box-shadow: 0 8px 24px rgba(46, 125, 50, 0.4);
 
       i {
         font-size: 32px;
@@ -132,6 +140,12 @@
 }
 
 // Form Layout
+form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
 .form-row {
   display: flex;
   gap: 16px;
@@ -143,7 +157,7 @@
 }
 
 .form-group {
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 
   label {
     display: block;
@@ -329,7 +343,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: 24px 0;
+  margin: 20px 0;
+  flex-shrink: 0;
 
   .checkbox-wrapper {
     display: flex;
@@ -418,7 +433,7 @@
 // Submit Button
 .submit-button {
   width: 100%;
-  padding: 18px 24px;
+  padding: 16px 24px;
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
   color: white;
   border: none;
@@ -427,6 +442,7 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
+  flex-shrink: 0;
   position: relative;
   overflow: hidden;
   margin-top: 8px;
@@ -483,11 +499,12 @@
 // Form Footer
 .form-footer {
   text-align: center;
-  margin-top: 32px;
+  margin-top: 24px;
+  flex-shrink: 0;
 
   .divider {
     position: relative;
-    margin: 24px 0;
+    margin: 20px 0;
     color: #a0aec0;
     font-size: 14px;
     font-weight: 500;
@@ -534,10 +551,10 @@
 // Security Info
 .security-info {
   position: absolute;
-  bottom: 30px;
-  right: 30px;
+  bottom: 20px;
+  right: 20px;
   display: flex;
-  gap: 20px;
+  gap: 16px;
   z-index: 10;
 
   .security-item {
@@ -583,6 +600,8 @@
     padding: 32px 24px;
     margin: 20px;
     max-width: 100%;
+    max-height: calc(100vh - 40px);
+    overflow: hidden;
   }
 
   .nav-buttons {
@@ -706,7 +725,7 @@
 // Dark mode support (if needed)
 @media (prefers-color-scheme: dark) {
   .login-container {
-    background: linear-gradient(135deg, #1a3009 0%, #2d5016 50%, #3e7b23 100%);
+    background: #2E7D32;
   }
 
   .login-form {
@@ -738,6 +757,56 @@
           border-color: #008080;
           background: #2d3748;
         }
+      }
+    }
+  }
+}
+
+// Extra small screens
+@media (max-height: 600px) {
+  .login-form {
+    padding: 24px;
+    max-height: calc(100vh - 20px);
+    
+    .form-header {
+      margin-bottom: 20px;
+      
+      .logo-container .logo {
+        width: 60px;
+        height: 60px;
+        margin-bottom: 16px;
+        
+        i {
+          font-size: 24px;
+        }
+      }
+      
+      h1 {
+        font-size: 24px;
+      }
+      
+      p {
+        font-size: 14px;
+      }
+    }
+    
+    .form-group {
+      margin-bottom: 16px;
+    }
+    
+    .form-options {
+      margin: 16px 0;
+    }
+    
+    .submit-button {
+      padding: 14px 24px;
+    }
+    
+    .form-footer {
+      margin-top: 16px;
+      
+      .divider {
+        margin: 16px 0;
       }
     }
   }

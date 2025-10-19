@@ -1,680 +1,556 @@
 <div class="admin-dashboard">
   <!-- Header -->
   <div class="dashboard-header">
-    <h1>Admin Dashboard</h1>
-    <div class="header-actions">
-      <button class="btn-secondary" (click)="navigateToBuyerDashboard()">Buyer View</button>
-      <button class="btn-secondary" (click)="navigateToSupplierDashboard()">Supplier View</button>
-      <div class="user-info">
-        <span>admin&#64;cesto.com</span>
-        <button class="logout-btn">Logout</button>
-      </div>
+    <div class="header-left">
+      <h1>
+        <mat-icon>admin_panel_settings</mat-icon>
+        Admin Dashboard
+      </h1>
     </div>
-  </div>
-
-  <!-- Navigation Sidebar -->
-  <div class="sidebar">
-    <div class="nav-item" [class.active]="currentView === 'dashboard'" (click)="navigateToView('dashboard')">
-      <i class="material-icons">dashboard</i>
-      DASHBOARD
+    
+    <div class="search-container">
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Search users, products, orders... (Ctrl+K)</mat-label>
+        <input 
+          matInput
+          type="text" 
+          [(ngModel)]="searchQuery" 
+          (input)="performSearch(searchQuery)"
+          (keydown.escape)="clearSearch()"
+          placeholder="Search users, products, orders... (Ctrl+K)">
+        <mat-icon matPrefix>search</mat-icon>
+        <button mat-icon-button matSuffix *ngIf="searchQuery" (click)="clearSearch()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </mat-form-field>
     </div>
-    <div class="nav-item" [class.active]="currentView === 'users'" (click)="navigateToView('users')">
-      <i class="material-icons">people</i>
-      USER MANAGEMENT
-    </div>
-    <div class="nav-item" [class.active]="currentView === 'settings'" (click)="navigateToView('settings')">
-      <i class="material-icons">settings</i>
-      SYSTEM SETTINGS
-    </div>
-  </div>
-
-  <!-- Main Content -->
-  <div class="main-content">
-    <!-- Global Dashboard View -->
-    <div *ngIf="currentView === 'dashboard'" class="dashboard-content">
-      <h2>Global Insights</h2>
-      
-      <!-- Global Stats Cards -->
-      <div class="stats-grid">
-        <div class="stat-card">
-          <h3>{{ globalStats.totalUsers | number }}</h3>
-          <p>Total Users</p>
-          <div class="stat-trend positive">+{{ globalAnalytics.users.trend }}</div>
-        </div>
-        <div class="stat-card">
-          <h3>{{ globalStats.totalSuppliers | number }}</h3>
-          <p>Total Suppliers</p>
-          <div class="stat-trend stable">Active</div>
-        </div>
-        <div class="stat-card">
-          <h3>{{ globalStats.totalBuyers | number }}</h3>
-          <p>Total Buyers</p>
-          <div class="stat-trend positive">Growing</div>
-        </div>
-        <div class="stat-card">
-          <h3>{{ globalStats.totalProducts | number }}</h3>
-          <p>Total Products</p>
-          <div class="stat-trend positive">+{{ globalAnalytics.sales.trend }}</div>
-        </div>
-        <div class="stat-card">
-          <h3>${{ globalStats.revenueStats.totalRevenue | number }}</h3>
-          <p>Total Revenue</p>
-          <div class="stat-trend positive">+{{ globalStats.revenueStats.revenueGrowth }}%</div>
-        </div>
-        <div class="stat-card">
-          <h3>{{ globalStats.recentOrders | number }}</h3>
-          <p>Recent Orders</p>
-          <div class="stat-trend stable">{{ globalAnalytics.orders.trend }}</div>
-        </div>
-      </div>
-
-      <!-- Global Analytics Chart (Client Insights for all users) -->
-      <div class="analytics-section">
-        <div class="analytics-header">
-          <h3>Global Sales Analytics</h3>
-          <div class="analytics-filters">
-            <select>
-              <option>Sales</option>
-              <option>Orders</option>
-              <option>Users</option>
-              <option>Delivery</option>
-            </select>
-            <input type="date" value="2022-02-01">
-            <input type="date" value="2023-01-31">
-            <button class="btn-primary">Generate</button>
-          </div>
-        </div>
-
-        <!-- Line Graph -->
-        <div class="chart-container">
-          <div class="line-chart">
-            <div class="chart-area">
-              <!-- Mock chart - in real app would use Chart.js or similar -->
-              <div class="chart-line" [style.height]="'200px'">
-                <div class="chart-point" *ngFor="let point of globalAnalytics.sales.monthlyData; let i = index"
-                     [style.left]="(i * 8.33) + '%'"
-                     [style.bottom]="(point.value / 2800000 * 100) + '%'">
-                </div>
-              </div>
-              <div class="chart-labels">
-                <span *ngFor="let point of globalAnalytics.sales.monthlyData">{{ point.month }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Global Customer Data Table -->
-        <div class="customer-table-section">
-          <h4>Global Customer Performance</h4>
-          <table class="customer-table">
-            <thead>
-              <tr>
-                <th>Customer</th>
-                <th>Sales</th>
-                <th>Orders</th>
-                <th>Average Order</th>
-                <th>Frequency</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Restaurant Chain A</td>
-                <td>4,003,061</td>
-                <td>245</td>
-                <td>16,338</td>
-                <td>8</td>
-              </tr>
-              <tr>
-                <td>Grocery Store B</td>
-                <td>3,250,890</td>
-                <td>189</td>
-                <td>17,200</td>
-                <td>6</td>
-              </tr>
-              <tr>
-                <td>Cafe Network C</td>
-                <td>2,890,450</td>
-                <td>167</td>
-                <td>17,311</td>
-                <td>5</td>
-              </tr>
-              <tr>
-                <td>Wholesale D</td>
-                <td>2,500,200</td>
-                <td>145</td>
-                <td>17,243</td>
-                <td>4</td>
-              </tr>
-            </tbody>
-            <tfoot>
-              <tr>
-                <td><strong>Amount of stores: 1,247</strong></td>
-                <td><strong>Total: 16,677,110</strong></td>
-                <td><strong>917</strong></td>
-                <td><strong>8,777</strong></td>
-                <td><strong>21</strong></td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
-      </div>
-
-      <!-- System Health -->
-      <div class="system-health">
-        <h3>System Health</h3>
-        <div class="health-grid">
-          <div class="health-item">
-            <span class="health-label">Database</span>
-            <span class="health-status healthy">{{ globalStats.systemHealth.database }}</span>
-          </div>
-          <div class="health-item">
-            <span class="health-label">API</span>
-            <span class="health-status healthy">{{ globalStats.systemHealth.api }}</span>
-          </div>
-          <div class="health-item">
-            <span class="health-label">AI Services</span>
-            <span class="health-status healthy">{{ globalStats.systemHealth.aiServices }}</span>
-          </div>
-          <div class="health-item">
-            <span class="health-label">Uptime</span>
-            <span class="health-status healthy">{{ globalStats.systemHealth.uptime }}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Users Management View -->
-    <div *ngIf="currentView === 'users'" class="users-content">
-      <div class="content-header">
-        <h2>User Administration</h2>
-        <button class="btn-primary" (click)="createUser()">Create User</button>
-      </div>
-
-      <!-- User Filters -->
-      <div class="filters-section">
-        <div class="filter-group">
-          <label>Role:</label>
-          <select [(ngModel)]="userFilters.role">
-            <option value="">All Roles</option>
-            <option value="admin">Admin</option>
-            <option value="buyer">Buyer</option>
-            <option value="supplier">Supplier</option>
-          </select>
-        </div>
-        <div class="filter-group">
-          <label>Status:</label>
-          <select [(ngModel)]="userFilters.status">
-            <option value="">All Status</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select>
-        </div>
-        <div class="filter-group">
-          <label>Search:</label>
-          <input type="text" [(ngModel)]="userFilters.search" placeholder="Search users...">
-        </div>
-        <div class="filter-actions">
-          <button class="btn-secondary" (click)="applyFilters()">Apply Filters</button>
-          <button class="btn-secondary" (click)="clearFilters()">Clear</button>
-        </div>
-      </div>
-
-      <!-- Users Table -->
-      <div class="users-table">
-        <div *ngIf="isLoading" class="loading-indicator">
-          <div class="spinner"></div>
-          <span>Loading users...</span>
-        </div>
-        
-        <table *ngIf="!isLoading">
-          <thead>
-            <tr>
-              <th (click)="onSort('email')" class="sortable">
-                Email {{ getSortIcon('email') }}
-              </th>
-              <th (click)="onSort('firstName')" class="sortable">
-                Name {{ getSortIcon('firstName') }}
-              </th>
-              <th (click)="onSort('role')" class="sortable">
-                Role {{ getSortIcon('role') }}
-              </th>
-              <th (click)="onSort('isActive')" class="sortable">
-                Status {{ getSortIcon('isActive') }}
-              </th>
-              <th (click)="onSort('companyName')" class="sortable">
-                Company {{ getSortIcon('companyName') }}
-              </th>
-              <th (click)="onSort('createdAt')" class="sortable">
-                Created {{ getSortIcon('createdAt') }}
-              </th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let user of users">
-              <td>{{ user.email }}</td>
-              <td>{{ user.firstName }} {{ user.lastName }}</td>
-              <td>
-                <span class="role-badge" [class]="'role-' + user.role">
-                  {{ user.role | uppercase }}
-                </span>
-              </td>
-              <td>
-                <span class="status-badge" [class.active]="user.isActive">
-                  {{ user.isActive ? 'Active' : 'Inactive' }}
-                </span>
-              </td>
-              <td>{{ user.profile?.company || '-' }}</td>
-              <td>{{ user.createdAt | date:'short' }}</td>
-              <td class="actions-cell">
-                <button class="btn-secondary btn-sm" (click)="editUser(user)">Edit</button>
-                <button class="btn-warning btn-sm" (click)="toggleUserStatus(user)">
-                  {{ user.isActive ? 'Deactivate' : 'Activate' }}
-                </button>
-                <button class="btn-danger btn-sm" (click)="deleteUser(user)">Delete</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        
-        <div *ngIf="!isLoading && users.length === 0" class="no-data">
-          <p>No users found matching your criteria.</p>
-        </div>
-      </div>
-
-      <!-- Pagination Controls -->
-      <div *ngIf="!isLoading && users.length > 0" class="pagination-controls">
-        <div class="pagination-info">
-          <span>{{ paginationInfo }}</span>
-          <div class="page-size-selector">
-            <label>Show:</label>
-            <select [(ngModel)]="pageSize" (change)="onPageSizeChangeEvent($event)">
-              <option value="5">5</option>
-              <option value="10">10</option>
-              <option value="25">25</option>
-              <option value="50">50</option>
-              <option value="100">100</option>
-            </select>
-            <span>per page</span>
-          </div>
-        </div>
-        
-        <div class="pagination-buttons">
-          <button 
-            class="btn-secondary btn-sm" 
-            [disabled]="currentPage === 1"
-            (click)="onPageChange(1)">
-            First
-          </button>
-          <button 
-            class="btn-secondary btn-sm" 
-            [disabled]="currentPage === 1"
-            (click)="onPageChange(currentPage - 1)">
-            Previous
-          </button>
-          
-          <div class="page-numbers">
-            <button 
-              *ngFor="let page of pageNumbers" 
-              class="btn-sm"
-              [class.btn-primary]="page === currentPage"
-              [class.btn-secondary]="page !== currentPage"
-              (click)="onPageChange(page)">
-              {{ page }}
-            </button>
-          </div>
-          
-          <button 
-            class="btn-secondary btn-sm" 
-            [disabled]="currentPage === totalPages"
-            (click)="onPageChange(currentPage + 1)">
-            Next
-          </button>
-          <button 
-            class="btn-secondary btn-sm" 
-            [disabled]="currentPage === totalPages"
-            (click)="onPageChange(totalPages)">
-            Last
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Products View -->
-    <div *ngIf="currentView === 'products'" class="products-view">
-      <app-products-list></app-products-list>
-    </div>
-
-    <!-- Products On Sale View -->
-    <div *ngIf="currentView === 'products-on-sale'" class="products-on-sale-view">
-      <app-products-on-sale></app-products-on-sale>
-    </div>
-
-    <!-- System Configuration View -->
-    <div *ngIf="currentView === 'settings'" class="system-config-content">
-      <h2>System Settings</h2>
-      <p class="settings-description">Configure general app settings, security parameters, notifications, and system limits.</p>
-      
-      <!-- Configuration Categories -->
-      <div class="config-categories">
-        
-        <!-- General Configuration -->
-        <div class="config-category-section">
-          <h3><i class="material-icons">tune</i> General Configuration</h3>
-          <div class="config-list">
-            <div class="config-item" *ngFor="let config of getConfigByCategory('general')">
-              <div class="config-info">
-                <h4>{{ config.key }}</h4>
-                <p>{{ config.description }}</p>
-              </div>
-              <div class="config-value">
-                <input type="text" [value]="config.value" (change)="updateSystemConfig(config)">
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Security Configuration -->
-        <div class="config-category-section">
-          <h3><i class="material-icons">security</i> Security Settings</h3>
-          <div class="config-list">
-            <div class="config-item" *ngFor="let config of getConfigByCategory('security')">
-              <div class="config-info">
-                <h4>{{ config.key }}</h4>
-                <p>{{ config.description }}</p>
-              </div>
-              <div class="config-value">
-                <input type="text" [value]="config.value" (change)="updateSystemConfig(config)">
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Notification Configuration -->
-        <div class="config-category-section">
-          <h3><i class="material-icons">notifications</i> Notification Settings</h3>
-          <div class="config-list">
-            <div class="config-item" *ngFor="let config of getConfigByCategory('notification')">
-              <div class="config-info">
-                <h4>{{ config.key }}</h4>
-                <p>{{ config.description }}</p>
-              </div>
-              <div class="config-value">
-                <input type="text" [value]="config.value" (change)="updateSystemConfig(config)">
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- System Limits -->
-        <div class="config-category-section">
-          <h3><i class="material-icons">speed</i> System Limits</h3>
-          <div class="config-list">
-            <div class="config-item" *ngFor="let config of getConfigByCategory('limits')">
-              <div class="config-info">
-                <h4>{{ config.key }}</h4>
-                <p>{{ config.description }}</p>
-              </div>
-              <div class="config-value">
-                <input type="text" [value]="config.value" (change)="updateSystemConfig(config)">
-              </div>
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- Data Export/Import -->
-      <div class="data-management">
-        <h3>Data Management</h3>
-        <div class="data-actions">
-          <div class="export-section">
-            <h4>Export Data</h4>
-            <button class="btn-secondary" (click)="exportData('users')">Export Users</button>
-            <button class="btn-secondary" (click)="exportData('suppliers')">Export Suppliers</button>
-            <button class="btn-secondary" (click)="exportData('buyers')">Export Buyers</button>
-            <button class="btn-secondary" (click)="exportData('products')">Export Products</button>
-          </div>
-          
-          <div class="import-section">
-            <h4>Import Data</h4>
-            <button class="btn-secondary" (click)="importData('users')">Import Users</button>
-            <button class="btn-secondary" (click)="importData('suppliers')">Import Suppliers</button>
-            <button class="btn-secondary" (click)="importData('buyers')">Import Buyers</button>
-            <button class="btn-secondary" (click)="importData('products')">Import Products</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Other Views (Suppliers, Products, Orders, etc.) -->
-    <div *ngIf="currentView === 'suppliers'" class="global-view">
-      <h2>Global Suppliers View</h2>
-      <p>This view shows all suppliers with admin controls and global analytics.</p>
-      <!-- Implement global suppliers view -->
-    </div>
-
-    <div *ngIf="currentView === 'products'" class="global-view">
-      <h2>Global Products View</h2>
-      <p>This view shows all products across all suppliers with admin controls.</p>
-      <!-- Implement global products view -->
-    </div>
-
-    <div *ngIf="currentView === 'orders'" class="global-view">
-      <h2>Global Orders View</h2>
-      <p>This view shows all orders across all buyers and suppliers.</p>
-      <!-- Implement global orders view -->
-    </div>
-
-    <div *ngIf="currentView === 'analysis'" class="global-view">
-      <h2>Global Analysis</h2>
-      <p>This view provides comprehensive analytics across all users and entities.</p>
-      <!-- Implement global analysis view -->
-    </div>
-
-    <div *ngIf="currentView === 'invoices'" class="global-view">
-      <h2>Global Invoices</h2>
-      <p>This view shows all invoices across all buyers and suppliers.</p>
-      <!-- Implement global invoices view -->
-    </div>
-
-    <!-- Color Theme Configuration View -->
-    <div *ngIf="currentView === 'color-themes'" class="color-themes-view">
-      <app-color-theme-config></app-color-theme-config>
-    </div>
-
-    <!-- My Suppliers View -->
-    <div *ngIf="currentView === 'my-suppliers'" class="my-suppliers-view">
-      <!-- My Suppliers component temporarily disabled -->
-      <div class="placeholder">
-        <h3>My Suppliers</h3>
-        <p>This component is temporarily disabled due to compilation errors.</p>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- User Management Modals -->
-
-<!-- Create User Modal -->
-<div *ngIf="showCreateUserModal" class="modal-overlay" (click)="closeModals()">
-  <div class="modal" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <h3>Create New User</h3>
-      <button class="close-btn" (click)="closeModals()">&times;</button>
-    </div>
-    <div class="modal-body">
-      <form (ngSubmit)="saveUser()">
-        <div class="form-group">
-          <label for="email">Email *</label>
-          <input type="email" id="email" [(ngModel)]="userFormData.email" name="email" required>
-        </div>
-        
-        <div class="form-group" *ngIf="showCreateUserModal">
-          <label for="password">Password *</label>
-          <input type="password" id="password" [(ngModel)]="userFormData.password" name="password" required>
-        </div>
-        
-        <div class="form-row">
-          <div class="form-group">
-            <label for="firstName">First Name *</label>
-            <input type="text" id="firstName" [(ngModel)]="userFormData.firstName" name="firstName" required>
-          </div>
-          <div class="form-group">
-            <label for="lastName">Last Name *</label>
-            <input type="text" id="lastName" [(ngModel)]="userFormData.lastName" name="lastName" required>
-          </div>
-        </div>
-        
-        <div class="form-group">
-          <label for="role">Role *</label>
-          <select id="role" [(ngModel)]="userFormData.role" name="role" required>
-            <option value="buyer">Buyer</option>
-            <option value="supplier">Supplier</option>
-            <option value="admin">Admin</option>
-          </select>
-        </div>
-        
-        <div class="form-group">
-          <label for="companyName">Company Name</label>
-          <input type="text" id="companyName" [(ngModel)]="userFormData.companyName" name="companyName">
-        </div>
-        
-        <div class="form-group">
-          <label for="phone">Phone</label>
-          <input type="tel" id="phone" [(ngModel)]="userFormData.phone" name="phone">
-        </div>
-        
-        <div class="form-group">
-          <label for="address">Address</label>
-          <textarea id="address" [(ngModel)]="userFormData.address" name="address" rows="3"></textarea>
-        </div>
-        
-        <div class="form-row">
-          <div class="form-group">
-            <label for="city">City</label>
-            <input type="text" id="city" [(ngModel)]="userFormData.city" name="city">
-          </div>
-          <div class="form-group">
-            <label for="country">Country</label>
-            <input type="text" id="country" [(ngModel)]="userFormData.country" name="country">
-          </div>
-          <div class="form-group">
-            <label for="postalCode">Postal Code</label>
-            <input type="text" id="postalCode" [(ngModel)]="userFormData.postalCode" name="postalCode">
-          </div>
-        </div>
-        
-        <div class="modal-actions">
-          <button type="button" class="btn-secondary" (click)="closeModals()">Cancel</button>
-          <button type="submit" class="btn-primary" [disabled]="isLoading">
-            {{ isLoading ? 'Creating...' : 'Create User' }}
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<!-- Edit User Modal -->
-<div *ngIf="showEditUserModal" class="modal-overlay" (click)="closeModals()">
-  <div class="modal" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <h3>Edit User</h3>
-      <button class="close-btn" (click)="closeModals()">&times;</button>
-    </div>
-    <div class="modal-body">
-      <form (ngSubmit)="saveUser()">
-        <div class="form-group">
-          <label for="edit-email">Email *</label>
-          <input type="email" id="edit-email" [(ngModel)]="userFormData.email" name="email" required>
-        </div>
-        
-        <div class="form-row">
-          <div class="form-group">
-            <label for="edit-firstName">First Name *</label>
-            <input type="text" id="edit-firstName" [(ngModel)]="userFormData.firstName" name="firstName" required>
-          </div>
-          <div class="form-group">
-            <label for="edit-lastName">Last Name *</label>
-            <input type="text" id="edit-lastName" [(ngModel)]="userFormData.lastName" name="lastName" required>
-          </div>
-        </div>
-        
-        <div class="form-group">
-          <label for="edit-role">Role *</label>
-          <select id="edit-role" [(ngModel)]="userFormData.role" name="role" required>
-            <option value="buyer">Buyer</option>
-            <option value="supplier">Supplier</option>
-            <option value="admin">Admin</option>
-          </select>
-        </div>
-        
-        <div class="form-group">
-          <label>
-            <input type="checkbox" [(ngModel)]="userFormData.isActive" name="isActive">
-            Active User
-          </label>
-        </div>
-        
-        <div class="form-group">
-          <label for="edit-companyName">Company Name</label>
-          <input type="text" id="edit-companyName" [(ngModel)]="userFormData.companyName" name="companyName">
-        </div>
-        
-        <div class="form-group">
-          <label for="edit-phone">Phone</label>
-          <input type="tel" id="edit-phone" [(ngModel)]="userFormData.phone" name="phone">
-        </div>
-        
-        <div class="form-group">
-          <label for="edit-address">Address</label>
-          <textarea id="edit-address" [(ngModel)]="userFormData.address" name="address" rows="3"></textarea>
-        </div>
-        
-        <div class="form-row">
-          <div class="form-group">
-            <label for="edit-city">City</label>
-            <input type="text" id="edit-city" [(ngModel)]="userFormData.city" name="city">
-          </div>
-          <div class="form-group">
-            <label for="edit-country">Country</label>
-            <input type="text" id="edit-country" [(ngModel)]="userFormData.country" name="country">
-          </div>
-          <div class="form-group">
-            <label for="edit-postalCode">Postal Code</label>
-            <input type="text" id="edit-postalCode" [(ngModel)]="userFormData.postalCode" name="postalCode">
-          </div>
-        </div>
-        
-        <div class="modal-actions">
-          <button type="button" class="btn-secondary" (click)="closeModals()">Cancel</button>
-          <button type="submit" class="btn-primary" [disabled]="isLoading">
-            {{ isLoading ? 'Updating...' : 'Update User' }}
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<!-- Delete Confirmation Modal -->
-<div *ngIf="showDeleteConfirmModal" class="modal-overlay" (click)="closeModals()">
-  <div class="modal modal-small" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <h3>Confirm Delete</h3>
-      <button class="close-btn" (click)="closeModals()">&times;</button>
-    </div>
-    <div class="modal-body">
-      <p>Are you sure you want to delete user <strong>{{ selectedUser?.firstName }} {{ selectedUser?.lastName }}</strong>?</p>
-      <p class="warning-text">This action cannot be undone.</p>
-    </div>
-    <div class="modal-actions">
-      <button type="button" class="btn-secondary" (click)="closeModals()">Cancel</button>
-      <button type="button" class="btn-danger" (click)="confirmDeleteUser()" [disabled]="isLoading">
-        {{ isLoading ? 'Deleting...' : 'Delete User' }}
+    
+    <div class="control-buttons">
+      <button 
+        [class.active]="autoRefresh"
+        (click)="toggleAutoRefresh()" 
+        matTooltip="Toggle auto-refresh ({{ autoRefresh ? 'ON' : 'OFF' }})">
+        <mat-icon>{{ autoRefresh ? 'sync' : 'sync_disabled' }}</mat-icon>
       </button>
+      <button (click)="refreshData()" [disabled]="isLoading" matTooltip="Refresh">
+        <mat-icon>refresh</mat-icon>
+      </button>
+      <button (click)="navigateToBuyerDashboard()">Buyer View</button>
+      <button (click)="navigateToSupplierDashboard()">Supplier View</button>
+    </div>
+    
+    <div class="user-info">
+      <span>admin&#64;cesto.com</span>
+      <button class="logout-btn">Logout</button>
     </div>
   </div>
-</div>
 
+  <!-- Search Results Dropdown -->
+  <div class="search-results" *ngIf="showSearchResults && searchResults.length > 0">
+    <div class="search-result-item" *ngFor="let result of searchResults">
+      <div class="result-icon">
+        <mat-icon>{{ result.type === 'user' ? 'person' : result.type === 'product' ? 'inventory' : 'receipt' }}</mat-icon>
+      </div>
+      <div class="result-content">
+        <div class="result-title">{{ result.name || result.id }}</div>
+        <div class="result-subtitle">{{ result.email || result.category || result.status }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dashboard Content -->
+  <div class="dashboard-content">
+    <!-- Navigation Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-section">
+        <div class="section-title">Overview</div>
+        <ul class="sidebar-nav">
+          <li class="nav-item">
+            <a class="nav-link" [class.active]="currentView === 'dashboard'" (click)="setCurrentView('dashboard')">
+              <mat-icon class="nav-icon">dashboard</mat-icon>
+              Dashboard
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" [class.active]="currentView === 'users'" (click)="setCurrentView('users')">
+              <mat-icon class="nav-icon">people</mat-icon>
+              Users
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" [class.active]="currentView === 'analytics'" (click)="setCurrentView('analytics')">
+              <mat-icon class="nav-icon">analytics</mat-icon>
+              Analytics
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-title">Management</div>
+        <ul class="sidebar-nav">
+          <li class="nav-item">
+            <a class="nav-link" [class.active]="currentView === 'system'" (click)="setCurrentView('system')">
+              <mat-icon class="nav-icon">settings</mat-icon>
+              System Config
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" [class.active]="currentView === 'logs'" (click)="setCurrentView('logs')">
+              <mat-icon class="nav-icon">description</mat-icon>
+              Logs
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Dashboard View -->
+      <div *ngIf="currentView === 'dashboard'">
+        <div class="content-header">
+          <h1 class="page-title">Dashboard Overview</h1>
+          <p class="page-subtitle">Monitor system performance and user activity</p>
+        </div>
+
+        <!-- Global Statistics -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-header">
+              <div class="stat-title">Total Users</div>
+              <div class="stat-icon">
+                <mat-icon>people</mat-icon>
+              </div>
+            </div>
+            <div class="stat-value">{{ globalStats.totalUsers | number }}</div>
+            <div class="stat-change positive">
+              <mat-icon class="change-icon">trending_up</mat-icon>
+              +12% from last month
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <div class="stat-title">Active Users</div>
+              <div class="stat-icon">
+                <mat-icon>person</mat-icon>
+              </div>
+            </div>
+            <div class="stat-value">{{ globalStats.activeUsers | number }}</div>
+            <div class="stat-change positive">
+              <mat-icon class="change-icon">trending_up</mat-icon>
+              +8% from last month
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <div class="stat-title">Total Revenue</div>
+              <div class="stat-icon">
+                <mat-icon>attach_money</mat-icon>
+              </div>
+            </div>
+            <div class="stat-value">€{{ globalStats.revenueStats.totalRevenue | number }}</div>
+            <div class="stat-change positive">
+              <mat-icon class="change-icon">trending_up</mat-icon>
+              +15% from last month
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <div class="stat-title">System Health</div>
+              <div class="stat-icon">
+                <mat-icon>health_and_safety</mat-icon>
+              </div>
+            </div>
+            <div class="stat-value">{{ globalStats.systemHealth.uptime }}</div>
+            <div class="stat-change neutral">
+              <mat-icon class="change-icon">check_circle</mat-icon>
+              All systems operational
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="charts-grid">
+          <div class="chart-card">
+            <div class="chart-header">
+              <div class="chart-title">User Growth</div>
+              <div class="chart-actions">
+                <button class="chart-action">7D</button>
+                <button class="chart-action">30D</button>
+                <button class="chart-action">90D</button>
+              </div>
+            </div>
+            <div class="chart-content">
+              📈 User growth chart will be displayed here
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-header">
+              <div class="chart-title">Revenue Trends</div>
+              <div class="chart-actions">
+                <button class="chart-action">Export</button>
+              </div>
+            </div>
+            <div class="chart-content">
+              💰 Revenue trends chart will be displayed here
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Activity Table -->
+        <div class="data-table">
+          <div class="table-header">
+            <div class="table-title">Recent Activity</div>
+            <div class="table-actions">
+              <button class="action-button secondary">
+                <mat-icon>download</mat-icon>
+                Export
+              </button>
+              <button class="action-button">
+                <mat-icon>refresh</mat-icon>
+                Refresh
+              </button>
+            </div>
+          </div>
+          <div class="table-content">
+            <table>
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th>Action</th>
+                  <th>Timestamp</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let activity of recentActivity">
+                  <td>{{ activity.user }}</td>
+                  <td>{{ activity.action }}</td>
+                  <td>{{ activity.timestamp | date:'short' }}</td>
+                  <td>
+                    <span class="status-badge" [class]="'status-' + activity.status">
+                      {{ activity.status }}
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Users Management View -->
+      <div *ngIf="currentView === 'users'">
+        <div class="content-header">
+          <h1 class="page-title">User Management</h1>
+          <p class="page-subtitle">Manage user accounts and permissions</p>
+        </div>
+
+        <!-- User Statistics -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-header">
+              <div class="stat-title">Total Users</div>
+              <div class="stat-icon">
+                <mat-icon>people</mat-icon>
+              </div>
+            </div>
+            <div class="stat-value">{{ totalUsers | number }}</div>
+            <div class="stat-change positive">
+              <mat-icon class="change-icon">trending_up</mat-icon>
+              +{{ userGrowthData.length }} this month
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <div class="stat-title">Active Users</div>
+              <div class="stat-icon">
+                <mat-icon>person</mat-icon>
+              </div>
+            </div>
+            <div class="stat-value">{{ getActiveUsersCount() | number }}</div>
+            <div class="stat-change positive">
+              <mat-icon class="change-icon">check_circle</mat-icon>
+              {{ getActiveUsersPercentage() }}% of total
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <div class="stat-title">New This Week</div>
+              <div class="stat-icon">
+                <mat-icon>person_add</mat-icon>
+              </div>
+            </div>
+            <div class="stat-value">{{ getNewUsersThisWeek() | number }}</div>
+            <div class="stat-change positive">
+              <mat-icon class="change-icon">trending_up</mat-icon>
+              +{{ getNewUsersGrowth() }}% from last week
+            </div>
+          </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="data-table">
+          <div class="table-header">
+            <div class="table-title">Users ({{ getTotalUsersCount() }})</div>
+            <div class="table-actions">
+              <button class="action-button secondary" (click)="exportUsers()">
+                <mat-icon>download</mat-icon>
+                Export
+              </button>
+              <button class="action-button" (click)="openCreateUserModal()">
+                <mat-icon>person_add</mat-icon>
+                Add User
+              </button>
+            </div>
+          </div>
+          <div class="table-content">
+            <table>
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th>Email</th>
+                  <th>Role</th>
+                  <th>Status</th>
+                  <th>Last Login</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let user of users">
+                  <td>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                      <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--color-primary-main); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">
+                        {{ user.name?.charAt(0) || 'U' }}
+                      </div>
+                      <div>
+                        <div style="font-weight: 600;">{{ user.name || 'Unknown' }}</div>
+                        <div style="font-size: 12px; color: var(--color-text-secondary);">ID: {{ user.id }}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>{{ user.email }}</td>
+                  <td>
+                    <span style="padding: 4px 12px; background: var(--color-background-tertiary); border-radius: 20px; font-size: 12px; font-weight: 600; text-transform: uppercase;">
+                      {{ user.role }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="status-badge" [class]="'status-' + user.status">
+                      {{ user.status }}
+                    </span>
+                  </td>
+                  <td>{{ user.lastLogin | date:'short' }}</td>
+                  <td>
+                    <div style="display: flex; gap: 8px;">
+                      <button (click)="editUser(user)" style="padding: 6px; border: 1px solid var(--color-border-primary); background: white; border-radius: 6px; cursor: pointer; color: var(--color-text-secondary);">
+                        <mat-icon style="font-size: 16px;">edit</mat-icon>
+                      </button>
+                      <button (click)="deleteUser(user)" style="padding: 6px; border: 1px solid var(--color-border-primary); background: white; border-radius: 6px; cursor: pointer; color: var(--color-text-secondary);">
+                        <mat-icon style="font-size: 16px;">delete</mat-icon>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination">
+            <div class="pagination-info">
+              Showing {{ (currentPage - 1) * pageSize + 1 }} to {{ Math.min(currentPage * pageSize, totalUsers) }} of {{ totalUsers }} users
+            </div>
+            <div class="pagination-controls">
+              <button class="pagination-button" [disabled]="currentPage === 1" (click)="previousPage()">
+                Previous
+              </button>
+              <button class="pagination-button active">{{ currentPage }}</button>
+              <button class="pagination-button" [disabled]="currentPage * pageSize >= totalUsers" (click)="nextPage()">
+                Next
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Analytics View -->
+      <div *ngIf="currentView === 'analytics'">
+        <div class="content-header">
+          <h1 class="page-title">Analytics</h1>
+          <p class="page-subtitle">Detailed analytics and insights</p>
+        </div>
+
+        <div class="charts-grid">
+          <div class="chart-card">
+            <div class="chart-header">
+              <div class="chart-title">Sales Analytics</div>
+              <div class="chart-actions">
+                <button class="chart-action">Export</button>
+              </div>
+            </div>
+            <div class="chart-content">
+              📊 Sales analytics chart will be displayed here
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-header">
+              <div class="chart-title">User Engagement</div>
+              <div class="chart-actions">
+                <button class="chart-action">Export</button>
+              </div>
+            </div>
+            <div class="chart-content">
+              📈 User engagement metrics will be displayed here
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- System Config View -->
+      <div *ngIf="currentView === 'system'">
+        <div class="content-header">
+          <h1 class="page-title">System Configuration</h1>
+          <p class="page-subtitle">Manage system settings and configuration</p>
+        </div>
+
+        <div class="data-table">
+          <div class="table-header">
+            <div class="table-title">System Settings</div>
+            <div class="table-actions">
+              <button class="action-button">
+                <mat-icon>save</mat-icon>
+                Save Changes
+              </button>
+            </div>
+          </div>
+          <div class="table-content">
+            <table>
+              <thead>
+                <tr>
+                  <th>Setting</th>
+                  <th>Value</th>
+                  <th>Description</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let config of systemConfig">
+                  <td style="font-weight: 600;">{{ config.key }}</td>
+                  <td>{{ config.value }}</td>
+                  <td>{{ config.description }}</td>
+                  <td>
+                    <button style="padding: 6px; border: 1px solid var(--color-border-primary); background: white; border-radius: 6px; cursor: pointer; color: var(--color-text-secondary);">
+                      <mat-icon style="font-size: 16px;">edit</mat-icon>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Logs View -->
+      <div *ngIf="currentView === 'logs'">
+        <div class="content-header">
+          <h1 class="page-title">System Logs</h1>
+          <p class="page-subtitle">Monitor system logs and events</p>
+        </div>
+
+        <div class="data-table">
+          <div class="table-header">
+            <div class="table-title">Recent Logs</div>
+            <div class="table-actions">
+              <button class="action-button secondary">
+                <mat-icon>download</mat-icon>
+                Export Logs
+              </button>
+              <button class="action-button">
+                <mat-icon>refresh</mat-icon>
+                Refresh
+              </button>
+            </div>
+          </div>
+          <div class="table-content">
+            <table>
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>Level</th>
+                  <th>Message</th>
+                  <th>Source</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let log of systemLogs">
+                  <td>{{ log.timestamp | date:'short' }}</td>
+                  <td>
+                    <span class="status-badge" [class]="'status-' + log.level">
+                      {{ log.level }}
+                    </span>
+                  </td>
+                  <td>{{ log.message }}</td>
+                  <td>{{ log.source }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create User Modal -->
+  <div class="modal-overlay" *ngIf="showCreateUserModal" (click)="closeCreateUserModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3 class="modal-title">Create New User</h3>
+        <button class="modal-close" (click)="closeCreateUserModal()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <form [formGroup]="userForm" (ngSubmit)="createUser()">
+        <div class="form-group">
+          <label class="form-label">Name</label>
+          <input class="form-input" type="text" formControlName="name" placeholder="Enter user name">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input class="form-input" type="email" formControlName="email" placeholder="Enter email address">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Role</label>
+          <select class="form-select" formControlName="role">
+            <option value="admin">Admin</option>
+            <option value="user">User</option>
+            <option value="moderator">Moderator</option>
+          </select>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" (click)="closeCreateUserModal()">
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-primary" [disabled]="userForm.invalid || isLoading">
+            Create User
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" *ngIf="isLoading">
+    <div class="loading-spinner"></div>
+  </div>
+</div>

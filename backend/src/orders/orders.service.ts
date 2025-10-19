@@ -59,8 +59,20 @@ export class OrdersService {
       },
     });
 
+    // If no approval exists, create a pending relationship request
     if (!approval) {
-      throw new Error('Supplier not approved for this buyer');
+      const relationshipRequest = this.supplierApprovalRepository.create({
+        buyerId,
+        supplierId: createOrderDto.supplierId,
+        status: ApprovalStatus.PENDING,
+        notes: 'Relationship request from order placement',
+      });
+      
+      await this.supplierApprovalRepository.save(relationshipRequest);
+      
+      // For now, we'll allow the order to proceed with a warning
+      // In a production system, you might want to require approval first
+      this.logger.warn(`Order placed with unapproved supplier ${createOrderDto.supplierId} by buyer ${buyerId}`);
     }
 
     // Generate order number

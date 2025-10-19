@@ -1,0 +1,487 @@
+<div class="supplier-products-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <div class="title-section">
+        <h1 class="page-title">
+          <i class="fas fa-boxes"></i>
+          Gestión de Productos
+        </h1>
+        <p class="page-subtitle">
+          Administra tu catálogo de productos y mantén actualizada la información
+        </p>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-outline" (click)="onImportProducts()">
+          <i class="fas fa-upload"></i>
+          Importar
+        </button>
+        <button class="btn btn-outline" (click)="onExportProducts()">
+          <i class="fas fa-download"></i>
+          Exportar
+        </button>
+        <button class="btn btn-primary" (click)="onAddProduct()">
+          <i class="fas fa-plus"></i>
+          Nuevo Producto
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="stats-section">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon primary">
+          <i class="fas fa-boxes"></i>
+        </div>
+        <div class="stat-content">
+          <h3 class="stat-value">{{ stats.totalProducts }}</h3>
+          <p class="stat-label">Total Productos</p>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon success">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="stat-content">
+          <h3 class="stat-value">{{ stats.activeProducts }}</h3>
+          <p class="stat-label">Productos Activos</p>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon warning">
+          <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="stat-content">
+          <h3 class="stat-value">{{ stats.lowStockProducts }}</h3>
+          <p class="stat-label">Stock Bajo</p>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon danger">
+          <i class="fas fa-times-circle"></i>
+        </div>
+        <div class="stat-content">
+          <h3 class="stat-value">{{ stats.outOfStockProducts }}</h3>
+          <p class="stat-label">Sin Stock</p>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon info">
+          <i class="fas fa-euro-sign"></i>
+        </div>
+        <div class="stat-content">
+          <h3 class="stat-value">{{ formatCurrency(stats.totalRevenue) }}</h3>
+          <p class="stat-label">Ingresos Totales</p>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon accent">
+          <i class="fas fa-chart-line"></i>
+        </div>
+        <div class="stat-content">
+          <h3 class="stat-value">{{ formatCurrency(stats.averagePrice) }}</h3>
+          <p class="stat-label">Precio Promedio</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters and Search -->
+  <div class="filters-section">
+    <div class="filters-container">
+      <div class="search-box">
+        <i class="fas fa-search"></i>
+        <input 
+          type="text" 
+          placeholder="Buscar productos..." 
+          [(ngModel)]="filters.search"
+          (input)="onSearchChange()">
+      </div>
+      
+      <div class="filter-group">
+        <select [(ngModel)]="filters.category" (change)="onFilterChange()">
+          <option value="all">Todas las categorías</option>
+          <option *ngFor="let category of categories" [value]="category.id">
+            {{ category.name }}
+          </option>
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <select [(ngModel)]="filters.status" (change)="onFilterChange()">
+          <option value="all">Todos los estados</option>
+          <option *ngFor="let status of statusOptions" [value]="status.value">
+            {{ status.label }}
+          </option>
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <select [(ngModel)]="filters.stock" (change)="onFilterChange()">
+          <option *ngFor="let option of stockOptions" [value]="option.value">
+            {{ option.label }}
+          </option>
+        </select>
+      </div>
+      
+      <div class="filter-actions">
+        <button class="btn btn-outline" (click)="onBulkAction('activate')">
+          <i class="fas fa-check"></i>
+          Activar
+        </button>
+        <button class="btn btn-outline" (click)="onBulkAction('deactivate')">
+          <i class="fas fa-pause"></i>
+          Desactivar
+        </button>
+        <button class="btn btn-danger" (click)="onBulkAction('delete')">
+          <i class="fas fa-trash"></i>
+          Eliminar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Products Grid -->
+  <div class="products-section">
+    <div class="products-header">
+      <h3 class="section-title">
+        Productos ({{ totalItems }})
+      </h3>
+      <div class="view-options">
+        <button class="view-btn active">
+          <i class="fas fa-th"></i>
+        </button>
+        <button class="view-btn">
+          <i class="fas fa-list"></i>
+        </button>
+      </div>
+    </div>
+    
+    <div class="products-grid" *ngIf="!isLoading">
+      <div 
+        *ngFor="let product of getPaginatedProducts()" 
+        class="product-card"
+        [class.selected]="false">
+        <div class="product-checkbox">
+          <input type="checkbox" [id]="'product-' + product.id">
+          <label [for]="'product-' + product.id"></label>
+        </div>
+        
+        <div class="product-image">
+          <img [src]="product.images[0]" [alt]="product.name" (error)="$event.target.src='assets/images/products/default.png'">
+          <div class="product-status" [class]="getStatusClass(product.status)">
+            {{ getStatusLabel(product.status) }}
+          </div>
+        </div>
+        
+        <div class="product-info">
+          <h4 class="product-name">{{ product.name }}</h4>
+          <p class="product-description">{{ product.description }}</p>
+          
+          <div class="product-details">
+            <div class="detail-item">
+              <span class="detail-label">SKU:</span>
+              <span class="detail-value">{{ product.sku }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">EAN:</span>
+              <span class="detail-value">{{ product.ean }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Categoría:</span>
+              <span class="detail-value" [style.color]="getCategoryColor(product.category)">
+                <i class="fas" [class]="'fa-' + getCategoryIcon(product.category)"></i>
+                {{ getCategoryName(product.category) }}
+              </span>
+            </div>
+          </div>
+          
+          <div class="product-stats">
+            <div class="stat-item">
+              <span class="stat-label">Precio:</span>
+              <span class="stat-value price">{{ formatCurrency(product.price) }}</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Stock:</span>
+              <span class="stat-value" [class]="getStockClass(product.stock, product.minStock)">
+                {{ product.stock }} {{ product.unit }}
+              </span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Ventas:</span>
+              <span class="stat-value">{{ product.sales }}</span>
+            </div>
+          </div>
+          
+          <div class="product-actions">
+            <button class="action-btn edit" (click)="onEditProduct(product)">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button class="action-btn toggle" (click)="onToggleProductStatus(product)">
+              <i class="fas" [class]="product.status === 'active' ? 'fa-pause' : 'fa-play'"></i>
+            </button>
+            <button class="action-btn delete" (click)="onDeleteProduct(product)">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="loading-container">
+      <div class="loading-spinner">
+        <i class="fas fa-spinner fa-spin"></i>
+        <p>Cargando productos...</p>
+      </div>
+    </div>
+    
+    <!-- Empty State -->
+    <div *ngIf="!isLoading && filteredProducts.length === 0" class="empty-state">
+      <i class="fas fa-box-open"></i>
+      <h3>No se encontraron productos</h3>
+      <p>Intenta ajustar los filtros o añade un nuevo producto</p>
+      <button class="btn btn-primary" (click)="onAddProduct()">
+        <i class="fas fa-plus"></i>
+        Añadir Producto
+      </button>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination-section" *ngIf="!isLoading && filteredProducts.length > 0">
+    <div class="pagination-info">
+      Mostrando {{ (currentPage - 1) * itemsPerPage + 1 }} - 
+      {{ Math.min(currentPage * itemsPerPage, totalItems) }} de {{ totalItems }} productos
+    </div>
+    
+    <div class="pagination-controls">
+      <button 
+        class="pagination-btn" 
+        [disabled]="currentPage === 1"
+        (click)="onPageChange(currentPage - 1)">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+      
+      <div class="pagination-pages">
+        <button 
+          *ngFor="let page of [].constructor(getTotalPages())" 
+          class="pagination-page"
+          [class.active]="currentPage === page + 1"
+          (click)="onPageChange(page + 1)">
+          {{ page + 1 }}
+        </button>
+      </div>
+      
+      <button 
+        class="pagination-btn" 
+        [disabled]="currentPage === getTotalPages()"
+        (click)="onPageChange(currentPage + 1)">
+        <i class="fas fa-chevron-right"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Product Modal -->
+<div class="modal-overlay" *ngIf="showProductModal" (click)="onCancelEdit()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3 class="modal-title">
+        {{ editingProduct ? 'Editar Producto' : 'Nuevo Producto' }}
+      </h3>
+      <button class="modal-close" (click)="onCancelEdit()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    
+    <form [formGroup]="productForm" (ngSubmit)="onSaveProduct()" class="modal-form">
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="name">Nombre del Producto *</label>
+          <input 
+            type="text" 
+            id="name" 
+            formControlName="name" 
+            placeholder="Ej: Leche Orgánica 1L">
+        </div>
+        
+        <div class="form-group">
+          <label for="sku">SKU *</label>
+          <input 
+            type="text" 
+            id="sku" 
+            formControlName="sku" 
+            placeholder="Ej: LEO-001">
+        </div>
+        
+        <div class="form-group">
+          <label for="ean">EAN *</label>
+          <input 
+            type="text" 
+            id="ean" 
+            formControlName="ean" 
+            placeholder="1234567890123">
+        </div>
+        
+        <div class="form-group">
+          <label for="category">Categoría *</label>
+          <select id="category" formControlName="category">
+            <option value="">Seleccionar categoría</option>
+            <option *ngFor="let category of categories" [value]="category.id">
+              {{ category.name }}
+            </option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="price">Precio *</label>
+          <input 
+            type="number" 
+            id="price" 
+            formControlName="price" 
+            step="0.01" 
+            min="0.01"
+            placeholder="0.00">
+        </div>
+        
+        <div class="form-group">
+          <label for="cost">Costo</label>
+          <input 
+            type="number" 
+            id="cost" 
+            formControlName="cost" 
+            step="0.01" 
+            min="0"
+            placeholder="0.00">
+        </div>
+        
+        <div class="form-group">
+          <label for="stock">Stock *</label>
+          <input 
+            type="number" 
+            id="stock" 
+            formControlName="stock" 
+            min="0"
+            placeholder="0">
+        </div>
+        
+        <div class="form-group">
+          <label for="unit">Unidad *</label>
+          <select id="unit" formControlName="unit">
+            <option value="pcs">Piezas</option>
+            <option value="kg">Kilogramos</option>
+            <option value="l">Litros</option>
+            <option value="dozen">Docenas</option>
+            <option value="bottles">Botellas</option>
+          </select>
+        </div>
+        
+        <div class="form-group full-width">
+          <label for="description">Descripción *</label>
+          <textarea 
+            id="description" 
+            formControlName="description" 
+            rows="3"
+            placeholder="Describe las características del producto..."></textarea>
+        </div>
+        
+        <div class="form-group">
+          <label for="minStock">Stock Mínimo *</label>
+          <input 
+            type="number" 
+            id="minStock" 
+            formControlName="minStock" 
+            min="0"
+            placeholder="0">
+        </div>
+        
+        <div class="form-group">
+          <label for="maxStock">Stock Máximo *</label>
+          <input 
+            type="number" 
+            id="maxStock" 
+            formControlName="maxStock" 
+            min="1"
+            placeholder="1000">
+        </div>
+        
+        <div class="form-group">
+          <label for="weight">Peso (kg)</label>
+          <input 
+            type="number" 
+            id="weight" 
+            formControlName="weight" 
+            step="0.01" 
+            min="0"
+            placeholder="0.00">
+        </div>
+        
+        <div class="form-group">
+          <label for="status">Estado *</label>
+          <select id="status" formControlName="status">
+            <option *ngFor="let status of statusOptions" [value]="status.value">
+              {{ status.label }}
+            </option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="length">Largo (cm)</label>
+          <input 
+            type="number" 
+            id="length" 
+            formControlName="length" 
+            min="0"
+            placeholder="0">
+        </div>
+        
+        <div class="form-group">
+          <label for="width">Ancho (cm)</label>
+          <input 
+            type="number" 
+            id="width" 
+            formControlName="width" 
+            min="0"
+            placeholder="0">
+        </div>
+        
+        <div class="form-group">
+          <label for="height">Alto (cm)</label>
+          <input 
+            type="number" 
+            id="height" 
+            formControlName="height" 
+            min="0"
+            placeholder="0">
+        </div>
+        
+        <div class="form-group full-width">
+          <label for="tags">Etiquetas</label>
+          <input 
+            type="text" 
+            id="tags" 
+            formControlName="tags" 
+            placeholder="orgánico, fresco, lácteos (separadas por comas)">
+        </div>
+      </div>
+      
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" (click)="onCancelEdit()">
+          Cancelar
+        </button>
+        <button type="submit" class="btn btn-primary" [disabled]="productForm.invalid">
+          <i class="fas fa-save"></i>
+          {{ editingProduct ? 'Actualizar' : 'Crear' }} Producto
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,170 @@
+<div class="supplier-inventory-container">
+  <!-- Header Section -->
+  <div class="inventory-header">
+    <div class="header-content">
+      <div class="title-section">
+        <h1 class="inventory-title">
+          <i class="fas fa-boxes"></i>
+          Supplier Inventory Management
+        </h1>
+        <p class="inventory-subtitle">Manage your product inventory and stock levels</p>
+      </div>
+      
+      <div class="header-actions">
+        <button class="btn btn-primary" (click)="addNewItem()">
+          <i class="fas fa-plus"></i>
+          Add New Item
+        </button>
+        <button class="btn btn-secondary">
+          <i class="fas fa-download"></i>
+          Export Inventory
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">
+        <i class="fas fa-boxes"></i>
+      </div>
+      <div class="stat-content">
+        <h3 class="stat-value">{{ inventoryItems.length }}</h3>
+        <p class="stat-label">Total Items</p>
+      </div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon">
+        <i class="fas fa-exclamation-triangle"></i>
+      </div>
+      <div class="stat-content">
+        <h3 class="stat-value">{{ getLowStockCount() }}</h3>
+        <p class="stat-label">Low Stock</p>
+      </div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon">
+        <i class="fas fa-times-circle"></i>
+      </div>
+      <div class="stat-content">
+        <h3 class="stat-value">{{ getOutOfStockCount() }}</h3>
+        <p class="stat-label">Out of Stock</p>
+      </div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon">
+        <i class="fas fa-dollar-sign"></i>
+      </div>
+      <div class="stat-content">
+        <h3 class="stat-value">${{ getTotalValue() | number:'1.2-2' }}</h3>
+        <p class="stat-label">Total Value</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters and Search -->
+  <div class="filters-section">
+    <div class="search-bar">
+      <i class="fas fa-search"></i>
+      <input 
+        type="text" 
+        placeholder="Search inventory items..." 
+        [(ngModel)]="searchTerm"
+        (ngModelChange)="onSearchChange($event)">
+    </div>
+    
+    <div class="category-filter">
+      <select [(ngModel)]="selectedCategory" (ngModelChange)="onCategoryChange($event)">
+        <option *ngFor="let category of categories" [value]="category.value">
+          {{ category.label }}
+        </option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Inventory Table -->
+  <div class="inventory-table-container">
+    <div class="table-header">
+      <h3>Inventory Items</h3>
+      <div class="table-actions">
+        <button class="btn btn-outline">
+          <i class="fas fa-filter"></i>
+          Filter
+        </button>
+        <button class="btn btn-outline">
+          <i class="fas fa-sort"></i>
+          Sort
+        </button>
+      </div>
+    </div>
+
+    <div class="table-wrapper" *ngIf="!loading; else loadingTemplate">
+      <table class="inventory-table">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>SKU</th>
+            <th>Category</th>
+            <th>Current Stock</th>
+            <th>Min/Max</th>
+            <th>Unit Price</th>
+            <th>Total Value</th>
+            <th>Status</th>
+            <th>Last Restocked</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of inventoryItems" class="inventory-row">
+            <td class="product-cell">
+              <div class="product-info">
+                <h4 class="product-name">{{ item.name }}</h4>
+                <span class="product-id">ID: {{ item.id }}</span>
+              </div>
+            </td>
+            <td class="sku-cell">{{ item.sku }}</td>
+            <td class="category-cell">
+              <span class="category-badge">{{ item.category }}</span>
+            </td>
+            <td class="stock-cell">
+              <span class="stock-value">{{ item.currentStock }}</span>
+            </td>
+            <td class="minmax-cell">
+              <span class="min-stock">{{ item.minStock }}</span> / 
+              <span class="max-stock">{{ item.maxStock }}</span>
+            </td>
+            <td class="price-cell">${{ item.unitPrice | number:'1.2-2' }}</td>
+            <td class="value-cell">${{ item.totalValue | number:'1.2-2' }}</td>
+            <td class="status-cell">
+              <span class="status-badge" [ngClass]="getStatusClass(item.status)">
+                {{ getStatusLabel(item.status) }}
+              </span>
+            </td>
+            <td class="date-cell">{{ item.lastRestocked }}</td>
+            <td class="actions-cell">
+              <div class="action-buttons">
+                <button class="btn btn-sm btn-primary" (click)="restockItem(item)">
+                  <i class="fas fa-plus"></i>
+                </button>
+                <button class="btn btn-sm btn-secondary" (click)="adjustStock(item)">
+                  <i class="fas fa-edit"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <ng-template #loadingTemplate>
+      <div class="loading-container">
+        <div class="loading-spinner"></div>
+        <p>Loading inventory items...</p>
+      </div>
+    </ng-template>
+  </div>
+</div>

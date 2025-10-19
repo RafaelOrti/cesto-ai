@@ -1,0 +1,436 @@
+<div class="user-management-container">
+  <!-- Header Section -->
+  <div class="header-section">
+    <div class="header-content">
+      <div class="title-section">
+        <h1 class="page-title">
+          <mat-icon class="title-icon">people</mat-icon>
+          User Management
+        </h1>
+        <p class="page-subtitle">Manage users, roles, and permissions across the platform</p>
+      </div>
+      <div class="header-actions">
+        <button mat-raised-button color="primary" (click)="addNewUser()" class="add-button">
+          <mat-icon>add</mat-icon>
+          Add User
+        </button>
+        <button mat-stroked-button (click)="importUsers()" class="import-button">
+          <mat-icon>upload</mat-icon>
+          Import
+        </button>
+        <button mat-stroked-button (click)="exportUsers()" class="export-button">
+          <mat-icon>download</mat-icon>
+          Export
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation Tabs -->
+  <div class="navigation-tabs">
+    <button 
+      mat-button 
+      [class.active]="currentView === 'overview'"
+      (click)="setView('overview')"
+      class="tab-button">
+      <mat-icon>dashboard</mat-icon>
+      Overview
+    </button>
+    <button 
+      mat-button 
+      [class.active]="currentView === 'users'"
+      (click)="setView('users')"
+      class="tab-button">
+      <mat-icon>people</mat-icon>
+      Users
+    </button>
+    <button 
+      mat-button 
+      [class.active]="currentView === 'roles'"
+      (click)="setView('roles')"
+      class="tab-button">
+      <mat-icon>admin_panel_settings</mat-icon>
+      Roles & Permissions
+    </button>
+  </div>
+
+  <!-- Overview Tab -->
+  <div *ngIf="currentView === 'overview'" class="overview-section">
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-content">
+            <div class="stat-icon total">
+              <mat-icon>people</mat-icon>
+            </div>
+            <div class="stat-details">
+              <h3 class="stat-number">{{ userStats.totalUsers }}</h3>
+              <p class="stat-label">Total Users</p>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-content">
+            <div class="stat-icon active">
+              <mat-icon>check_circle</mat-icon>
+            </div>
+            <div class="stat-details">
+              <h3 class="stat-number">{{ userStats.activeUsers }}</h3>
+              <p class="stat-label">Active Users</p>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-content">
+            <div class="stat-icon pending">
+              <mat-icon>pending</mat-icon>
+            </div>
+            <div class="stat-details">
+              <h3 class="stat-number">{{ userStats.pendingUsers }}</h3>
+              <p class="stat-label">Pending Users</p>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-content">
+            <div class="stat-icon suspended">
+              <mat-icon>block</mat-icon>
+            </div>
+            <div class="stat-details">
+              <h3 class="stat-number">{{ userStats.suspendedUsers }}</h3>
+              <p class="stat-label">Suspended Users</p>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-content">
+            <div class="stat-icon admin">
+              <mat-icon>admin_panel_settings</mat-icon>
+            </div>
+            <div class="stat-details">
+              <h3 class="stat-number">{{ userStats.adminUsers }}</h3>
+              <p class="stat-label">Admin Users</p>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-content">
+            <div class="stat-icon client">
+              <mat-icon>business</mat-icon>
+            </div>
+            <div class="stat-details">
+              <h3 class="stat-number">{{ userStats.clientUsers }}</h3>
+              <p class="stat-label">Client Users</p>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Users Tab -->
+  <div *ngIf="currentView === 'users'" class="users-section">
+    <!-- Filters and Search -->
+    <div class="filters-section">
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Search users...</mat-label>
+        <input matInput [(ngModel)]="searchQuery" (input)="onSearch()" placeholder="Search by name, email, or company">
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="role-field">
+        <mat-label>Role</mat-label>
+        <mat-select [(ngModel)]="selectedRole" (selectionChange)="onRoleChange()">
+          <mat-option *ngFor="let role of roles" [value]="role.value">
+            {{ role.label }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="status-field">
+        <mat-label>Status</mat-label>
+        <mat-select [(ngModel)]="selectedStatus" (selectionChange)="onStatusChange()">
+          <mat-option *ngFor="let status of statuses" [value]="status.value">
+            {{ status.label }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="company-field">
+        <mat-label>Company</mat-label>
+        <mat-select [(ngModel)]="selectedCompany" (selectionChange)="onCompanyChange()">
+          <mat-option *ngFor="let company of companies" [value]="company.value">
+            {{ company.label }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="sort-field">
+        <mat-label>Sort by</mat-label>
+        <mat-select [(ngModel)]="sortBy" (selectionChange)="onSortChange()">
+          <mat-option value="name">Name</mat-option>
+          <mat-option value="email">Email</mat-option>
+          <mat-option value="role">Role</mat-option>
+          <mat-option value="company">Company</mat-option>
+          <mat-option value="status">Status</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <button mat-icon-button (click)="sortOrder = sortOrder === 'asc' ? 'desc' : 'asc'; onSortChange()" class="sort-order-button">
+        <mat-icon>{{ sortOrder === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+      </button>
+    </div>
+
+    <!-- Users Table -->
+    <mat-card class="users-table-card">
+      <mat-card-content>
+        <div class="table-container">
+          <table mat-table [dataSource]="filteredUsers" class="users-table">
+            <!-- Avatar Column -->
+            <ng-container matColumnDef="avatar">
+              <th mat-header-cell *matHeaderCellDef>Avatar</th>
+              <td mat-cell *matCellDef="let user">
+                <div class="user-avatar-cell">
+                  <div class="user-avatar" [style.background-color]="getRoleColor(user.role)">
+                    {{ getInitials(user.firstName, user.lastName) }}
+                  </div>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Name Column -->
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef>User</th>
+              <td mat-cell *matCellDef="let user">
+                <div class="user-name-cell">
+                  <h4 class="user-name">{{ user.firstName }} {{ user.lastName }}</h4>
+                  <span class="user-email">{{ user.email }}</span>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Email Column -->
+            <ng-container matColumnDef="email">
+              <th mat-header-cell *matHeaderCellDef>Email</th>
+              <td mat-cell *matCellDef="let user">
+                <span class="email">{{ user.email }}</span>
+              </td>
+            </ng-container>
+
+            <!-- Role Column -->
+            <ng-container matColumnDef="role">
+              <th mat-header-cell *matHeaderCellDef>Role</th>
+              <td mat-cell *matCellDef="let user">
+                <span class="role-badge" [style.background-color]="getRoleColor(user.role)">
+                  <mat-icon>{{ getRoleIcon(user.role) }}</mat-icon>
+                  {{ getRoleLabel(user.role) }}
+                </span>
+              </td>
+            </ng-container>
+
+            <!-- Company Column -->
+            <ng-container matColumnDef="company">
+              <th mat-header-cell *matHeaderCellDef>Company</th>
+              <td mat-cell *matCellDef="let user">
+                <span class="company">{{ user.companyName }}</span>
+              </td>
+            </ng-container>
+
+            <!-- Status Column -->
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef>Status</th>
+              <td mat-cell *matCellDef="let user">
+                <span class="status-badge" [style.background-color]="getStatusColor(user.status)">
+                  {{ getStatusLabel(user.status) }}
+                </span>
+              </td>
+            </ng-container>
+
+            <!-- Last Login Column -->
+            <ng-container matColumnDef="lastLogin">
+              <th mat-header-cell *matHeaderCellDef>Last Login</th>
+              <td mat-cell *matCellDef="let user">
+                <span class="last-login">{{ formatLastLogin(user.lastLogin) }}</span>
+              </td>
+            </ng-container>
+
+            <!-- Actions Column -->
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Actions</th>
+              <td mat-cell *matCellDef="let user">
+                <div class="actions-cell">
+                  <button mat-icon-button (click)="editUser(user)" matTooltip="Edit User" class="edit-button">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <button mat-icon-button (click)="toggleUserStatus(user)" 
+                          [matTooltip]="user.status === 'active' ? 'Deactivate' : 'Activate'" 
+                          class="suspend-button">
+                    <mat-icon>{{ user.status === 'active' ? 'visibility_off' : 'visibility' }}</mat-icon>
+                  </button>
+                  <button mat-icon-button (click)="suspendUser(user)" matTooltip="Suspend User" class="suspend-button">
+                    <mat-icon>block</mat-icon>
+                  </button>
+                  <button mat-icon-button (click)="resetUserPassword(user)" matTooltip="Reset Password" class="reset-button">
+                    <mat-icon>lock_reset</mat-icon>
+                  </button>
+                  <button mat-icon-button (click)="deleteUser(user)" matTooltip="Delete User" class="delete-button">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          </table>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- User Form Tab -->
+  <div *ngIf="currentView === 'form'" class="form-section">
+    <mat-card class="form-card">
+      <mat-card-header>
+        <mat-card-title>{{ isEditing ? 'Edit User' : 'Add New User' }}</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <form [formGroup]="userForm" (ngSubmit)="saveUser()">
+          <div class="form-grid">
+            <!-- Basic Information -->
+            <div class="form-section-title">
+              <h3>Basic Information</h3>
+            </div>
+            
+            <mat-form-field appearance="outline">
+              <mat-label>First Name</mat-label>
+              <input matInput formControlName="firstName" placeholder="Enter first name">
+              <mat-error *ngIf="userForm.get('firstName')?.hasError('required')">First name is required</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Last Name</mat-label>
+              <input matInput formControlName="lastName" placeholder="Enter last name">
+              <mat-error *ngIf="userForm.get('lastName')?.hasError('required')">Last name is required</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Email Address</mat-label>
+              <input matInput formControlName="email" type="email" placeholder="Enter email address">
+              <mat-error *ngIf="userForm.get('email')?.hasError('required')">Email is required</mat-error>
+              <mat-error *ngIf="userForm.get('email')?.hasError('email')">Please enter a valid email</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Role</mat-label>
+              <mat-select formControlName="role">
+                <mat-option value="admin">Admin</mat-option>
+                <mat-option value="client">Client</mat-option>
+                <mat-option value="supplier">Supplier</mat-option>
+              </mat-select>
+              <mat-error *ngIf="userForm.get('role')?.hasError('required')">Role is required</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Status</mat-label>
+              <mat-select formControlName="status">
+                <mat-option value="active">Active</mat-option>
+                <mat-option value="inactive">Inactive</mat-option>
+                <mat-option value="pending">Pending</mat-option>
+                <mat-option value="suspended">Suspended</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <!-- Company Information -->
+            <div class="form-section-title">
+              <h3>Company Information</h3>
+            </div>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Company Name</mat-label>
+              <input matInput formControlName="companyName" placeholder="Enter company name">
+              <mat-error *ngIf="userForm.get('companyName')?.hasError('required')">Company name is required</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Phone</mat-label>
+              <input matInput formControlName="phone" placeholder="Enter phone number">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>City</mat-label>
+              <input matInput formControlName="city" placeholder="Enter city">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Country</mat-label>
+              <input matInput formControlName="country" placeholder="Enter country">
+            </mat-form-field>
+
+            <!-- Permissions -->
+            <div class="form-section-title">
+              <h3>Permissions</h3>
+            </div>
+
+            <div class="permissions-section">
+              <div class="permissions-grid">
+                <div *ngFor="let permission of availablePermissions" class="permission-item">
+                  <mat-checkbox 
+                    [checked]="isPermissionSelected(permission)"
+                    (change)="onPermissionChange(permission, $event.checked)">
+                    {{ permission }}
+                  </mat-checkbox>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button mat-button type="button" (click)="currentView = 'overview'" class="cancel-button">
+              Cancel
+            </button>
+            <button mat-raised-button color="primary" type="submit" [disabled]="userForm.invalid" class="save-button">
+              {{ isEditing ? 'Update User' : 'Add User' }}
+            </button>
+          </div>
+        </form>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Roles & Permissions Tab -->
+  <div *ngIf="currentView === 'roles'" class="roles-section">
+    <mat-card class="roles-card">
+      <mat-card-header>
+        <mat-card-title>Roles & Permissions</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="roles-placeholder">
+          <mat-icon class="placeholder-icon">admin_panel_settings</mat-icon>
+          <h3>Role Management</h3>
+          <p>Configure user roles and their associated permissions</p>
+          <button mat-raised-button color="primary" class="manage-roles-button">
+            <mat-icon>settings</mat-icon>
+            Manage Roles
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

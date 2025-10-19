@@ -1,46 +1,38 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
+import { Subject } from 'rxjs';
+import { takeUntil, finalize } from 'rxjs/operators';
+import { I18nService } from '../../../core/services/i18n.service';
+import { NotificationService } from '../../../core/services/notification.service';
+import { UtilsService } from '../../../core/services/utils.service';
+import { SupplierService } from '../../../services/supplier.service';
+import { Supplier, SupplierRelationshipRequest } from '../../../../shared/types/common.types';
+import { BaseComponent } from '../../../core/components/base-component';
 
-interface Supplier {
-  id: string;
-  name: string;
+// Extended interface for My Suppliers with additional relationship and order data
+interface MySupplier extends Supplier {
+  companyName: string;
+  supplierName: string;
   description: string;
-  logo?: string;
-  category: string;
-  verified: boolean;
-  freeDelivery: boolean;
-  coDelivery: boolean;
-  onSale: boolean;
-  rating: number;
-  reviewCount: number;
-  isConnected: boolean;
-  requestSent: boolean;
-  requestDate?: Date;
-  lastOrderDate?: Date;
+  website: string;
+  logo: string;
+  isVerified: boolean;
+  relationshipStatus: 'pending' | 'approved' | 'rejected' | 'active' | 'inactive';
+  relationshipId: string | null;
   totalOrders: number;
-  averageOrderValue: number;
-  responseTime: string;
-  contactEmail: string;
-  contactPhone: string;
-  website?: string;
-  address: string;
+  totalSpent: number;
+  lastOrderDate: string | null;
+  minimumOrderAmount: number;
   deliveryAreas: string[];
-  specialties: string[];
-  certifications: string[];
-  minimumOrder: number;
-  paymentTerms: string;
-  establishedYear: number;
-  employeeCount: string;
-  annualRevenue: string;
-  languages: string[];
-}
-
-interface Category {
-  id: string;
-  name: string;
-  icon: string;
-  count: number;
+  contactPerson: string;
+  businessHours: string;
+  joinedDate: string;
+  totalProducts: number;
+  reviewCount: number;
+  // Override inherited properties to be required (inherited from Supplier)
+  createdAt: string;
+  updatedAt: string;
+  rating: number;
 }
 
 @Component({
@@ -48,654 +40,489 @@ interface Category {
   templateUrl: './my-suppliers.component.html',
   styleUrls: ['./my-suppliers.component.scss']
 })
-export class MySuppliersComponent implements OnInit, OnDestroy {
-  private destroy$ = new Subject<void>();
+export class MySuppliersComponent extends BaseComponent implements OnInit, OnDestroy {
+  suppliers: MySupplier[] = [];
+  filteredSuppliers: MySupplier[] = [];
+  searchQuery = '';
+  selectedCategory = 'all';
+  selectedStatus = 'all';
+  showRequestForm = false;
+  selectedSupplier: MySupplier | null = null;
+  isLoading = false;
 
-  // Data
-  suppliers: Supplier[] = [];
-  filteredSuppliers: Supplier[] = [];
-  categories: Category[] = [];
-  loading = false;
-  error: string | null = null;
+  // Properties from BaseComponent
+  i18n: any = { translate: (key: string) => key };
+  notificationService: any = { error: (msg: string) => console.error(msg) };
+  setLoading: (loading: boolean) => void = (loading: boolean) => { this.isLoading = loading; };
 
-  // Search and Filters
-  searchTerm = '';
-  selectedCategory = '';
-  selectedFilters: string[] = [];
-  sortBy = 'name';
-  sortOrder: 'asc' | 'desc' = 'asc';
+  showError(message: string): void {
+    this.notificationService.error(message);
+  }
 
-  // Pagination
-  currentPage = 1;
-  pageSize = 10;
-  totalItems = 0;
-
-  // Forms
-  supplierForm: FormGroup;
-  showAddModal = false;
-  showEditModal = false;
-  editingSupplier: Supplier | null = null;
+  // Request form
+  requestForm: FormGroup;
 
   // Filter options
-  filterOptions = [
-    { key: 'freeDelivery', label: 'Envío gratis', icon: 'truck' },
-    { key: 'coDelivery', label: 'Co-entrega', icon: 'users' },
-    { key: 'onSale', label: 'En oferta', icon: 'percent' },
-    { key: 'verified', label: 'Verificados', icon: 'check-circle' },
-    { key: 'connected', label: 'Conectados', icon: 'link' },
-    { key: 'highRating', label: 'Alta valoración', icon: 'star' }
+  categories = [
+    'Dairy',
+    'Fruits & Vegetables',
+    'Meat & Poultry',
+    'Seafood',
+    'Beverages',
+    'Bakery',
+    'Frozen Foods',
+    'Packaged Goods',
+    'Health & Beauty',
+    'Cleaning Supplies'
   ];
 
-  // Sort options
-  sortOptions = [
-    { key: 'name', label: 'Nombre' },
-    { key: 'category', label: 'Categoría' },
-    { key: 'rating', label: 'Valoración' },
-    { key: 'lastOrderDate', label: 'Último pedido' },
-    { key: 'totalOrders', label: 'Total pedidos' },
-    { key: 'averageOrderValue', label: 'Valor promedio' },
-    { key: 'responseTime', label: 'Tiempo de respuesta' }
+  statusOptions = [
+    { value: 'all', label: 'All Statuses' },
+    { value: 'approved', label: 'Approved' },
+    { value: 'pending', label: 'Pending' },
+    { value: 'rejected', label: 'Rejected' },
+    { value: 'inactive', label: 'Inactive' }
   ];
 
-  constructor(private fb: FormBuilder) {
-    this.supplierForm = this.createSupplierForm();
-    this.initializeData();
+  constructor(
+    protected fb: FormBuilder,
+    private supplierService: SupplierService
+  ) {
+    super(fb);
+    this.initializeForm();
   }
 
   ngOnInit(): void {
     this.loadSuppliers();
-    this.setupSearch();
   }
 
   ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
+    // Additional cleanup if needed
   }
 
-  private createSupplierForm(): FormGroup {
-    return this.fb.group({
-      name: ['', [Validators.required, Validators.minLength(2)]],
-      description: ['', [Validators.required, Validators.minLength(10)]],
-      category: ['', Validators.required],
-      contactEmail: ['', [Validators.required, Validators.email]],
-      contactPhone: ['', Validators.required],
-      website: [''],
-      address: ['', Validators.required],
-      minimumOrder: [0, [Validators.min(0)]],
-      paymentTerms: [''],
-      establishedYear: [new Date().getFullYear(), [Validators.min(1800), Validators.max(new Date().getFullYear())]],
-      employeeCount: [''],
-      annualRevenue: [''],
-      languages: [[]],
-      specialties: [[]],
-      certifications: [[]],
-      deliveryAreas: [[]],
-      freeDelivery: [false],
-      coDelivery: [false],
-      onSale: [false]
+  private initializeForm(): void {
+    this.requestForm = this.fb.group({
+      message: ['', [Validators.required, Validators.minLength(10)]],
+      requestType: ['inquiry', Validators.required]
     });
   }
 
-  private initializeData(): void {
-    // Initialize categories
-    this.categories = [
-      { id: 'dairy', name: 'Lácteos', icon: 'milk', count: 45 },
-      { id: 'fruits-vegetables', name: 'Frutas y Verduras', icon: 'carrot', count: 32 },
-      { id: 'delicatessen', name: 'Delicatessen, Embutidos', icon: 'sausage', count: 28 },
-      { id: 'health-beauty', name: 'Salud y Belleza', icon: 'lotion', count: 15 },
-      { id: 'frozen', name: 'Congelados', icon: 'snowflake', count: 22 },
-      { id: 'seafood', name: 'Fresco del mar', icon: 'fish', count: 18 },
-      { id: 'meat', name: 'Productos frescos envasados, Carne...', icon: 'package', count: 35 },
-      { id: 'beverages', name: 'Bebidas', icon: 'bottle', count: 25 },
-      { id: 'bakery', name: 'Panadería', icon: 'bread', count: 20 },
-      { id: 'organic', name: 'Orgánico', icon: 'leaf', count: 12 }
+  loadSuppliers(): void {
+    this.isLoading = true;
+    
+    // Simulate API call delay
+    setTimeout(() => {
+      // Load mock data instead of API call
+      this.suppliers = this.getMockSuppliers();
+      this.applyFilters();
+      this.isLoading = false;
+    }, 1000);
+
+    // Original API call (commented out for demo purposes)
+    /*
+    this.supplierService.getMySuppliers()
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.isLoading = false)
+      )
+      .subscribe({
+        next: (suppliers) => {
+          this.suppliers = suppliers;
+          this.applyFilters();
+        },
+        error: (error) => {
+          console.error('Error loading suppliers:', error);
+          this.showError('Failed to load suppliers');
+        }
+      });
+    */
+  }
+
+  private getMockSuppliers(): MySupplier[] {
+    return [
+      {
+        id: '1',
+        name: 'Fresh Dairy Co',
+        companyName: 'Fresh Dairy Co',
+        supplierName: 'Fresh Dairy Co',
+        email: 'contact@freshdairy.com',
+        phone: '+46 8 123 4567',
+        address: 'Dairy Lane 123, Stockholm, Stockholm 12345, Sweden',
+        city: 'Stockholm',
+        country: 'Sweden',
+        isActive: true,
+        joinedDate: '2023-01-15',
+        totalProducts: 150,
+        description: 'Premium dairy products supplier specializing in organic milk, cheese, and yogurt. We provide fresh, high-quality dairy products to restaurants and retail businesses across Sweden.',
+        website: 'https://freshdairy.com',
+        logo: 'https://via.placeholder.com/80x80/4CAF50/FFFFFF?text=FD',
+        isVerified: true,
+        rating: 4.8,
+        reviewCount: 127,
+        createdAt: '2023-01-15',
+        updatedAt: '2024-01-15',
+        categories: ['Dairy', 'Organic Products'],
+        relationshipStatus: 'approved',
+        relationshipId: 'rel-001',
+        totalOrders: 45,
+        totalSpent: 125000,
+        lastOrderDate: '2024-01-15',
+        minimumOrderAmount: 500,
+        deliveryAreas: ['Stockholm', 'Uppsala', 'Västerås'],
+        contactPerson: 'Erik Andersson',
+        businessHours: 'Mon-Fri 8:00-17:00'
+      },
+      {
+        id: '2',
+        name: 'Nordic Meats Ltd',
+        companyName: 'Nordic Meats Ltd',
+        supplierName: 'Nordic Meats Ltd',
+        email: 'orders@nordicmeats.se',
+        phone: '+46 31 987 6543',
+        address: 'Meat Street 456, Gothenburg, Västra Götaland 54321, Sweden',
+        city: 'Gothenburg',
+        country: 'Sweden',
+        isActive: true,
+        joinedDate: '2023-02-20',
+        totalProducts: 200,
+        description: 'Leading supplier of premium meat and poultry products. We offer a wide range of fresh and frozen meats, including organic and free-range options.',
+        website: 'https://nordicmeats.se',
+        logo: 'https://via.placeholder.com/80x80/FF5722/FFFFFF?text=NM',
+        isVerified: true,
+        rating: 4.6,
+        reviewCount: 89,
+        createdAt: '2023-02-20',
+        updatedAt: '2024-01-12',
+        categories: ['Meat & Poultry', 'Frozen Foods'],
+        relationshipStatus: 'approved',
+        relationshipId: 'rel-002',
+        totalOrders: 32,
+        totalSpent: 89000,
+        lastOrderDate: '2024-01-12',
+        minimumOrderAmount: 750,
+        deliveryAreas: ['Gothenburg', 'Malmö', 'Helsingborg'],
+        contactPerson: 'Anna Lindqvist',
+        businessHours: 'Mon-Fri 7:00-16:00'
+      },
+      {
+        id: '3',
+        name: 'Green Valley Produce',
+        companyName: 'Green Valley Produce',
+        supplierName: 'Green Valley Produce',
+        email: 'sales@greenvalley.se',
+        phone: '+46 42 555 1234',
+        address: 'Valley Road 789, Malmö, Skåne 98765, Sweden',
+        city: 'Malmö',
+        country: 'Sweden',
+        isActive: true,
+        joinedDate: '2023-03-10',
+        totalProducts: 80,
+        description: 'Organic fruits and vegetables supplier committed to sustainable farming practices. We deliver fresh, seasonal produce directly from our farms.',
+        website: 'https://greenvalley.se',
+        logo: 'https://via.placeholder.com/80x80/4CAF50/FFFFFF?text=GV',
+        isVerified: true,
+        rating: 4.9,
+        reviewCount: 203,
+        createdAt: '2023-03-10',
+        updatedAt: '2024-01-08',
+        categories: ['Fruits & Vegetables', 'Organic Products'],
+        relationshipStatus: 'pending',
+        relationshipId: 'rel-003',
+        totalOrders: 0,
+        totalSpent: 0,
+        lastOrderDate: null,
+        minimumOrderAmount: 300,
+        deliveryAreas: ['Malmö', 'Lund', 'Helsingborg'],
+        contactPerson: 'Lars Eriksson',
+        businessHours: 'Mon-Sat 6:00-18:00'
+      },
+      {
+        id: '4',
+        name: 'Premium Beverages AB',
+        companyName: 'Premium Beverages AB',
+        supplierName: 'Premium Beverages AB',
+        email: 'info@premiumbeverages.se',
+        phone: '+46 8 555 9876',
+        address: 'Beverage Boulevard 321, Stockholm, Stockholm 13579, Sweden',
+        city: 'Stockholm',
+        country: 'Sweden',
+        isActive: true,
+        joinedDate: '2023-04-05',
+        totalProducts: 300,
+        description: 'Specialized beverage distributor offering premium alcoholic and non-alcoholic drinks. We carry exclusive brands and craft beverages from around the world.',
+        website: 'https://premiumbeverages.se',
+        logo: 'https://via.placeholder.com/80x80/2196F3/FFFFFF?text=PB',
+        isVerified: true,
+        rating: 4.7,
+        reviewCount: 156,
+        createdAt: '2023-04-05',
+        updatedAt: '2024-01-18',
+        categories: ['Beverages', 'Packaged Goods'],
+        relationshipStatus: 'approved',
+        relationshipId: 'rel-004',
+        totalOrders: 28,
+        totalSpent: 156000,
+        lastOrderDate: '2024-01-18',
+        minimumOrderAmount: 1000,
+        deliveryAreas: ['Stockholm', 'Uppsala', 'Södertälje'],
+        contactPerson: 'Maria Johansson',
+        businessHours: 'Mon-Fri 9:00-18:00'
+      },
+      {
+        id: '5',
+        name: 'Artisan Bakery Co',
+        companyName: 'Artisan Bakery Co',
+        supplierName: 'Artisan Bakery Co',
+        email: 'orders@artisanbakery.se',
+        phone: '+46 11 333 7777',
+        address: 'Baker Street 654, Uppsala, Uppsala 24680, Sweden',
+        city: 'Uppsala',
+        country: 'Sweden',
+        isActive: false,
+        joinedDate: '2023-05-12',
+        totalProducts: 50,
+        description: 'Traditional artisan bakery producing fresh bread, pastries, and desserts daily. We use only the finest ingredients and traditional baking methods.',
+        website: 'https://artisanbakery.se',
+        logo: 'https://via.placeholder.com/80x80/FF9800/FFFFFF?text=AB',
+        isVerified: false,
+        rating: 4.4,
+        reviewCount: 23,
+        createdAt: '2023-05-12',
+        updatedAt: '2023-12-15',
+        categories: ['Bakery', 'Frozen Foods'],
+        relationshipStatus: 'rejected',
+        relationshipId: null,
+        totalOrders: 0,
+        totalSpent: 0,
+        lastOrderDate: null,
+        minimumOrderAmount: 200,
+        deliveryAreas: ['Uppsala', 'Enköping'],
+        contactPerson: 'Sven Gustafsson',
+        businessHours: 'Mon-Sat 5:00-15:00'
+      },
+      {
+        id: '6',
+        name: 'Ocean Fresh Seafood',
+        companyName: 'Ocean Fresh Seafood',
+        supplierName: 'Ocean Fresh Seafood',
+        email: 'contact@oceanfresh.se',
+        phone: '+46 31 777 8888',
+        address: 'Harbor View 147, Gothenburg, Västra Götaland 36912, Sweden',
+        city: 'Gothenburg',
+        country: 'Sweden',
+        isActive: true,
+        description: 'Premium seafood supplier offering fresh fish, shellfish, and marine products. We source directly from local fishermen and maintain the highest quality standards.',
+        website: 'https://oceanfresh.se',
+        logo: 'https://via.placeholder.com/80x80/03A9F4/FFFFFF?text=OF',
+        isVerified: true,
+        rating: 4.5,
+        reviewCount: 78,
+        createdAt: '2023-06-18',
+        updatedAt: '2024-01-14',
+        joinedDate: '2023-06-18',
+        totalProducts: 120,
+        categories: ['Seafood', 'Frozen Foods'],
+        relationshipStatus: 'approved',
+        relationshipId: 'rel-006',
+        totalOrders: 19,
+        totalSpent: 67000,
+        lastOrderDate: '2024-01-14',
+        minimumOrderAmount: 400,
+        deliveryAreas: ['Gothenburg', 'Malmö', 'Helsingborg', 'Halmstad'],
+        contactPerson: 'Björn Hansen',
+        businessHours: 'Mon-Fri 6:00-14:00'
+      },
+      {
+        id: '7',
+        name: 'Health & Wellness Supplies',
+        companyName: 'Health & Wellness Supplies',
+        supplierName: 'Health & Wellness Supplies',
+        email: 'sales@healthwellness.se',
+        phone: '+46 8 999 1111',
+        address: 'Wellness Way 258, Stockholm, Stockholm 75319, Sweden',
+        city: 'Stockholm',
+        country: 'Sweden',
+        isActive: true,
+        description: 'Comprehensive supplier of health, beauty, and wellness products for retail and hospitality businesses. We offer both branded and private label products.',
+        website: 'https://healthwellness.se',
+        logo: 'https://via.placeholder.com/80x80/9C27B0/FFFFFF?text=HW',
+        isVerified: true,
+        rating: 4.3,
+        reviewCount: 67,
+        createdAt: '2023-07-22',
+        updatedAt: '2023-12-20',
+        joinedDate: '2023-07-22',
+        totalProducts: 95,
+        categories: ['Health & Beauty', 'Cleaning Supplies'],
+        relationshipStatus: 'inactive',
+        relationshipId: 'rel-007',
+        totalOrders: 12,
+        totalSpent: 34000,
+        lastOrderDate: '2023-12-20',
+        minimumOrderAmount: 250,
+        deliveryAreas: ['Stockholm', 'Uppsala'],
+        contactPerson: 'Ingrid Nilsson',
+        businessHours: 'Mon-Fri 8:00-17:00'
+      },
+      {
+        id: '8',
+        name: 'Frozen Delights AB',
+        companyName: 'Frozen Delights AB',
+        supplierName: 'Frozen Delights AB',
+        email: 'orders@frozendelights.se',
+        phone: '+46 42 444 2222',
+        address: 'Frozen Avenue 963, Malmö, Skåne 85274, Sweden',
+        city: 'Malmö',
+        country: 'Sweden',
+        isActive: false,
+        description: 'Specialized frozen food distributor offering a wide range of frozen vegetables, fruits, meats, and ready-to-eat meals for commercial kitchens.',
+        website: 'https://frozendelights.se',
+        logo: 'https://via.placeholder.com/80x80/00BCD4/FFFFFF?text=FD',
+        isVerified: false,
+        rating: 4.1,
+        reviewCount: 34,
+        createdAt: '2023-08-30',
+        updatedAt: '2023-11-25',
+        joinedDate: '2023-08-30',
+        totalProducts: 85,
+        categories: ['Frozen Foods', 'Packaged Goods'],
+        relationshipStatus: 'pending',
+        relationshipId: 'rel-008',
+        totalOrders: 0,
+        totalSpent: 0,
+        lastOrderDate: null,
+        minimumOrderAmount: 600,
+        deliveryAreas: ['Malmö', 'Lund', 'Kristianstad'],
+        contactPerson: 'Gunnar Larsson',
+        businessHours: 'Mon-Fri 7:00-16:00'
+      }
     ];
   }
 
-  private loadSuppliers(): void {
-    this.loading = true;
-    
-    // Mock data - in real app this would come from API
-    setTimeout(() => {
-      this.suppliers = [
-        {
-          id: '1',
-          name: 'Engelmanns',
-          description: 'Tenemos todo para la tabla de embutidos perfecta. ¡Bienvenido a descubrir sabores fantásticos con nosotros!',
-          category: 'delicatessen',
-          verified: true,
-          freeDelivery: true,
-          coDelivery: false,
-          onSale: false,
-          rating: 4.8,
-          reviewCount: 156,
-          isConnected: true,
-          requestSent: false,
-          totalOrders: 45,
-          averageOrderValue: 1250,
-          responseTime: '2 horas',
-          contactEmail: 'contacto@engelmanns.com',
-          contactPhone: '+34 91 123 4567',
-          website: 'www.engelmanns.com',
-          address: 'Madrid, España',
-          deliveryAreas: ['Madrid', 'Barcelona', 'Valencia'],
-          specialties: ['Embutidos', 'Quesos', 'Vinos'],
-          certifications: ['ISO 9001', 'HACCP'],
-          minimumOrder: 100,
-          paymentTerms: '30 días',
-          establishedYear: 1985,
-          employeeCount: '50-100',
-          annualRevenue: '5M-10M',
-          languages: ['Español', 'Inglés', 'Alemán']
-        },
-        {
-          id: '2',
-          name: 'Gastro Import',
-          description: 'Tenemos más de 25 años de experiencia en la importación de especialidades gourmet de la región mediterránea que vendemos a restaurantes, tiendas de delicatessen y tiendas minoristas. La empresa fue fundada en 1988 y...',
-          category: 'delicatessen',
-          verified: true,
-          freeDelivery: false,
-          coDelivery: true,
-          onSale: true,
-          rating: 4.6,
-          reviewCount: 89,
-          isConnected: false,
-          requestSent: true,
-          requestDate: new Date('2024-01-15'),
-          lastOrderDate: new Date('2024-01-10'),
-          totalOrders: 23,
-          averageOrderValue: 2100,
-          responseTime: '4 horas',
-          contactEmail: 'ventas@gastroimport.es',
-          contactPhone: '+34 93 987 6543',
-          website: 'www.gastroimport.es',
-          address: 'Barcelona, España',
-          deliveryAreas: ['Barcelona', 'Girona', 'Tarragona'],
-          specialties: ['Productos mediterráneos', 'Aceites', 'Conservas'],
-          certifications: ['ISO 9001', 'IFS'],
-          minimumOrder: 200,
-          paymentTerms: '15 días',
-          establishedYear: 1988,
-          employeeCount: '20-50',
-          annualRevenue: '2M-5M',
-          languages: ['Español', 'Catalán', 'Inglés']
-        },
-        {
-          id: '3',
-          name: 'Fresh Produce Co',
-          description: 'Especialistas en productos frescos de temporada, cultivados localmente con los más altos estándares de calidad.',
-          category: 'fruits-vegetables',
-          verified: true,
-          freeDelivery: true,
-          coDelivery: true,
-          onSale: false,
-          rating: 4.9,
-          reviewCount: 234,
-          isConnected: true,
-          requestSent: false,
-          lastOrderDate: new Date('2024-01-20'),
-          totalOrders: 67,
-          averageOrderValue: 850,
-          responseTime: '1 hora',
-          contactEmail: 'pedidos@freshproduce.com',
-          contactPhone: '+34 96 555 1234',
-          address: 'Valencia, España',
-          deliveryAreas: ['Valencia', 'Alicante', 'Castellón'],
-          specialties: ['Verduras de temporada', 'Frutas locales', 'Hierbas aromáticas'],
-          certifications: ['Agricultura ecológica', 'GlobalGAP'],
-          minimumOrder: 50,
-          paymentTerms: '7 días',
-          establishedYear: 1995,
-          employeeCount: '10-20',
-          annualRevenue: '1M-2M',
-          languages: ['Español', 'Valenciano']
-        }
-      ];
-
-      this.applyFilters();
-      this.loading = false;
-    }, 1000);
-  }
-
-  private setupSearch(): void {
-    // This would be connected to a search input with debouncing
-    // For now, we'll implement it in the search method
-  }
-
-  // Search and Filter Methods
-  onSearch(searchTerm: string): void {
-    this.searchTerm = searchTerm;
-    this.currentPage = 1;
+  onSearch(): void {
     this.applyFilters();
   }
 
-  onCategoryChange(categoryId: string): void {
-    this.selectedCategory = categoryId;
-    this.currentPage = 1;
+  onCategoryChange(): void {
     this.applyFilters();
   }
 
-  onFilterToggle(filterKey: string): void {
-    const index = this.selectedFilters.indexOf(filterKey);
-    if (index > -1) {
-      this.selectedFilters.splice(index, 1);
-    } else {
-      this.selectedFilters.push(filterKey);
-    }
-    this.currentPage = 1;
-    this.applyFilters();
-  }
-
-  onSortChange(sortBy: string): void {
-    if (this.sortBy === sortBy) {
-      this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';
-    } else {
-      this.sortBy = sortBy;
-      this.sortOrder = 'asc';
-    }
+  onStatusChange(): void {
     this.applyFilters();
   }
 
   private applyFilters(): void {
-    let filtered = [...this.suppliers];
-
-    // Search filter
-    if (this.searchTerm) {
-      const term = this.searchTerm.toLowerCase();
-      filtered = filtered.filter(supplier => 
-        supplier.name.toLowerCase().includes(term) ||
-        supplier.description.toLowerCase().includes(term) ||
-        supplier.specialties.some(s => s.toLowerCase().includes(term))
-      );
-    }
-
-    // Category filter
-    if (this.selectedCategory) {
-      filtered = filtered.filter(supplier => supplier.category === this.selectedCategory);
-    }
-
-    // Additional filters
-    this.selectedFilters.forEach(filter => {
-      switch (filter) {
-        case 'freeDelivery':
-          filtered = filtered.filter(s => s.freeDelivery);
-          break;
-        case 'coDelivery':
-          filtered = filtered.filter(s => s.coDelivery);
-          break;
-        case 'onSale':
-          filtered = filtered.filter(s => s.onSale);
-          break;
-        case 'verified':
-          filtered = filtered.filter(s => s.verified);
-          break;
-        case 'connected':
-          filtered = filtered.filter(s => s.isConnected);
-          break;
-        case 'highRating':
-          filtered = filtered.filter(s => s.rating >= 4.5);
-          break;
-      }
-    });
-
-    // Sort
-    filtered.sort((a, b) => {
-      let aValue: any = a[this.sortBy as keyof Supplier];
-      let bValue: any = b[this.sortBy as keyof Supplier];
-
-      if (typeof aValue === 'string') {
-        aValue = aValue.toLowerCase();
-        bValue = bValue.toLowerCase();
-      }
-
-      if (this.sortOrder === 'asc') {
-        return aValue > bValue ? 1 : -1;
-      } else {
-        return aValue < bValue ? 1 : -1;
-      }
-    });
-
-    this.filteredSuppliers = filtered;
-    this.totalItems = filtered.length;
-    this.updatePagination();
-  }
-
-  private updatePagination(): void {
-    const startIndex = (this.currentPage - 1) * this.pageSize;
-    const endIndex = startIndex + this.pageSize;
-    this.filteredSuppliers = this.filteredSuppliers.slice(startIndex, endIndex);
-  }
-
-  // Pagination Methods
-  onPageChange(page: number): void {
-    this.currentPage = page;
-    this.applyFilters();
-  }
-
-  onPageSizeChange(size: number): void {
-    this.pageSize = size;
-    this.currentPage = 1;
-    this.applyFilters();
-  }
-
-  // CRUD Methods
-  openAddModal(): void {
-    this.supplierForm.reset();
-    this.showAddModal = true;
-  }
-
-  openEditModal(supplier: Supplier): void {
-    this.editingSupplier = supplier;
-    this.supplierForm.patchValue({
-      ...supplier,
-      languages: supplier.languages || [],
-      specialties: supplier.specialties || [],
-      certifications: supplier.certifications || [],
-      deliveryAreas: supplier.deliveryAreas || []
-    });
-    this.showEditModal = true;
-  }
-
-  saveSupplier(): void {
-    if (this.supplierForm.valid) {
-      const formData = this.supplierForm.value;
+    this.filteredSuppliers = this.suppliers.filter(supplier => {
+      const matchesSearch = !this.searchQuery || 
+        (supplier.companyName || supplier.supplierName).toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+        (supplier.description || '').toLowerCase().includes(this.searchQuery.toLowerCase());
       
-      if (this.editingSupplier) {
-        // Update existing supplier
-        const index = this.suppliers.findIndex(s => s.id === this.editingSupplier!.id);
-        if (index > -1) {
-          this.suppliers[index] = { ...this.editingSupplier, ...formData };
-        }
-        this.showEditModal = false;
-      } else {
-        // Add new supplier
-        const newSupplier: Supplier = {
-          id: Date.now().toString(),
-          ...formData,
-          verified: false,
-          rating: 0,
-          reviewCount: 0,
-          isConnected: false,
-          requestSent: false,
-          totalOrders: 0,
-          averageOrderValue: 0,
-          responseTime: 'No disponible'
-        };
-        this.suppliers.unshift(newSupplier);
-        this.showAddModal = false;
-      }
+      const matchesCategory = this.selectedCategory === 'all' || 
+        (supplier.categories || []).includes(this.selectedCategory);
       
-      this.applyFilters();
-      this.editingSupplier = null;
-    }
-  }
+      const matchesStatus = this.selectedStatus === 'all' || 
+        supplier.relationshipStatus === this.selectedStatus;
 
-  deleteSupplier(supplier: Supplier): void {
-    if (confirm(`¿Estás seguro de que quieres eliminar a ${supplier.name}?`)) {
-      this.suppliers = this.suppliers.filter(s => s.id !== supplier.id);
-      this.applyFilters();
-    }
-  }
-
-  toggleConnection(supplier: Supplier): void {
-    supplier.isConnected = !supplier.isConnected;
-    if (!supplier.isConnected) {
-      supplier.requestSent = false;
-    }
-  }
-
-  sendRequest(supplier: Supplier): void {
-    supplier.requestSent = true;
-    supplier.requestDate = new Date();
-    // In real app, this would make an API call
-  }
-
-  cancelRequest(supplier: Supplier): void {
-    supplier.requestSent = false;
-    supplier.requestDate = undefined;
-  }
-
-  // Utility Methods
-  getSupplierStatus(supplier: Supplier): string {
-    if (supplier.isConnected) return 'Conectado';
-    if (supplier.requestSent) return 'Solicitud enviada';
-    return 'Disponible';
-  }
-
-  getSupplierStatusClass(supplier: Supplier): string {
-    if (supplier.isConnected) return 'status-connected';
-    if (supplier.requestSent) return 'status-pending';
-    return 'status-available';
-  }
-
-  getCategoryName(categoryId: string): string {
-    const category = this.categories.find(c => c.id === categoryId);
-    return category ? category.name : categoryId;
-  }
-
-  getCategoryIcon(categoryId: string): string {
-    const category = this.categories.find(c => c.id === categoryId);
-    return category ? category.icon : 'package';
-  }
-
-  getStars(rating: number): number[] {
-    const fullStars = Math.floor(rating);
-    const hasHalfStar = rating % 1 !== 0;
-    return Array(fullStars).fill(1).concat(hasHalfStar ? [0.5] : []);
-  }
-
-  closeModals(): void {
-    this.showAddModal = false;
-    this.showEditModal = false;
-    this.editingSupplier = null;
-  }
-
-  // Export functionality
-  exportSuppliers(): void {
-    console.log('Exporting suppliers data...');
-    
-    // Show loading state
-    const exportButton = document.querySelector('.export-btn') as HTMLButtonElement;
-    if (exportButton) {
-      exportButton.disabled = true;
-      exportButton.innerHTML = '<i class="icon-loading"></i> Exporting...';
-    }
-
-    // Simulate export process
-    setTimeout(() => {
-      // Reset button state
-      if (exportButton) {
-        exportButton.disabled = false;
-        exportButton.innerHTML = '<i class="icon-export"></i> Export';
-      }
-      
-      // Create and download CSV
-      this.createSuppliersCSV();
-      
-      // Show success notification
-      this.showNotification('Suppliers data exported successfully!', 'success');
-    }, 1500);
-  }
-
-  // Bulk actions
-  bulkAction(action: string): void {
-    console.log(`Bulk action: ${action}`);
-    
-    const selectedSuppliers = this.getSelectedSuppliers();
-    
-    if (selectedSuppliers.length === 0) {
-      this.showNotification('Please select suppliers first', 'error');
-      return;
-    }
-
-    switch (action) {
-      case 'delete':
-        this.bulkDeleteSuppliers(selectedSuppliers);
-        break;
-      case 'export':
-        this.bulkExportSuppliers(selectedSuppliers);
-        break;
-      case 'connect':
-        this.bulkConnectSuppliers(selectedSuppliers);
-        break;
-      case 'disconnect':
-        this.bulkDisconnectSuppliers(selectedSuppliers);
-        break;
-      default:
-        console.log(`Unknown bulk action: ${action}`);
-    }
-  }
-
-  private getSelectedSuppliers(): Supplier[] {
-    // In a real app, this would get selected suppliers from checkboxes
-    // For now, we'll return all suppliers as an example
-    return this.filteredSuppliers;
-  }
-
-  private bulkDeleteSuppliers(suppliers: Supplier[]): void {
-    const confirmed = confirm(`Are you sure you want to delete ${suppliers.length} supplier(s)?`);
-    
-    if (confirmed) {
-      suppliers.forEach(supplier => {
-        this.suppliers = this.suppliers.filter(s => s.id !== supplier.id);
-      });
-      
-      this.applyFilters();
-      this.showNotification(`${suppliers.length} supplier(s) deleted successfully`, 'success');
-    }
-  }
-
-  private bulkExportSuppliers(suppliers: Supplier[]): void {
-    const csvContent = this.createSuppliersCSV(suppliers);
-    this.downloadFile(csvContent, `selected-suppliers-${Date.now()}.csv`, 'text/csv');
-    this.showNotification(`${suppliers.length} supplier(s) exported successfully`, 'success');
-  }
-
-  private bulkConnectSuppliers(suppliers: Supplier[]): void {
-    suppliers.forEach(supplier => {
-      if (!supplier.isConnected) {
-        supplier.isConnected = true;
-        supplier.requestSent = false;
-      }
+      return matchesSearch && matchesCategory && matchesStatus;
     });
-    
-    this.showNotification(`${suppliers.length} supplier(s) connected successfully`, 'success');
   }
 
-  private bulkDisconnectSuppliers(suppliers: Supplier[]): void {
-    suppliers.forEach(supplier => {
-      if (supplier.isConnected) {
-        supplier.isConnected = false;
-        supplier.requestSent = false;
-      }
+  requestRelationship(supplier: MySupplier): void {
+    this.selectedSupplier = supplier;
+    this.showRequestForm = true;
+    this.requestForm.reset({
+      requestType: 'inquiry',
+      message: ''
     });
-    
-    this.showNotification(`${suppliers.length} supplier(s) disconnected successfully`, 'success');
   }
 
-  private createSuppliersCSV(suppliers?: Supplier[]): string {
-    const suppliersToExport = suppliers || this.filteredSuppliers;
-    
-    const csvHeaders = [
-      'Name', 'Description', 'Category', 'Rating', 'Review Count', 
-      'Connected', 'Total Orders', 'Average Order Value', 'Response Time',
-      'Contact Email', 'Contact Phone', 'Address', 'Minimum Order',
-      'Payment Terms', 'Established Year', 'Specialties', 'Certifications'
-    ];
-    
-    const csvRows = suppliersToExport.map(supplier => [
-      supplier.name,
-      supplier.description,
-      this.getCategoryName(supplier.category),
-      supplier.rating,
-      supplier.reviewCount,
-      supplier.isConnected ? 'Yes' : 'No',
-      supplier.totalOrders,
-      supplier.averageOrderValue,
-      supplier.responseTime,
-      supplier.contactEmail,
-      supplier.contactPhone,
-      supplier.address,
-      supplier.minimumOrder,
-      supplier.paymentTerms,
-      supplier.establishedYear,
-      supplier.specialties.join('; '),
-      supplier.certifications.join('; ')
-    ]);
+  submitRequest(): void {
+    if (this.requestForm.valid && this.selectedSupplier) {
+      const request = {
+        id: '',
+        buyerId: 'current-user-id',
+        clientId: 'current-user-id',
+        supplierId: this.selectedSupplier.id,
+        requestType: this.requestForm.get('requestType')?.value,
+        status: 'pending' as const,
+        requestedAt: new Date().toISOString(),
+        message: this.requestForm.get('message')?.value
+      };
 
-    const csvContent = [csvHeaders, ...csvRows]
-      .map(row => row.map(cell => `"${cell}"`).join(','))
-      .join('\n');
-
-    this.downloadFile(csvContent, `suppliers-export-${Date.now()}.csv`, 'text/csv');
-    return csvContent;
-  }
-
-  private downloadFile(content: string, filename: string, mimeType: string): void {
-    const blob = new Blob([content], { type: mimeType });
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
-  }
-
-  private showNotification(message: string, type: 'success' | 'error' | 'info'): void {
-    // Create notification element
-    const notification = document.createElement('div');
-    notification.className = `notification notification-${type}`;
-    notification.innerHTML = `
-      <div class="notification-content">
-        <i class="icon-${type === 'success' ? 'check' : type === 'error' ? 'error' : 'info'}"></i>
-        <span>${message}</span>
-      </div>
-    `;
-
-    // Add to page
-    document.body.appendChild(notification);
-
-    // Show notification
-    setTimeout(() => notification.classList.add('show'), 100);
-
-    // Remove notification after 3 seconds
-    setTimeout(() => {
-      notification.classList.remove('show');
-      setTimeout(() => document.body.removeChild(notification), 300);
-    }, 3000);
-  }
-
-  // Pagination helpers
-  getPageNumbers(): number[] {
-    const totalPages = this.getTotalPages();
-    const pages: number[] = [];
-    const maxVisiblePages = 5;
-    
-    let startPage = Math.max(1, this.currentPage - Math.floor(maxVisiblePages / 2));
-    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-    
-    if (endPage - startPage + 1 < maxVisiblePages) {
-      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+      this.supplierService.requestSupplierRelationship(request)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (response) => {
+            console.log('Success:', response.message);
+            this.showRequestForm = false;
+            this.selectedSupplier = null;
+            this.loadSuppliers(); // Refresh the list
+          },
+          error: (error) => {
+            console.error('Error requesting relationship:', error);
+            this.showError('Failed to send relationship request');
+          }
+        });
     }
-    
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(i);
+  }
+
+  cancelRequest(): void {
+    this.showRequestForm = false;
+    this.selectedSupplier = null;
+    this.requestForm.reset();
+  }
+
+  viewSupplierDetails(supplier: MySupplier): void {
+    // Navigate to supplier details page
+    console.log('View supplier details:', supplier);
+  }
+
+  placeOrder(supplier: MySupplier): void {
+    // Navigate to order placement page
+    console.log('Place order with supplier:', supplier);
+  }
+
+  getStatusClass(status: string): string {
+    switch (status) {
+      case 'approved': return 'status-approved';
+      case 'pending': return 'status-pending';
+      case 'rejected': return 'status-rejected';
+      case 'inactive': return 'status-inactive';
+      default: return 'status-unknown';
     }
-    
-    return pages;
   }
 
-  getTotalPages(): number {
-    return Math.ceil(this.totalItems / this.pageSize);
+  getStatusLabel(status: string): string {
+    switch (status) {
+      case 'approved': return 'Approved';
+      case 'pending': return 'Pending';
+      case 'rejected': return 'Rejected';
+      case 'inactive': return 'Inactive';
+      default: return 'Unknown';
+    }
   }
 
-  // Math utility for template
-  Math = Math;
+  canRequestRelationship(supplier: MySupplier): boolean {
+    return (supplier as any).relationshipStatus === 'rejected' || !(supplier as any).relationshipId;
+  }
 
-  // Get current year for form validation
-  getCurrentYear(): number {
-    return new Date().getFullYear();
+  canPlaceOrder(supplier: MySupplier): boolean {
+    return (supplier as any).relationshipStatus === 'active';
+  }
+
+  getSupplierRating(supplier: MySupplier): string {
+    const rating = supplier.rating || 0;
+    return '★'.repeat(Math.floor(rating)) + '☆'.repeat(5 - Math.floor(rating));
+  }
+
+  formatCurrency(amount: number): string {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(amount);
+  }
+
+  formatDate(dateString: string): string {
+    return new Date(dateString).toLocaleDateString();
   }
 }

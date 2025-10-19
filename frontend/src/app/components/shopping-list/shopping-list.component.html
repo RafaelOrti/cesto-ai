@@ -1,248 +1,219 @@
 <div class="shopping-list-container">
-  <!-- Header Section -->
-  <div class="page-header">
-    <div class="header-content">
-      <div class="title-section">
-        <h1>
-          <i class="fas fa-shopping-list"></i>
-          Shopping List
-        </h1>
-        <div class="header-info">
-          <span class="info-icon" title="AI-powered shopping recommendations">🤖</span>
-          <span class="item-count">{{ filteredItems.length }} items</span>
-          <span class="ai-count" *ngIf="aiRecommendedCount > 0">
-            {{ aiRecommendedCount }} AI recommended
-          </span>
-        </div>
-      </div>
-      <div class="header-actions">
-        <button class="btn btn-primary" (click)="toggleMLPredictions()">
-          <i class="fas fa-brain"></i>
-          {{ showMLPredictions ? 'Hide' : 'Show' }} AI Predictions
-        </button>
-        <button class="btn btn-secondary" (click)="toggleAIRecommended()">
-          <i class="fas fa-robot"></i>
-          {{ showOnlyAIRecommended ? 'Show All' : 'AI Only' }}
-        </button>
-      </div>
+  <!-- Header -->
+  <div class="header">
+    <h1>{{ 'shoppingList.title' | translate }}</h1>
+    <div class="header-actions">
+      <button class="btn btn-primary" (click)="showCreateForm = true">
+        <i class="fas fa-plus"></i>
+        {{ 'shoppingList.createNewList' | translate }}
+      </button>
     </div>
   </div>
 
-  <!-- Search and Filters -->
-  <div class="search-filters-section">
-    <div class="search-container">
-      <i class="fas fa-search search-icon"></i>
-      <input 
-        type="text" 
-        class="search-input"
-        placeholder="Search shopping list items..."
-        [(ngModel)]="searchQuery"
-        (input)="onSearch()">
-    </div>
+  <!-- Tabs -->
+  <div class="tabs">
+    <button 
+      class="tab-button" 
+      [class.active]="selectedTab === 'my-lists'"
+      (click)="onTabChange('my-lists')">
+      {{ 'shoppingList.myLists' | translate }}
+    </button>
+    <button 
+      class="tab-button" 
+      [class.active]="selectedTab === 'shared-lists'"
+      (click)="onTabChange('shared-lists')">
+      {{ 'shoppingList.sharedLists' | translate }}
+    </button>
+    <button 
+      class="tab-button" 
+      [class.active]="selectedTab === 'ai-insights'"
+      (click)="onTabChange('ai-insights')">
+      {{ 'shoppingList.aiInsights' | translate }}
+    </button>
+  </div>
 
-    <div class="filters-container">
-      <div class="filter-group">
-        <label>Category:</label>
-        <select [(ngModel)]="selectedCategory" (change)="onCategoryChange(selectedCategory)" class="filter-select">
+  <!-- My Lists Tab -->
+  <div *ngIf="selectedTab === 'my-lists'" class="tab-content">
+    <!-- Search and Filters -->
+    <div class="filters-section">
+      <div class="search-bar">
+        <input 
+          type="text" 
+          [placeholder]="i18n.translate('shoppingList.searchItems')" 
+          [(ngModel)]="searchQuery"
+          (input)="onSearch()">
+      </div>
+      
+      <div class="filter-controls">
+        <select [(ngModel)]="selectedCategory" (change)="onCategoryChange(selectedCategory)">
           <option *ngFor="let category of categories" [value]="category.id">
             {{ category.name }}
           </option>
         </select>
-      </div>
-
-      <div class="filter-group">
-        <label>Priority:</label>
-        <select [(ngModel)]="selectedPriority" (change)="onPriorityChange(selectedPriority)" class="filter-select">
+        
+        <select [(ngModel)]="selectedPriority" (change)="onPriorityChange(selectedPriority)">
           <option *ngFor="let priority of priorities" [value]="priority.id">
             {{ priority.name }}
           </option>
         </select>
-      </div>
-
-      <div class="filter-group">
-        <label>Supplier:</label>
-        <select [(ngModel)]="selectedSupplier" (change)="onSupplierChange(selectedSupplier)" class="filter-select">
-          <option *ngFor="let supplier of suppliers" [value]="supplier.id">
-            {{ supplier.name }}
-          </option>
-        </select>
-      </div>
-    </div>
-  </div>
-
-  <!-- ML Predictions Section -->
-  <div class="ml-predictions-section" *ngIf="showMLPredictions && mlPredictions.length > 0">
-    <div class="predictions-header">
-      <h3>
-        <i class="fas fa-brain"></i>
-        AI Predictions & Recommendations
-      </h3>
-      <p>Machine learning insights to optimize your inventory</p>
-    </div>
-
-    <div class="predictions-grid">
-      <div *ngFor="let prediction of mlPredictions" class="prediction-card">
-        <div class="prediction-header">
-          <h4>{{ getProductName(prediction.productId) }}</h4>
-          <span class="confidence-badge" [class]="getUrgencyClass(prediction.urgency)">
-            {{ formatConfidence(prediction.confidence) }} confidence
-          </span>
-        </div>
         
-        <div class="prediction-content">
-          <div class="recommendation">
-            <i class="fas fa-lightbulb"></i>
-            <span>Recommended quantity: <strong>{{ prediction.recommendedQuantity }}</strong></span>
-          </div>
-          
-          <div class="reason">
-            <i class="fas fa-info-circle"></i>
-            <span>{{ prediction.reason }}</span>
-          </div>
-          
-          <div class="restock-date">
-            <i class="fas fa-calendar"></i>
-            <span>Restock by: {{ prediction.restockDate | date:'MMM dd, yyyy' }}</span>
+        <button class="btn btn-outline" (click)="clearFilters()">
+          Clear Filters
+        </button>
+      </div>
+    </div>
+
+    <!-- Shopping Lists -->
+    <div class="lists-grid">
+      <div *ngFor="let list of shoppingLists" class="list-card" [class.active]="currentList?.id === list.id">
+        <div class="list-header">
+          <h3>{{ list.name }}</h3>
+          <div class="list-actions">
+            <button class="btn-icon" (click)="currentList = list">
+              <i class="fas fa-eye"></i>
+            </button>
+            <button class="btn-icon" (click)="shareList(list)">
+              <i class="fas fa-share"></i>
+            </button>
+            <button class="btn-icon" (click)="duplicateList(list)">
+              <i class="fas fa-copy"></i>
+            </button>
           </div>
         </div>
-
-        <div class="prediction-actions">
-          <button class="btn btn-primary btn-sm" (click)="applyMLPrediction(getShoppingListItem(prediction.productId))">
-            <i class="fas fa-check"></i>
-            Apply Recommendation
-          </button>
+        <div class="list-stats">
+          <span>{{ list.items.length }} items</span>
+          <span class="list-type">{{ list.type }}</span>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Shopping List Items -->
-  <div class="shopping-list-section">
-    <div class="list-header">
-      <h2>Shopping List Items</h2>
-      <div class="list-summary">
-        <span class="total-cost">Total Estimated Cost: {{ formatCurrency(totalEstimatedCost) }}</span>
+    <!-- Current List Items -->
+    <div *ngIf="currentList" class="current-list">
+      <div class="list-header">
+        <h2>{{ currentList.name }}</h2>
         <span class="item-count">{{ filteredItems.length }} items</span>
       </div>
-    </div>
 
-    <!-- Loading State -->
-    <div *ngIf="filteredItems.length === 0 && !searchQuery" class="empty-state">
-      <i class="fas fa-shopping-list"></i>
-      <h3>Your shopping list is empty</h3>
-      <p>Start adding items to build your shopping list</p>
-    </div>
-
-    <!-- No Results State -->
-    <div *ngIf="filteredItems.length === 0 && searchQuery" class="no-results">
-      <i class="fas fa-search"></i>
-      <h3>No items found</h3>
-      <p>Try adjusting your search or filters</p>
-    </div>
-
-    <!-- Items Grid -->
-    <div *ngIf="filteredItems.length > 0" class="items-grid">
-      <div *ngFor="let item of filteredItems" class="shopping-item-card">
-        <!-- Item Header -->
-        <div class="item-header">
+      <div class="items-list">
+        <div *ngFor="let item of filteredItems" class="item-card">
           <div class="item-image">
-            <img *ngIf="item.productImage" [src]="item.productImage" [alt]="item.productName">
-            <div *ngIf="!item.productImage" class="image-placeholder">
-              <i class="fas fa-image"></i>
-            </div>
+            <img [src]="item.productImage" [alt]="item.productName" />
           </div>
           
-          <div class="item-info">
-            <h3 class="item-name" (click)="viewProductDetails(item)">{{ item.productName }}</h3>
+          <div class="item-details">
+            <h4>{{ item.productName }}</h4>
+            <p class="item-category">{{ item.category }} • {{ item.supplier }}</p>
             <div class="item-meta">
-              <span class="category-badge">{{ item.category }}</span>
-              <span class="supplier-name">{{ item.supplier }}</span>
+              <span class="quantity">{{ item.quantity }} {{ item.unit }}</span>
+              <span class="price">{{ formatPrice(item.estimatedPrice) }}</span>
             </div>
           </div>
 
           <div class="item-actions">
-            <button class="priority-btn" [class]="getPriorityClass(item.priority)" 
-                    (click)="updatePriority(item, getNextPriority(item.priority))" 
-                    [title]="'Priority: ' + item.priority">
-              <i class="fas fa-flag"></i>
-            </button>
-            <button class="remove-btn" (click)="removeItem(item)" title="Remove item">
-              <i class="fas fa-times"></i>
-            </button>
-          </div>
-        </div>
-
-        <!-- AI Recommendation Badge -->
-        <div class="ai-recommendation" *ngIf="item.aiRecommended">
-          <i class="fas fa-robot"></i>
-          <span>AI Recommended ({{ formatConfidence(item.aiConfidence) }})</span>
-        </div>
-
-        <!-- Item Details -->
-        <div class="item-details">
-          <div class="quantity-section">
-            <label>Quantity:</label>
-            <div class="quantity-controls">
-              <button class="qty-btn" (click)="updateQuantity(item, item.quantity - 1)" 
-                      [disabled]="item.quantity <= 0">
-                <i class="fas fa-minus"></i>
+            <span class="priority-badge" [class]="getPriorityClass(item.priority)">
+              {{ item.priority }}
+            </span>
+            <div class="action-buttons">
+              <button class="btn-icon" (click)="updateItem(item)">
+                <i class="fas fa-edit"></i>
               </button>
-              <input type="number" [(ngModel)]="item.quantity" 
-                     (change)="updateQuantity(item, item.quantity)"
-                     class="qty-input" min="0">
-              <button class="qty-btn" (click)="updateQuantity(item, item.quantity + 1)">
-                <i class="fas fa-plus"></i>
+              <button class="btn-icon" (click)="removeItem(item)">
+                <i class="fas fa-trash"></i>
+              </button>
+              <button class="btn-icon" (click)="markAsPurchased(item)">
+                <i class="fas fa-check"></i>
               </button>
             </div>
-            <span class="unit">{{ item.unit }}</span>
           </div>
-
-          <div class="price-section">
-            <span class="estimated-price">{{ formatCurrency(item.estimatedPrice) }}</span>
-            <span class="price-per-unit">{{ formatCurrency(item.estimatedPrice / item.quantity) }}/{{ item.unit }}</span>
-          </div>
-        </div>
-
-        <!-- Stock and Consumption Info -->
-        <div class="item-analytics">
-          <div class="stock-level" [class]="getStockLevelClass(item.stockLevel)">
-            <i class="fas fa-box"></i>
-            <span>Stock: {{ item.stockLevel }}</span>
-          </div>
-          
-          <div class="consumption-info" *ngIf="item.averageConsumption > 0">
-            <i class="fas fa-chart-line"></i>
-            <span>Avg: {{ item.averageConsumption }}/week</span>
-          </div>
-          
-          <div class="last-ordered" *ngIf="item.lastOrdered">
-            <i class="fas fa-calendar"></i>
-            <span>Last: {{ item.lastOrdered | date:'MMM dd' }}</span>
-          </div>
-        </div>
-
-        <!-- Notes -->
-        <div class="item-notes" *ngIf="item.notes">
-          <i class="fas fa-sticky-note"></i>
-          <span>{{ item.notes }}</span>
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="item-footer">
-          <button class="btn btn-outline btn-sm" (click)="viewProductDetails(item)">
-            <i class="fas fa-eye"></i>
-            View Details
-          </button>
-          <button class="btn btn-primary btn-sm" (click)="addToCart(item)">
-            <i class="fas fa-shopping-cart"></i>
-            Add to Cart
-          </button>
-          <button class="btn btn-success btn-sm" (click)="buyNow(item)">
-            <i class="fas fa-bolt"></i>
-            Buy Now
-          </button>
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- Shared Lists Tab -->
+  <div *ngIf="selectedTab === 'shared-lists'" class="tab-content">
+    <div class="empty-state">
+      <i class="fas fa-share-alt"></i>
+      <h3>{{ i18n.translate('shoppingList.noSharedLists') }}</h3>
+      <p>You don't have any shared shopping lists yet.</p>
+    </div>
+  </div>
+
+  <!-- AI Insights Tab -->
+  <div *ngIf="selectedTab === 'ai-insights'" class="tab-content">
+    <div class="ai-insights">
+      <div class="insights-header">
+        <h2>{{ i18n.translate('shoppingList.aiShoppingInsights') }}</h2>
+        <button class="btn btn-primary" (click)="showAIInsights = !showAIInsights">
+          {{ showAIInsights ? 'Hide' : 'Show' }} Recommendations
+        </button>
+      </div>
+
+      <div *ngIf="showAIInsights && aiRecommendations" class="insights-content">
+        <div class="insight-card">
+          <h3>{{ i18n.translate('shoppingList.smartRecommendations') }}</h3>
+          <div class="insight-stats">
+            <div class="stat">
+              <span class="stat-value">{{ aiRecommendations.totalItems }}</span>
+              <span class="stat-label">{{ i18n.translate('shoppingList.recommendedItems') }}</span>
+            </div>
+            <div class="stat">
+              <span class="stat-value">{{ formatPrice(aiRecommendations.totalValue) }}</span>
+              <span class="stat-label">{{ i18n.translate('shoppingList.estimatedValue') }}</span>
+            </div>
+            <div class="stat">
+              <span class="stat-value">{{ getAIConfidencePercentage(aiRecommendations.highConfidence / aiRecommendations.totalItems) }}%</span>
+              <span class="stat-label">{{ i18n.translate('shoppingList.highConfidence') }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create List Modal -->
+  <div *ngIf="showCreateForm" class="modal-overlay" (click)="showCreateForm = false">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ i18n.translate('shoppingList.createNewShoppingList') }}</h3>
+        <button class="btn-close" (click)="showCreateForm = false">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <form [formGroup]="createListForm" (ngSubmit)="createShoppingList()">
+        <div class="form-group">
+          <label for="listName">{{ i18n.translate('shoppingList.listName') }}</label>
+          <input 
+            type="text" 
+            id="listName"
+            formControlName="name"
+            [placeholder]="i18n.translate('shoppingList.enterListName')">
+        </div>
+
+        <div class="form-group">
+          <label for="listType">{{ i18n.translate('shoppingList.listType') }}</label>
+          <select id="listType" formControlName="type">
+            <option value="personal">{{ i18n.translate('shoppingList.personal') }}</option>
+            <option value="shared">{{ i18n.translate('shoppingList.shared') }}</option>
+            <option value="team">{{ i18n.translate('shoppingList.team') }}</option>
+          </select>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" (click)="showCreateForm = false">
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-primary" [disabled]="createListForm.invalid || isLoading">
+            Create List
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-overlay">
+    <div class="loading-spinner"></div>
   </div>
 </div>

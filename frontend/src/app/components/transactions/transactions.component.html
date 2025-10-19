@@ -1,10 +1,170 @@
 <div class="transactions-container">
-  <h1>Transactions</h1>
-  <p>View transaction history and manage invoices.</p>
-  
-  <div class="coming-soon">
-    <mat-icon>payment</mat-icon>
-    <h2>Coming Soon</h2>
-    <p>Transaction management features are under development.</p>
+  <div class="header">
+    <h1>Transaction Management</h1>
+    <div class="header-actions">
+      <button mat-raised-button color="primary" (click)="createTransaction()">
+        <mat-icon>add</mat-icon>
+        New Transaction
+      </button>
+      <button mat-button (click)="exportTransactions()">
+        <mat-icon>download</mat-icon>
+        Export
+      </button>
+    </div>
   </div>
+
+  <!-- Financial Summary -->
+  <div class="summary-grid">
+    <mat-card class="summary-card">
+      <mat-card-content>
+        <div class="summary-header">
+          <mat-icon>trending_up</mat-icon>
+          <span>Total Revenue</span>
+        </div>
+        <div class="summary-value">{{ formatCurrency(financialSummary.totalRevenue) }}</div>
+        <div class="summary-change positive">
+          +{{ financialSummary.revenueChange }}% vs last month
+        </div>
+      </mat-card-content>
+    </mat-card>
+    
+    <mat-card class="summary-card">
+      <mat-card-content>
+        <div class="summary-header">
+          <mat-icon>trending_down</mat-icon>
+          <span>Total Expenses</span>
+        </div>
+        <div class="summary-value">{{ formatCurrency(financialSummary.totalExpenses) }}</div>
+      </mat-card-content>
+    </mat-card>
+    
+    <mat-card class="summary-card">
+      <mat-card-content>
+        <div class="summary-header">
+          <mat-icon>account_balance</mat-icon>
+          <span>Net Profit</span>
+        </div>
+        <div class="summary-value">{{ formatCurrency(financialSummary.netProfit) }}</div>
+      </mat-card-content>
+    </mat-card>
+    
+    <mat-card class="summary-card warning">
+      <mat-card-content>
+        <div class="summary-header">
+          <mat-icon>schedule</mat-icon>
+          <span>Pending Payments</span>
+        </div>
+        <div class="summary-value">{{ formatCurrency(financialSummary.pendingPayments) }}</div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Transaction Tabs -->
+  <mat-tab-group [(selectedIndex)]="selectedTab">
+    <mat-tab label="Transactions">
+      <div class="tab-content">
+        <!-- Filters -->
+        <div class="filters">
+          <mat-form-field appearance="outline">
+            <mat-label>Search</mat-label>
+            <input matInput [(ngModel)]="searchQuery" placeholder="Search transactions">
+          </mat-form-field>
+          
+          <mat-form-field appearance="outline">
+            <mat-label>Type</mat-label>
+            <mat-select [(ngModel)]="selectedType">
+              <mat-option value="all">All Types</mat-option>
+              <mat-option value="payment">Payment</mat-option>
+              <mat-option value="refund">Refund</mat-option>
+              <mat-option value="adjustment">Adjustment</mat-option>
+              <mat-option value="commission">Commission</mat-option>
+            </mat-select>
+          </mat-form-field>
+          
+          <mat-form-field appearance="outline">
+            <mat-label>Status</mat-label>
+            <mat-select [(ngModel)]="selectedStatus">
+              <mat-option value="all">All Status</mat-option>
+              <mat-option value="pending">Pending</mat-option>
+              <mat-option value="completed">Completed</mat-option>
+              <mat-option value="failed">Failed</mat-option>
+              <mat-option value="cancelled">Cancelled</mat-option>
+            </mat-select>
+          </mat-form-field>
+          
+          <mat-form-field appearance="outline">
+            <mat-label>Date Range</mat-label>
+            <mat-select [(ngModel)]="dateRange">
+              <mat-option value="7d">Last 7 days</mat-option>
+              <mat-option value="30d">Last 30 days</mat-option>
+              <mat-option value="90d">Last 90 days</mat-option>
+              <mat-option value="1y">Last year</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <!-- Transactions List -->
+        <div class="transactions-list">
+          <mat-card *ngFor="let transaction of getFilteredTransactions()" class="transaction-card">
+            <mat-card-content>
+              <div class="transaction-header">
+                <div class="transaction-info">
+                  <h3>{{ transaction.description }}</h3>
+                  <p>{{ transaction.reference }}</p>
+                </div>
+                <div class="transaction-amount" [ngClass]="getAmountClass(transaction.amount)">
+                  {{ formatCurrency(Math.abs(transaction.amount)) }}
+                </div>
+              </div>
+              
+              <div class="transaction-meta">
+                <span class="transaction-type">{{ transaction.type }}</span>
+                <span class="transaction-status" [ngClass]="transaction.status">{{ transaction.status }}</span>
+                <span class="transaction-date">{{ formatDate(transaction.date) }}</span>
+              </div>
+              
+              <div class="transaction-details" *ngIf="transaction.paymentMethod || transaction.fees">
+                <span *ngIf="transaction.paymentMethod">Method: {{ transaction.paymentMethod }}</span>
+                <span *ngIf="transaction.fees">Fees: {{ formatCurrency(transaction.fees) }}</span>
+                <span *ngIf="transaction.netAmount">Net: {{ formatCurrency(transaction.netAmount) }}</span>
+              </div>
+              
+              <div class="transaction-actions">
+                <button mat-button (click)="viewTransactionDetails(transaction)">View Details</button>
+                <button mat-button color="primary" (click)="editTransaction(transaction)">Edit</button>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Invoices">
+      <div class="tab-content">
+        <div class="invoices-list">
+          <mat-card *ngFor="let invoice of invoices" class="invoice-card">
+            <mat-card-content>
+              <div class="invoice-header">
+                <div class="invoice-info">
+                  <h3>{{ invoice.invoiceNumber }}</h3>
+                  <p>{{ invoice.supplier }}</p>
+                </div>
+                <div class="invoice-amount">{{ formatCurrency(invoice.amount) }}</div>
+              </div>
+              
+              <div class="invoice-meta">
+                <span class="invoice-status" [ngClass]="invoice.status">{{ invoice.status }}</span>
+                <span class="invoice-date">Due: {{ formatDate(invoice.dueDate) }}</span>
+              </div>
+              
+              <div class="invoice-actions">
+                <button mat-button (click)="viewInvoice(invoice)">View</button>
+                <button mat-button color="primary" (click)="payInvoice(invoice)">Pay</button>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
 </div>

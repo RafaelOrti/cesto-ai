@@ -1,8 +1,27 @@
+
 # Cesto AI - B2B Food & Beverage Platform
 
 A comprehensive AI-powered B2B platform for food and beverage businesses, featuring demand forecasting, inventory optimization, and automated EDI processing.
 
-## 🏗️ Architecture
+## Table of Contents
+
+- [Architecture](#architecture)
+- [User Roles & Permissions](#user-roles--permissions)
+- [Quick Start](#quick-start)
+- [Project Structure](#project-structure)
+- [Configuration](#configuration)
+- [Key Features](#key-features)
+- [Technical Stack](#technical-stack)
+- [API Documentation](#api-documentation)
+- [Development Workflow](#development-workflow)
+- [Deployment](#deployment)
+- [Monitoring & Observability](#monitoring--observability)
+- [Contributing](#contributing)
+- [License](#license)
+- [Support](#support)
+- [Test Credentials](#test-credentials)
+
+## Architecture
 
 The application follows a microservices architecture with three main components:
 
@@ -10,106 +29,42 @@ The application follows a microservices architecture with three main components:
 - **Frontend** (Angular + Material Design) - Port 4400  
 - **AI Services** (FastAPI + Python) - Port 8001
 
-## 👥 Test Users
 
-The application comes with pre-configured test users organized by role type:
+## User Roles & Permissions
 
-### 🔑 Admin Users
-**Full system access and configuration**
-- **Email**: `admin@cesto.com` | **Password**: `password123`
-- **Email**: `admin@cesto.ai` | **Password**: `password123`
-- **Email**: `superadmin@cesto.com` | **Password**: `admin123`
-- **Email**: `admin@stockfiller.com` | **Password**: `password123`
-
-### 🏭 Supplier Users
-**Suppliers who can manage products, campaigns, and orders**
-- **Email**: `supplier@cesto.com` | **Password**: `password123`
-- **Email**: `supplier@dairy.com` | **Password**: `password123`
-- **Email**: `supplier@meat.com` | **Password**: `password123`
-- **Email**: `supplier@vegetables.com` | **Password**: `password123`
-- **Email**: `supplier@beverages.com` | **Password**: `password123`
-- **Email**: `supplier@bakery.com` | **Password**: `password123`
-- **Email**: `supplier@seafood.com` | **Password**: `password123`
-- **Email**: `supplier@frozen.com` | **Password**: `password123`
-- **Email**: `supplier@organic.com` | **Password**: `password123`
-- **Email**: `supplier@wholesale.com` | **Password**: `password123`
-
-### 🛒 Client/Buyer Users
-**Clients who can browse products, place orders, and manage their business**
-
-#### Restaurants & Food Service
-- **Email**: `client@cesto.com` | **Password**: `password123`
-- **Email**: `buyer@restaurant.com` | **Password**: `password123`
-- **Email**: `cliente@restaurante.com` | **Password**: `password123`
-- **Email**: `restaurant@bistro.com` | **Password**: `password123`
-- **Email**: `cafe@urban.com` | **Password**: `password123`
-- **Email**: `hotel@kitchen.com` | **Password**: `password123`
-
-#### Retail & Supermarkets
-- **Email**: `client2@cesto.com` | **Password**: `password123`
-- **Email**: `buyer@cesto.com` | **Password**: `password123`
-- **Email**: `supermarket@chain.com` | **Password**: `password123`
-- **Email**: `grocery@store.com` | **Password**: `password123`
-- **Email**: `retail@food.com` | **Password**: `password123`
-- **Email**: `market@fresh.com` | **Password**: `password123`
-
-#### Corporate & Catering
-- **Email**: `catering@corporate.com` | **Password**: `password123`
-- **Email**: `events@catering.com` | **Password**: `password123`
-- **Email**: `corporate@cafe.com` | **Password**: `password123`
-- **Email**: `office@catering.com` | **Password**: `password123`
-
-### 🎯 Demo & Test Users
-**Special users for testing and demonstration purposes**
-- **Email**: `demo@stockfiller.com` | **Password**: `password123`
-- **Email**: `test@cesto.com` | **Password**: `test123`
-- **Email**: `guest@cesto.com` | **Password**: `guest123`
-- **Email**: `demo@client.com` | **Password**: `demo123`
-
-## 🔐 User Roles & Permissions
-
-### Administrator (`admin`)
+### Administrator
 - Full system access and configuration
 - User management and role assignment
 - System analytics and reporting
 - Platform configuration and settings
 
-### Supplier (`supplier`)
+### Supplier
 - Product catalog management
 - Campaign creation and management
 - Order processing and fulfillment
 - Inventory management
 - Customer communication and support
 
-### Client/Buyer (`client`, `buyer`)
+### Client/Buyer
 - Product browsing and search
 - Shopping cart and wishlist management
 - Order placement and tracking
 - Supplier discovery and evaluation
 - Business analytics and reporting
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
-
 - Docker & Docker Compose
 - Node.js 18+ (for local development)
 - Python 3.11+ (for AI services development)
 
 ### Using Docker Compose (Recommended)
-
 ```bash
-# Clone the repository
 git clone <repository-url>
 cd CESTO
-
-# Copy environment file
 cp env.example .env
-
-# Start all services
 docker-compose up -d
-
-# View logs
 docker-compose logs -f
 ```
 
@@ -138,7 +93,7 @@ pip install -r requirements.txt
 python main.py
 ```
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 CESTO/
@@ -165,9 +120,7 @@ CESTO/
 └── database/              # Database initialization
 ```
 
-## 🔧 Configuration
-
-### Environment Variables
+## Configuration
 
 Create a `.env` file in the root directory:
 
@@ -208,40 +161,40 @@ LOG_LEVEL=info
 LOG_FILE=./logs/cesto.log
 ```
 
-## 🎯 Key Features
+## Key Features
 
-### 🔐 Authentication & Authorization
+### Authentication & Authorization
 - JWT-based authentication with refresh tokens
 - Role-based access control (Admin, Buyer, Supplier)
 - Password reset and change functionality
 - Secure session management
 
-### 🤖 AI-Powered Services
+### AI-Powered Services
 - **Demand Forecasting**: ML-based predictions using Random Forest
 - **Inventory Optimization**: Smart stock level recommendations
 - **Price Recommendations**: Market analysis and competitive pricing
 - **Business Insights**: AI-powered analytics using Groq LLM
 
-### 📊 EDI Processing
+### EDI Processing
 - Automated purchase order generation
 - Document validation and error handling
 - Support for multiple formats (XML, JSON, CSV)
 - Real-time processing status tracking
 
-### 📈 Analytics & Reporting
+### Analytics & Reporting
 - Real-time dashboards
 - Supplier performance metrics
 - Inventory analytics
 - Order tracking and management
 
-### 🛡️ Security Features
+### Security Features
 - Input validation and sanitization
 - Rate limiting and throttling
 - CORS configuration
 - Error handling and logging
 - SQL injection protection
 
-## 🏗️ Technical Stack
+## Technical Stack
 
 ### Backend (NestJS)
 - **Framework**: NestJS with TypeScript
@@ -275,7 +228,7 @@ LOG_FILE=./logs/cesto.log
 - **Cache**: Redis 7
 - **Reverse Proxy**: Nginx (production)
 
-## 📚 API Documentation
+## API Documentation
 
 ### Backend API
 - **Base URL**: `http://localhost:3400/api/v1`
@@ -287,7 +240,7 @@ LOG_FILE=./logs/cesto.log
 - **Documentation**: `http://localhost:8001/docs`
 - **Health Check**: `http://localhost:8001/health`
 
-## 🔄 Development Workflow
+## Development Workflow
 
 ### Code Quality
 - **TypeScript**: Strict mode enabled with comprehensive type checking
@@ -302,10 +255,9 @@ LOG_FILE=./logs/cesto.log
 - **Security**: Authentication guards and role-based authorization
 - **Performance**: Database query optimization and caching
 
-## 🚀 Deployment
+## Deployment
 
 ### Production Build
-
 ```bash
 # Backend
 cd backend
@@ -324,7 +276,6 @@ uvicorn main:app --host 0.0.0.0 --port 8001
 ```
 
 ### Docker Production
-
 ```bash
 # Build production images
 docker-compose -f docker-compose.prod.yml build
@@ -333,14 +284,14 @@ docker-compose -f docker-compose.prod.yml build
 docker-compose -f docker-compose.prod.yml up -d
 ```
 
-## 📊 Monitoring & Observability
+## Monitoring & Observability
 
 - **Health Checks**: Built-in health endpoints for all services
 - **Logging**: Structured JSON logs with correlation IDs
 - **Error Tracking**: Global error handling with detailed stack traces
 - **Performance**: Request timing and database query monitoring
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
@@ -348,16 +299,35 @@ docker-compose -f docker-compose.prod.yml up -d
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🆘 Support
+## Support
 
 For support and questions:
 - Create an issue in the repository
 - Contact the development team
 - Check the documentation at `/api/docs`
+
+## Test Credentials
+
+### 👑 Administrators (admin)
+| Email | Password | Name | Company | Status |
+|-------|----------|------|---------|--------|
+| admin@cesto.ai | Test1234 | Admin User | Cesto AI | ✅ VERIFIED |
+
+### 🏪 Suppliers (supplier)
+| Email | Password | Name | Company | Status |
+|-------|----------|------|---------|--------|
+| supplier@dairy.com | Test1234 | Jane Smith | Fresh Dairy Co | ✅ VERIFIED |
+| supplier@meat.com | Test1234 | Mike Johnson | Premium Meats Ltd | ✅ VERIFIED |
+
+### 🛒 Clients/Buyers (client)
+| Email | Password | Name | Company | Status |
+|-------|----------|------|---------|--------|
+| demo@stockfiller.com | Test1234 | Demo User | Demo Restaurant | ✅ VERIFIED |
+| buyer@restaurant.com | Test1234 | John Doe | Bella Vista Restaurant | ✅ VERIFIED |
 
 ---
 

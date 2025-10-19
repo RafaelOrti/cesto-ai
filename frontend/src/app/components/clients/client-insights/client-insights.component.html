@@ -1,9 +1,9 @@
 <div class="client-insights">
   <div class="insights-header">
-    <h1>Client Insights</h1>
+    <h1>{{ 'clientInsights.title' | translate }}</h1>
     <div class="header-actions">
       <button class="export-btn" (click)="exportData()">
-        <i class="icon-export"></i> Export
+        <i class="icon-export"></i> {{ 'common.export' | translate }}
       </button>
       <button class="settings-btn">
         <i class="icon-settings"></i>
@@ -23,8 +23,8 @@
         <input type="date" [(ngModel)]="dateRange.to" (change)="onDateRangeChange()">
       </div>
       
-      <button class="comparison-btn" (click)="addComparison()">Add comparison</button>
-      <button class="generate-btn" (click)="generateReport()">Generate</button>
+      <button class="comparison-btn" (click)="addComparison()">{{ 'clientInsights.addComparison' | translate }}</button>
+      <button class="generate-btn" (click)="generateReport()">{{ 'clientInsights.generate' | translate }}</button>
     </div>
   </div>
 
@@ -83,10 +83,10 @@
       <table class="performance-table">
         <thead>
           <tr>
-            <th>Customer</th>
-            <th>Orders ({{ summaryTotals.totalStores }})</th>
-            <th>Average order</th>
-            <th>Frequency (F)</th>
+            <th>{{ 'common.customer' | translate }}</th>
+            <th>{{ 'common.orders' | translate }} ({{ summaryTotals.totalStores }})</th>
+            <th>{{ 'clientInsights.averageOrder' | translate }}</th>
+            <th>{{ 'clientInsights.frequency' | translate }}</th>
           </tr>
         </thead>
         <tbody>
@@ -102,7 +102,7 @@
         </tbody>
         <tfoot>
           <tr class="summary-row">
-            <td><strong>Average of total ({{ summaryTotals.totalStores }})</strong></td>
+            <td><strong>{{ 'clientInsights.amountOfStores' | translate }} ({{ summaryTotals.totalStores }})</strong></td>
             <td><strong>{{ summaryTotals.totalOrders | number }}</strong></td>
             <td><strong>{{ summaryTotals.averageOrder }}</strong></td>
             <td><strong>{{ summaryTotals.averageValue }}</strong></td>

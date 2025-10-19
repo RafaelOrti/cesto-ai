@@ -1,50 +1,47 @@
 <div class="sidebar-container">
-  <!-- Sidebar Header -->
-  <div class="sidebar-header">
-    <div class="logo-section">
-      <h2 class="logo-text">Stockfiller.com</h2>
-    </div>
-    <div class="search-section">
-      <div class="search-container">
-        <input type="text" placeholder="Global search" class="global-search" />
-        <i class="search-icon">🔍</i>
-      </div>
-    </div>
-  </div>
-
-  <nav class="sidebar-nav">
-    <div class="menu-section">
-      <button 
-        *ngFor="let item of menuItems"
-        class="menu-item"
+  <!-- Navigation Menu -->
+  <mat-nav-list class="sidebar-nav">
+    <div *ngFor="let item of menuItems" class="menu-item-wrapper">
+      <mat-list-item 
         [class.active]="isActiveRoute(item.route)"
         [class.has-submenu]="item.subItems"
-        (click)="item.subItems ? toggleSubItems(item) : navigateTo(item.route)">
-        <span class="menu-icon">{{ item.icon }}</span>
-        <span class="menu-label">{{ item.label }}</span>
-        <span *ngIf="item.subItems" class="expand-icon">
-          {{ item.expanded ? '▼' : '▶' }}
-        </span>
-      </button>
+        [class.expanded]="item.expanded"
+        (click)="item.subItems ? toggleSubItems(item) : navigateTo(item.route)"
+        class="menu-item">
+        
+        <span matListItemTitle class="menu-label">{{ item.labelKey ? (item.labelKey | translate) : item.label }}</span>
+        
+        <button *ngIf="item.subItems" 
+                mat-icon-button 
+                matListItemMeta 
+                class="expand-button"
+                (click)="toggleSubItems(item); $event.stopPropagation()"
+                [matTooltip]="item.expanded ? 'Collapse' : 'Expand'"
+                [attr.aria-label]="item.expanded ? 'Collapse submenu' : 'Expand submenu'">
+          <mat-icon class="expand-icon" [class.rotated]="item.expanded">
+            {{ item.expanded ? 'keyboard_arrow_up' : 'keyboard_arrow_down' }}
+          </mat-icon>
+        </button>
+      </mat-list-item>
 
-      <!-- Sub menu items -->
-      <div *ngFor="let item of menuItems">
-        <div *ngIf="item.subItems && item.expanded" class="sub-menu">
-          <button 
-            *ngFor="let subItem of item.subItems"
-            class="sub-menu-item"
-            [class.active]="isActiveRoute(subItem.route)"
-            (click)="navigateTo(subItem.route)">
-            <span class="sub-menu-label">{{ subItem.label }}</span>
-          </button>
-        </div>
+      <!-- Sub Menu Items -->
+      <div *ngIf="item.subItems && item.expanded" class="sub-menu" [@slideInOut]>
+        <mat-list-item 
+          *ngFor="let subItem of item.subItems"
+          [class.active]="isActiveRoute(subItem.route)"
+          (click)="navigateTo(subItem.route)"
+          class="sub-menu-item">
+          <span matListItemTitle class="sub-menu-label">{{ subItem.labelKey ? (subItem.labelKey | translate) : subItem.label }}</span>
+        </mat-list-item>
       </div>
     </div>
-  </nav>
+  </mat-nav-list>
 
+  <!-- Sidebar Footer -->
   <div class="sidebar-footer">
     <div class="version-info">
-      <span>Version: 1.138</span>
+      <span class="version-text">v1.138</span>
+      <span class="build-info">Build 2024.01</span>
     </div>
   </div>
 </div>

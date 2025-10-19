@@ -1,0 +1,75 @@
+<div class="role-based-sidebar">
+  <!-- Platform Header -->
+  <div class="platform-header">
+    <div class="platform-logo">
+      <mat-icon class="logo-icon">shopping_basket</mat-icon>
+      <div class="platform-info">
+        <h2>CESTO</h2>
+        <span class="platform-subtitle">AI Platform</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- User Profile Section -->
+  <div class="user-profile">
+    <div class="user-avatar">
+      <mat-icon>person</mat-icon>
+    </div>
+    <div class="user-info">
+      <span class="user-name">{{ getUserDisplayName() }}</span>
+      <span class="user-role">{{ getRoleDisplayName() }}</span>
+    </div>
+  </div>
+
+  <!-- Navigation Menu -->
+  <nav class="navigation-menu">
+    <div class="nav-items">
+      <div 
+        *ngFor="let item of filteredNavigationItems" 
+        class="nav-item"
+        [class.active]="isItemActive(item)"
+        [class.expanded]="isItemExpanded(item)">
+        
+        <!-- Main Navigation Item -->
+        <div 
+          class="nav-item-main"
+          (click)="onItemClick(item)"
+          [class.has-children]="item.children">
+          <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
+          <span class="nav-label">{{ i18n.translate(item.label) }}</span>
+          <mat-icon 
+            *ngIf="item.children" 
+            class="expand-icon"
+            [class.rotated]="isItemExpanded(item)">
+            chevron_right
+          </mat-icon>
+        </div>
+
+        <!-- Sub Navigation Items -->
+        <div 
+          *ngIf="item.children && isItemExpanded(item)" 
+          class="nav-children">
+          <div 
+            *ngFor="let child of item.children"
+            class="nav-child-item"
+            [class.active]="isChildItemActive(child)"
+            (click)="onChildItemClick(child)">
+            <mat-icon class="nav-child-icon">{{ child.icon }}</mat-icon>
+            <span class="nav-child-label">{{ i18n.translate(child.label) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Sidebar Footer -->
+  <div class="sidebar-footer">
+    <button 
+      mat-icon-button 
+      class="collapse-btn"
+      (click)="toggleSidebar()">
+      <mat-icon>chevron_left</mat-icon>
+    </button>
+  </div>
+</div>
+

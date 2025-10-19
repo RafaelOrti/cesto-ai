@@ -5,6 +5,8 @@ import { ProductsService, Product, ProductFiltersExtended, ProductSortOptionsExt
 import { PaginatedResponse } from 'src/shared/types/common.types';
 import { BaseComponent } from '../../../core/components/base-component';
 import { UtilsService } from '../../../core/services/utils.service';
+import { I18nService } from '../../../core/services/i18n.service';
+import { NotificationService } from '../../../core/services/notification.service';
 
 @Component({
   selector: 'app-products-list',
@@ -12,7 +14,6 @@ import { UtilsService } from '../../../core/services/utils.service';
   styleUrls: ['./products-list.component.scss']
 })
 export class ProductsListComponent extends BaseComponent implements OnInit, OnDestroy {
-  private searchSubject = new Subject<string>();
 
   // Data
   products: Product[] = [];
@@ -25,12 +26,27 @@ export class ProductsListComponent extends BaseComponent implements OnInit, OnDe
   totalItems = 0;
   totalPages = 0;
   
+  // Loading state
+  loading = false;
+  
   // Filters and search
   searchTerm = '';
   selectedCategory = '';
   selectedSubcategory = '';
+  
+  // Properties from BaseComponent
+  searchSubject = new Subject<string>();
   selectedSort: ProductSortOptionsExtended = { field: 'name', direction: 'asc' };
   selectedFilters: ProductFiltersExtended = {};
+  
+  // Methods
+  safeSubscribe(observable: any, callback: any): void {
+    observable.pipe(takeUntil(this.destroy$)).subscribe(callback);
+  }
+  
+  setLoading: (loading: boolean) => void = (loading: boolean) => { this.loading = loading; };
+  clearErrors: () => void = () => { /* Clear errors implementation */ };
+  setError: (error: string) => void = (error: string) => { console.error(error); };
   
   // UI State
   showFilters = false;
@@ -68,10 +84,12 @@ export class ProductsListComponent extends BaseComponent implements OnInit, OnDe
 
   constructor(
     private productsService: ProductsService,
-    private fb: FormBuilder,
-    protected utils: UtilsService
+    protected fb: FormBuilder,
+    private utils: UtilsService,
+    public i18n: I18nService,
+    private notificationService: NotificationService
   ) {
-    super(utils);
+    super(fb);
     this.initializeForms();
     this.setupSearchDebounce();
   }
@@ -87,7 +105,7 @@ export class ProductsListComponent extends BaseComponent implements OnInit, OnDe
     this.destroy$.complete();
   }
 
-  private initializeForms(): void {
+  protected initializeForms(): void {
     this.searchForm = this.fb.group({
       search: ['']
     });
@@ -131,53 +149,62 @@ export class ProductsListComponent extends BaseComponent implements OnInit, OnDe
     
     const filters: ProductFiltersExtended = {
       ...this.selectedFilters,
-      search: this.searchTerm,
+      searchTerm: this.searchTerm,
       category: this.selectedCategory,
       subcategory: this.selectedSubcategory
     };
 
-    this.safeSubscribe(
-      this.productsService.getProducts(filters, this.selectedSort, this.currentPage, this.pageSize),
-      (response: PaginatedResponse<Product>) => {
-        this.products = response.data;
-        this.filteredProducts = response.data;
-        this.totalItems = response.total;
-        this.totalPages = response.totalPages;
-        this.setLoading(false);
-      },
-      (error) => {
-        this.setError('Error al cargar los productos');
-        this.setLoading(false);
-      }
-    );
+    this.productsService.getProducts(filters, this.selectedSort, this.currentPage, this.pageSize)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: PaginatedResponse<Product>) => {
+          this.products = response.data;
+          this.filteredProducts = response.data;
+          this.totalItems = response.total;
+          this.totalPages = response.totalPages;
+          this.setLoading(false);
+        },
+        error: (error) => {
+          this.setError('Error al cargar los productos');
+          this.setLoading(false);
+        }
+      });
   }
 
   loadCategories(): void {
-    this.safeSubscribe(
-      this.productsService.getCategories(),
-      (categories) => {
-        this.categories = Array.isArray(categories) ? categories : [];
-      },
-      (error) => {
-        this.setError('Error al cargar las categorías');
-      }
-    );
+    this.productsService.getCategories()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (categories) => {
+          this.categories = Array.isArray(categories) ? categories : [];
+        },
+        error: (error) => {
+          this.setError('Error al cargar las categorías');
+        }
+      });
   }
 
   loadProductsStats(): void {
-    this.safeSubscribe(
-      this.productsService.getProductStats(),
-      (stats) => {
-        // Handle stats if needed
-      },
-      (error) => {
-        console.error('Error loading product stats:', error);
-      }
-    );
+    this.productsService.getProductStats()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (stats) => {
+          // Handle stats if needed
+        },
+        error: (error) => {
+          console.error('Error loading product stats:', error);
+        }
+      });
   }
 
   // Search and filter methods
-  onSearch(event: Event): void {
+  onSearch(searchTerm: string): void {
+    this.searchTerm = searchTerm;
+    this.currentPage = 1;
+    this.loadProducts();
+  }
+
+  onSearchInput(event: Event): void {
     const target = event.target as HTMLInputElement;
     this.searchSubject.next(target.value);
   }
@@ -208,7 +235,7 @@ export class ProductsListComponent extends BaseComponent implements OnInit, OnDe
     this.selectedFilters = {
       minPrice: formValue.minPrice,
       maxPrice: formValue.maxPrice,
-      isOnSale: formValue.isOnSale,
+      onSale: formValue.isOnSale,
       inStock: formValue.inStock,
       rating: formValue.rating
     };
@@ -366,7 +393,7 @@ export class ProductsListComponent extends BaseComponent implements OnInit, OnDe
     if (this.searchTerm) count++;
     if (this.selectedFilters.minPrice) count++;
     if (this.selectedFilters.maxPrice) count++;
-    if (this.selectedFilters.isOnSale) count++;
+    if (this.selectedFilters.onSale) count++;
     if (this.selectedFilters.inStock) count++;
     if (this.selectedFilters.rating) count++;
     return count;

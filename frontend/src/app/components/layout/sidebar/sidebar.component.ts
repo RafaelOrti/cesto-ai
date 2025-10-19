@@ -149,53 +149,60 @@ export class SidebarComponent implements OnInit, OnDestroy {
   private getClientMenuItems(): MenuItem[] {
     return [
       {
-        labelKey: 'navigation.dashboard',
+        label: 'Dashboard',
         icon: 'dashboard',
         route: '/client/dashboard'
       },
       {
-        labelKey: 'navigation.suppliers',
+        label: 'Suppliers',
         icon: 'store',
         route: '/client/suppliers',
         subItems: [
-          { labelKey: 'suppliers.insights', icon: 'insights', route: '/client/suppliers/insights' },
-          { labelKey: 'common.explore', icon: 'search', route: '/client/suppliers/explore' },
-          { labelKey: 'suppliers.mySuppliers', icon: 'list', route: '/client/suppliers/my-suppliers' }
+          { label: 'My Suppliers', icon: 'list', route: '/client/suppliers/my-suppliers' },
+          { label: 'Search for Suppliers', icon: 'search', route: '/client/suppliers/explore' }
         ]
       },
       {
-        labelKey: 'navigation.products',
-        icon: 'inventory',
-        route: '/client/products'
+        label: 'Products',
+        icon: 'inventory_2',
+        route: '/client/products',
+        subItems: [
+          { label: 'All Items', icon: 'list', route: '/client/products' },
+          { label: 'On Sale', icon: 'local_offer', route: '/client/products?tab=on-sale' }
+        ]
       },
       {
-        labelKey: 'navigation.orders',
+        label: 'Orders',
         icon: 'shopping_cart',
-        route: '/client/orders'
+        route: '/client/orders',
+        subItems: [
+          { label: 'Past Orders', icon: 'history', route: '/client/orders?filter=past' },
+          { label: 'Incoming Orders', icon: 'local_shipping', route: '/client/orders?filter=incoming' }
+        ]
       },
       {
-        labelKey: 'navigation.shoppingList',
-        icon: 'shopping_list',
+        label: 'Shopping List',
+        icon: 'checklist',
         route: '/client/shopping-lists'
       },
       {
-        labelKey: 'navigation.inventory',
+        label: 'Inventory',
         icon: 'warehouse',
         route: '/client/inventory'
       },
       {
-        labelKey: 'navigation.analysis',
+        label: 'Analysis',
         icon: 'analytics',
         route: '/client/analysis'
       },
       {
-        labelKey: 'navigation.team',
+        label: 'Team',
         icon: 'group',
         route: '/client/team'
       },
       {
-        labelKey: 'navigation.transactions',
-        icon: 'receipt',
+        label: 'Transactions',
+        icon: 'receipt_long',
         route: '/client/transactions'
       }
     ];

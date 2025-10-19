@@ -502,7 +502,15 @@
       "help": "Ayuda",
       "notifications": "Notificaciones",
       "team": "Equipo",
-      "transactions": "Transacciones"
+      "transactions": "Transacciones",
+      "supplierDashboard": "Panel Proveedor",
+      "supplierProducts": "Mis Productos",
+      "supplierInventory": "Mi Inventario",
+      "supplierAnalysis": "Análisis Proveedor",
+      "adminDashboard": "Panel Admin",
+      "users": "Usuarios",
+      "ean": "EAN",
+      "edi": "EDI"
     },
     "roles": {
       "user": "Usuario",

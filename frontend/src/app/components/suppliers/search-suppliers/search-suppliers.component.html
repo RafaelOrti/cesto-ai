@@ -2,8 +2,14 @@
   <!-- Header Section -->
   <div class="page-header">
     <div class="header-content">
-      <h1>Search for suppliers</h1>
-      <p>Discover and connect with suppliers from around the world</p>
+      <h1>{{ 'suppliers.searchForSuppliers' | translate }}</h1>
+      <p>{{ 'suppliers.discoverSuppliers' | translate }}</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-outline" routerLink="/suppliers">
+        <i class="fas fa-arrow-left"></i>
+        {{ 'suppliers.mySuppliers' | translate }}
+      </button>
     </div>
   </div>
 
@@ -12,29 +18,64 @@
     <!-- Main Search Bar -->
     <div class="search-bar-container">
       <div class="search-input-wrapper">
-        <i class="icon-search"></i>
+        <i class="fas fa-search search-icon"></i>
         <input 
           type="text" 
           [(ngModel)]="searchQuery" 
           (input)="onSearchChange()"
-          placeholder="Search your suppliers"
+          [placeholder]="'suppliers.searchPlaceholder' | translate"
           class="search-input">
         <button class="clear-search" *ngIf="searchQuery" (click)="clearSearch()">
-          <i class="icon-close"></i>
+          <i class="fas fa-times"></i>
         </button>
       </div>
     </div>
 
     <!-- Category Filters -->
     <div class="category-filters">
+      <h3 class="filter-title">{{ 'common.category' | translate }}</h3>
       <div class="categories-scroll">
         <button 
           *ngFor="let category of categories" 
           [class.active]="selectedCategories.includes(category.id)"
           (click)="toggleCategory(category.id)"
           class="category-button">
-          <i [class]="category.icon"></i>
+          <span class="category-icon">{{ category.icon }}</span>
           <span>{{ category.name }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Secondary Search -->
+    <div class="secondary-search-container">
+      <div class="secondary-search-field">
+        <i class="fas fa-search search-icon"></i>
+        <input 
+          type="text" 
+          [(ngModel)]="searchQuery" 
+          (input)="onSearchChange()"
+          [placeholder]="'suppliers.searchBar' | translate"
+          class="search-input">
+      </div>
+    </div>
+
+    <!-- Special Filters Bar -->
+    <div class="special-filters-bar">
+      <div class="quick-filters">
+        <button class="quick-filter-btn" 
+                [class.active]="filters.freeShipping"
+                (click)="toggleFilter('freeShipping')">
+          {{ 'suppliers.filters.freeDelivery' | translate }}
+        </button>
+        <button class="quick-filter-btn" 
+                [class.active]="filters.coDelivery"
+                (click)="toggleFilter('coDelivery')">
+          {{ 'suppliers.filters.coDelivery' | translate }}
+        </button>
+        <button class="quick-filter-btn" 
+                [class.active]="filters.onSale"
+                (click)="toggleFilter('onSale')">
+          {{ 'suppliers.filters.onSale' | translate }}
         </button>
       </div>
     </div>
@@ -42,42 +83,42 @@
     <!-- Additional Filters -->
     <div class="additional-filters">
       <div class="filter-section">
-        <h3>Additional filters</h3>
+        <h3>{{ 'common.additionalFilters' | translate }}</h3>
         <div class="filter-options">
           <label class="filter-checkbox">
-            <input type="checkbox" [(ngModel)]="filters.suppliersToPurchase">
+            <input type="checkbox" [(ngModel)]="filters.suppliersToPurchase" (change)="applyFilters()">
             <span class="checkmark"></span>
-            <span>Suppliers I may need to purchase from</span>
+            <span>{{ 'suppliers.filters.suppliersMayNeedToBuy' | translate }}</span>
           </label>
           
           <label class="filter-checkbox">
-            <input type="checkbox" [(ngModel)]="filters.stoppedBuying">
+            <input type="checkbox" [(ngModel)]="filters.stoppedBuying" (change)="applyFilters()">
             <span class="checkmark"></span>
-            <span>Suppliers I have stopped buying from</span>
+            <span>{{ 'suppliers.filters.suppliersStoppedBuying' | translate }}</span>
           </label>
 
           <label class="filter-checkbox">
-            <input type="checkbox" [(ngModel)]="filters.coDelivery">
+            <input type="checkbox" [(ngModel)]="filters.coDeliveryExtended" (change)="applyFilters()">
             <span class="checkmark"></span>
-            <span>Co-delivery</span>
+            <span>{{ 'suppliers.filters.combinedDelivery' | translate }}</span>
           </label>
 
           <label class="filter-checkbox">
-            <input type="checkbox" [(ngModel)]="filters.freeShipping">
+            <input type="checkbox" [(ngModel)]="filters.freeShippingExtended" (change)="applyFilters()">
             <span class="checkmark"></span>
-            <span>Free shipping cost</span>
+            <span>{{ 'suppliers.filters.freeShippingCost' | translate }}</span>
           </label>
 
           <label class="filter-checkbox">
-            <input type="checkbox" [(ngModel)]="filters.activeCampaigns">
+            <input type="checkbox" [(ngModel)]="filters.activeCampaigns" (change)="applyFilters()">
             <span class="checkmark"></span>
-            <span>Active campaigns</span>
+            <span>{{ 'suppliers.filters.activeCampaigns' | translate }}</span>
           </label>
 
           <label class="filter-checkbox">
-            <input type="checkbox" [(ngModel)]="filters.newProducts">
+            <input type="checkbox" [(ngModel)]="filters.newProducts" (change)="applyFilters()">
             <span class="checkmark"></span>
-            <span>New products</span>
+            <span>{{ 'suppliers.filters.newProducts' | translate }}</span>
           </label>
         </div>
       </div>
@@ -91,6 +132,12 @@
           class="tab-button">
           {{ tab.name }}
           <span class="tab-count" *ngIf="tab.count > 0">({{ tab.count }})</span>
+        </button>
+      </div>
+
+      <div class="filter-actions">
+        <button class="clear-filters-btn" (click)="clearAllFilters()">
+          {{ 'suppliers.clearFilters' | translate }}
         </button>
       </div>
     </div>

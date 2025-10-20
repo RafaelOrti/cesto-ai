@@ -444,133 +444,143 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
   }
 
   private fetchAnalytics(): void {
-    // Generate sample data for the chart
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb'];
-    const salesData = [0.75, 0.85, 0.65, 1.2, 1.5, 1.75, 1.6, 1.4, 1.3, 1.25, 1.8, 2.1, 2.25, 2.0];
-
-    // Chart.js dataset
-    this.chartData = {
-      labels: months,
-      datasets: [
-        { 
-          label: 'Sales Analytics', 
-          data: salesData, 
-          borderColor: '#2E7D32', 
-          backgroundColor: 'rgba(46,125,50,0.2)', 
-          pointBorderColor: '#2E7D32', 
-          pointBackgroundColor: '#fff', 
-          pointRadius: 6, 
-          borderWidth: 3, 
-          fill: true, 
-          tension: 0.4,
-          pointHoverRadius: 8,
-          pointHoverBackgroundColor: '#2E7D32',
-          pointHoverBorderColor: '#fff',
-          pointHoverBorderWidth: 2
-        }
-      ]
-    };
-
-    this.chartOptions = {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { 
-          display: true,
-          position: 'top',
-          labels: {
-            usePointStyle: true,
-            padding: 20,
-            font: {
-              size: 14,
-              weight: 500
-            }
-          }
-        },
-        tooltip: {
-          mode: 'index',
-          intersect: false,
-          backgroundColor: 'rgba(0, 0, 0, 0.8)',
-          titleColor: '#fff',
-          bodyColor: '#fff',
-          borderColor: '#2E7D32',
-          borderWidth: 1,
-          padding: 12,
-          displayColors: true,
-          callbacks: {
-            label: function(context) {
-              return context.dataset.label + ': €' + (context.parsed.y * 1000000).toLocaleString() + 'M';
-            }
-          }
-        }
+    const filters = {
+      selectedFilter: this.metricSelected,
+      dateRange: { 
+        from: this.dateRangeStart.toISOString().split('T')[0], 
+        to: this.dateRangeEnd.toISOString().split('T')[0] 
       },
-      interaction: {
-        mode: 'nearest',
-        axis: 'x',
-        intersect: false
-      },
-      scales: {
-        x: {
-          display: true,
-          grid: { display: false },
-          ticks: { 
-            color: '#64748b', 
-            font: { size: 12, weight: 500 },
-            padding: 8
-          },
-          title: {
-            display: true,
-            text: 'Months',
-            color: '#64748b',
-            font: { size: 14, weight: 600 }
-          }
-        },
-        y: {
-          display: true,
-          grid: { 
-            color: 'rgba(0,0,0,0.06)'
-          },
-          ticks: { 
-            color: '#64748b', 
-            font: { size: 12, weight: 500 },
-            padding: 8,
-            callback: function(value) {
-              return '€' + value + 'M';
+      additionalFilters: this.activeFilters.map(f => f.type)
+    } as any;
+
+    this.clientDashboardService.getBuyerInsightsData(filters)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          // Chart.js dataset
+          this.chartData = {
+            labels: res.chartData.map(d => d.month),
+            datasets: [
+              { 
+                label: this.metricSelected, 
+                data: res.chartData.map(d => d.value), 
+                borderColor: '#2E7D32', 
+                backgroundColor: 'rgba(46,125,50,0.2)', 
+                pointBorderColor: '#2E7D32', 
+                pointBackgroundColor: '#fff', 
+                pointRadius: 6, 
+                borderWidth: 3, 
+                fill: true, 
+                tension: 0.4,
+                pointHoverRadius: 8,
+                pointHoverBackgroundColor: '#2E7D32',
+                pointHoverBorderColor: '#fff',
+                pointHoverBorderWidth: 2
+              }
+            ]
+          };
+
+          this.chartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { 
+                display: true,
+                position: 'top',
+                labels: {
+                  usePointStyle: true,
+                  padding: 20,
+                  font: {
+                    size: 14,
+                    weight: 500
+                  }
+                }
+              },
+              tooltip: {
+                mode: 'index',
+                intersect: false,
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                titleColor: '#fff',
+                bodyColor: '#fff',
+                borderColor: '#2E7D32',
+                borderWidth: 1,
+                padding: 12,
+                displayColors: true,
+                callbacks: {
+                  label: function(context) {
+                    return context.dataset.label + ': €' + (context.parsed.y * 1000000).toLocaleString() + 'M';
+                  }
+                }
+              }
+            },
+            interaction: {
+              mode: 'nearest',
+              axis: 'x',
+              intersect: false
+            },
+            scales: {
+              x: {
+                display: true,
+                grid: { display: false },
+                ticks: { 
+                  color: '#64748b', 
+                  font: { size: 12, weight: 500 },
+                  padding: 8
+                },
+                title: {
+                  display: true,
+                  text: 'Months',
+                  color: '#64748b',
+                  font: { size: 14, weight: 600 }
+                }
+              },
+              y: {
+                display: true,
+                grid: { 
+                  color: 'rgba(0,0,0,0.06)'
+                },
+                ticks: { 
+                  color: '#64748b', 
+                  font: { size: 12, weight: 500 },
+                  padding: 8,
+                  callback: function(value) {
+                    return '€' + value + 'M';
+                  }
+                },
+                title: {
+                  display: true,
+                  text: 'Sales (Millions)',
+                  color: '#64748b',
+                  font: { size: 14, weight: 600 }
+                }
+              }
             }
-          },
-          title: {
-            display: true,
-            text: 'Sales (Millions)',
-            color: '#64748b',
-            font: { size: 14, weight: 600 }
-          }
+          };
+
+          // Table datasource
+          const idToName = new Map<string, string>();
+          this.supplierService.getMySuppliers().subscribe(sups => 
+            sups.forEach(s => idToName.set((s as any).id || (s as any)._id || s.name, s.name))
+          );
+          const rows = res.customerData.map(c => ({
+            store: idToName.get(c.name) || c.name,
+            sales: c.sales,
+            orders: c.orders,
+            avgOrder: c.averageOrder,
+            frequency: c.frequency,
+            icon: this.getStoreIcon(c.name),
+            color: this.getStoreColor(c.name)
+          }));
+          this.dataSource.data = rows;
+          this.updateTableTotals();
+          if (this.paginator) this.dataSource.paginator = this.paginator;
+          if (this.sort) this.dataSource.sort = this.sort;
+        },
+        error: (error) => {
+          console.error('Error fetching analytics:', error);
+          this.notificationService.error('Error loading analytics data');
         }
-      }
-    };
-
-    // Generate sample table data
-    const sampleStores = [
-      { name: 'Fresh Foods Co.', sales: 15600, orders: 24, avgOrder: 650, frequency: 3.2 },
-      { name: 'Beverage Solutions', sales: 12400, orders: 18, avgOrder: 689, frequency: 2.8 },
-      { name: 'Dairy Farm Co.', sales: 8900, orders: 15, avgOrder: 593, frequency: 2.5 },
-      { name: 'Organic Farm Co.', sales: 11200, orders: 20, avgOrder: 560, frequency: 3.0 },
-      { name: 'Meat & More', sales: 9800, orders: 16, avgOrder: 613, frequency: 2.7 }
-    ];
-
-    const rows = sampleStores.map(store => ({
-      store: store.name,
-      sales: store.sales,
-      orders: store.orders,
-      avgOrder: store.avgOrder,
-      frequency: store.frequency,
-      icon: this.getStoreIcon(store.name),
-      color: this.getStoreColor(store.name)
-    }));
-
-    this.dataSource.data = rows;
-    this.updateTableTotals();
-    if (this.paginator) this.dataSource.paginator = this.paginator;
-    if (this.sort) this.dataSource.sort = this.sort;
+      });
   }
   
   // Event Handlers

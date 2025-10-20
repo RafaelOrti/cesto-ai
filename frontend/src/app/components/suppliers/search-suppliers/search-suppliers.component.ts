@@ -92,9 +92,12 @@ export class SearchSuppliersComponent implements OnInit, OnDestroy {
     suppliersToPurchase: false,
     stoppedBuying: false,
     coDelivery: false,
+    coDeliveryExtended: false,
     freeShipping: false,
+    freeShippingExtended: false,
     activeCampaigns: false,
-    newProducts: false
+    newProducts: false,
+    onSale: false
   };
 
   constructor(private router: Router) {
@@ -205,8 +208,16 @@ export class SearchSuppliersComponent implements OnInit, OnDestroy {
     }
 
     // Apply additional filters
-    if (this.filters.freeShipping) {
+    if (this.filters.freeShipping || this.filters.freeShippingExtended) {
       filtered = filtered.filter(supplier => supplier.deliveryTerms.freeShippingThreshold > 0);
+    }
+
+    if (this.filters.coDelivery || this.filters.coDeliveryExtended) {
+      filtered = filtered.filter(supplier => supplier.deliveryTerms.shippingCost === 0);
+    }
+
+    if (this.filters.onSale) {
+      filtered = filtered.filter(supplier => supplier.activeCampaign);
     }
 
     if (this.filters.activeCampaigns) {
@@ -215,6 +226,18 @@ export class SearchSuppliersComponent implements OnInit, OnDestroy {
 
     if (this.filters.newProducts) {
       filtered = filtered.filter(supplier => supplier.newProductsCount > 0);
+    }
+
+    if (this.filters.suppliersToPurchase) {
+      // Filter suppliers marked as potential
+      filtered = filtered.filter(supplier => !supplier.isFavorite);
+    }
+
+    if (this.filters.stoppedBuying) {
+      // Filter suppliers with no recent orders
+      const sixMonthsAgo = new Date();
+      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+      filtered = filtered.filter(supplier => supplier.lastDelivery < sixMonthsAgo);
     }
 
     // Apply sorting
@@ -314,6 +337,11 @@ export class SearchSuppliersComponent implements OnInit, OnDestroy {
     } else {
       return 'status-old';
     }
+  }
+
+  toggleFilter(filterKey: string): void {
+    (this.filters as any)[filterKey] = !(this.filters as any)[filterKey];
+    this.applyFilters();
   }
 
   clearAllFilters(): void {

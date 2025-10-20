@@ -14,63 +14,33 @@
   <!-- Filter and Control Bar -->
   <mat-card class="controls-bar">
     <mat-card-content>
-      <div class="filter-section">
-        <!-- Choose Filter Dropdown -->
-        <mat-form-field appearance="outline" class="filter-dropdown">
-          <mat-label>Add Filter</mat-label>
-          <mat-select (selectionChange)="addFilter($event.value)" placeholder="Choose filter">
-            <mat-option *ngFor="let filter of availableFilters" [value]="filter">
-              {{ filter.label }}
-            </mat-option>
-          </mat-select>
+      <div class="filters-row">
+        <mat-form-field appearance="outline" class="filter-search">
+          <mat-label>Choose filter</mat-label>
+          <input matInput placeholder="Stores, supplier, delivery date..." />
         </mat-form-field>
 
-        <!-- Active Filter Chips -->
-        <div class="filter-chips">
-          <mat-chip-set>
-            <mat-chip 
-              *ngFor="let filter of filters"
-              [selected]="selectedFilter === filter.value"
-              (click)="onFilterChange(filter.value)"
-              (removed)="removeFilter(filter.value)">
-              {{ filter.label }}
-              <button matChipRemove>
-                <mat-icon>cancel</mat-icon>
-              </button>
-            </mat-chip>
-          </mat-chip-set>
-        </div>
+        <mat-form-field appearance="outline" class="filter-range">
+          <mat-label>Fecha</mat-label>
+          <input matInput placeholder="1 Feb 2022 - 31 Jan 2023" />
+          <button mat-icon-button matSuffix aria-label="calendar">
+            <mat-icon>calendar_today</mat-icon>
+          </button>
+        </mat-form-field>
 
-        <!-- Date Range -->
-        <div class="date-range">
-          <mat-form-field appearance="outline">
-            <mat-label>From Date</mat-label>
-            <input matInput [matDatepicker]="fromPicker" [(ngModel)]="dateRange.from" (dateChange)="onDateRangeChange()">
-            <mat-datepicker-toggle matSuffix [for]="fromPicker"></mat-datepicker-toggle>
-            <mat-datepicker #fromPicker></mat-datepicker>
-          </mat-form-field>
-          
-          <mat-form-field appearance="outline">
-            <mat-label>To Date</mat-label>
-            <input matInput [matDatepicker]="toPicker" [(ngModel)]="dateRange.to" (dateChange)="onDateRangeChange()">
-            <mat-datepicker-toggle matSuffix [for]="toPicker"></mat-datepicker-toggle>
-            <mat-datepicker #toPicker></mat-datepicker>
-          </mat-form-field>
-        </div>
+        <button mat-stroked-button color="primary" (click)="addComparison()">
+          <mat-icon>add</mat-icon>
+          {{ showComparison ? 'Hide comparison' : 'Add comparison' }}
+        </button>
 
-        <!-- Additional Filters -->
-        <div class="additional-filters" *ngIf="additionalFilters.length > 0">
-          <mat-chip-set>
-            <mat-chip 
-              *ngFor="let filter of additionalFilters"
-              [selected]="filter.active"
-              (click)="toggleAdditionalFilter(filter)">
-              {{ filter.label }}
-            </mat-chip>
-          </mat-chip-set>
-        </div>
+        <button mat-raised-button color="primary" (click)="generateReport()" [disabled]="isLoading">
+          <mat-icon *ngIf="!isLoading">auto_graph</mat-icon>
+          <mat-spinner *ngIf="isLoading" diameter="20" class="button-spinner"></mat-spinner>
+          <span>{{ isLoading ? 'Generating...' : 'Generate' }}</span>
+        </button>
+      </div>
 
-        <!-- Comparison Section -->
+      <!-- Comparison Section -->
         <mat-expansion-panel *ngIf="showComparison" class="comparison-section">
           <mat-expansion-panel-header>
             <mat-panel-title>Comparison Filters</mat-panel-title>
@@ -96,24 +66,6 @@
             </button>
           </div>
         </mat-expansion-panel>
-
-        <!-- Action Buttons -->
-        <div class="action-buttons">
-          <button mat-stroked-button (click)="addComparison()">
-            <mat-icon>{{ showComparison ? 'remove' : 'add' }}</mat-icon>
-            {{ showComparison ? 'Hide comparison' : 'Add comparison' }}
-          </button>
-          
-          <button mat-raised-button 
-                  color="primary"
-                  (click)="generateReport()"
-                  [disabled]="isLoading">
-            <mat-spinner *ngIf="isLoading" diameter="20" class="button-spinner"></mat-spinner>
-            <mat-icon *ngIf="!isLoading">analytics</mat-icon>
-            <span>{{ isLoading ? 'Generating...' : 'Generate' }}</span>
-          </button>
-        </div>
-      </div>
     </mat-card-content>
   </mat-card>
 
@@ -158,9 +110,12 @@
               <svg width="100%" height="100%" viewBox="0 0 800 200">
                 <polyline
                   [attr.points]="getChartPoints()"
+                  class="chart-line-poly"
                   fill="none"
                   stroke="#20B2AA"
-                  stroke-width="3"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
                 />
                 <circle
                   *ngFor="let point of getChartPointsArray()"

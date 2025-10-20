@@ -1,11 +1,15 @@
 .supplier-dashboard {
   min-height: 100vh;
-  background: var(--color-background-primary);
-  padding: 0;
+  background: #f5f5f5; // Fallback background color
+  padding: 24px;
   position: relative;
   overflow-x: hidden;
   width: 100%;
   max-width: 100%;
+  
+  // Ensure content is visible
+  display: block;
+  visibility: visible;
 }
 
 // Header Styles
@@ -68,13 +72,16 @@
   justify-content: center;
   align-items: center;
   min-height: 400px;
+  padding: 40px;
   
   .loading-spinner {
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
     
-    i {
-      font-size: 3rem;
-      color: var(--color-primary-main);
+    mat-spinner {
       margin-bottom: 16px;
     }
     
@@ -82,8 +89,19 @@
       font-size: 1.2rem;
       color: var(--color-text-secondary);
       margin: 0;
+      font-weight: 500;
     }
   }
+}
+
+// Dashboard Content
+.dashboard-content {
+  width: 100%;
+  min-height: 100vh;
+  background: var(--color-background-primary);
+  padding: 0;
+  position: relative;
+  overflow-x: hidden;
 }
 
 // Statistics Grid

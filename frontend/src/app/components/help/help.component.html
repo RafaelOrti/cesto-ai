@@ -1,0 +1,125 @@
+<div class="help-container">
+  <div class="help-header">
+    <h1 class="help-title">{{ 'navigation.help' | translate }}</h1>
+    <p class="help-subtitle">Find answers to your questions and learn how to use CESTO AI</p>
+  </div>
+
+  <!-- Search and Filter Section -->
+  <div class="help-search-section">
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>Search help articles</mat-label>
+      <input matInput [(ngModel)]="searchQuery" (keyup.enter)="onSearch()" placeholder="Type your question...">
+      <mat-icon matPrefix>search</mat-icon>
+      <button mat-icon-button matSuffix (click)="onSearch()" [disabled]="!searchQuery.trim()">
+        <mat-icon>search</mat-icon>
+      </button>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="category-field">
+      <mat-label>Category</mat-label>
+      <mat-select [(ngModel)]="selectedCategory">
+        <mat-option *ngFor="let category of categories" [value]="category.value">
+          {{ category.label }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <!-- Help Sections -->
+  <div class="help-sections">
+    <h2>Help Topics</h2>
+    <div class="sections-grid">
+      <mat-card 
+        *ngFor="let section of helpSections" 
+        class="help-section-card"
+        (click)="toggleSection(section.id)"
+        [class.expanded]="expandedSection === section.id">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon class="section-icon">{{ section.icon }}</mat-icon>
+            {{ section.title }}
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <p>{{ section.content }}</p>
+          <div *ngIf="expandedSection === section.id" class="section-details">
+            <p>Detailed information about {{ section.title.toLowerCase() }} will be displayed here.</p>
+            <button mat-button color="primary">Learn More</button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- FAQ Section -->
+  <div class="faq-section">
+    <h2>Frequently Asked Questions</h2>
+    <div class="faq-list">
+      <mat-expansion-panel 
+        *ngFor="let faq of filteredFAQs" 
+        class="faq-panel">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            {{ faq.question }}
+          </mat-panel-title>
+          <mat-panel-description>
+            {{ faq.category | titlecase }}
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+        <p>{{ faq.answer }}</p>
+      </mat-expansion-panel>
+    </div>
+  </div>
+
+  <!-- Contact Support Section -->
+  <div class="contact-section">
+    <mat-card class="contact-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>support_agent</mat-icon>
+          Need More Help?
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p>If you can't find what you're looking for, our support team is here to help.</p>
+        <div class="contact-actions">
+          <button mat-raised-button color="primary" (click)="onContactSupport()">
+            <mat-icon>chat</mat-icon>
+            Contact Support
+          </button>
+          <button mat-button (click)="onDownloadGuide()">
+            <mat-icon>download</mat-icon>
+            Download User Guide
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Quick Links -->
+  <div class="quick-links">
+    <h3>Quick Links</h3>
+    <div class="links-grid">
+      <a mat-button href="/client/dashboard" class="quick-link">
+        <mat-icon>dashboard</mat-icon>
+        Dashboard
+      </a>
+      <a mat-button href="/client/suppliers" class="quick-link">
+        <mat-icon>local_shipping</mat-icon>
+        Suppliers
+      </a>
+      <a mat-button href="/client/products" class="quick-link">
+        <mat-icon>inventory</mat-icon>
+        Products
+      </a>
+      <a mat-button href="/client/orders" class="quick-link">
+        <mat-icon>shopping_cart</mat-icon>
+        Orders
+      </a>
+      <a mat-button href="/settings" class="quick-link">
+        <mat-icon>settings</mat-icon>
+        Settings
+      </a>
+    </div>
+  </div>
+</div>

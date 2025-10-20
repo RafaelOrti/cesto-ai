@@ -1,0 +1,138 @@
+<div class="notifications-container">
+  <div class="notifications-header">
+    <h1 class="notifications-title">{{ 'navigation.notifications' | translate }}</h1>
+    <p class="notifications-subtitle">Stay updated with your latest notifications</p>
+  </div>
+
+  <!-- Filter and Actions -->
+  <div class="notifications-controls">
+    <div class="controls-left">
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Filter notifications</mat-label>
+        <mat-select [(ngModel)]="selectedFilter" (selectionChange)="onFilterChange()">
+          <mat-option *ngFor="let filter of filters" [value]="filter.value">
+            {{ filter.label }}
+            <span *ngIf="filter.value === 'unread'" class="unread-count">
+              ({{ getUnreadCount() }})
+            </span>
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="controls-right">
+      <button mat-button (click)="markAllAsRead()" [disabled]="getUnreadCount() === 0">
+        <mat-icon>done_all</mat-icon>
+        Mark All as Read
+      </button>
+      <button mat-button color="warn" (click)="clearAllNotifications()" [disabled]="notifications.length === 0">
+        <mat-icon>delete_sweep</mat-icon>
+        Clear All
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner></mat-spinner>
+    <p>Loading notifications...</p>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!isLoading && filteredNotifications.length === 0" class="empty-state">
+    <mat-icon class="empty-icon">notifications_off</mat-icon>
+    <h3>No notifications</h3>
+    <p *ngIf="selectedFilter === 'all'">You're all caught up! No new notifications.</p>
+    <p *ngIf="selectedFilter !== 'all'">No {{ selectedFilter }} notifications found.</p>
+  </div>
+
+  <!-- Notifications List -->
+  <div *ngIf="!isLoading && filteredNotifications.length > 0" class="notifications-list">
+    <mat-card 
+      *ngFor="let notification of filteredNotifications" 
+      class="notification-card"
+      [class.unread]="!notification.read"
+      [class.success]="notification.type === 'success'"
+      [class.warning]="notification.type === 'warning'"
+      [class.error]="notification.type === 'error'"
+      [class.info]="notification.type === 'info'">
+      
+      <mat-card-content>
+        <div class="notification-content">
+          <div class="notification-icon">
+            <mat-icon [class.success-icon]="notification.type === 'success'"
+                     [class.warning-icon]="notification.type === 'warning'"
+                     [class.error-icon]="notification.type === 'error'"
+                     [class.info-icon]="notification.type === 'info'">
+              {{ getNotificationIcon(notification.type) }}
+            </mat-icon>
+          </div>
+
+          <div class="notification-body">
+            <h3 class="notification-title">{{ notification.title }}</h3>
+            <p class="notification-message">{{ notification.message }}</p>
+            <div class="notification-meta">
+              <span class="notification-time">{{ getTimeAgo(notification.timestamp) }}</span>
+              <span *ngIf="!notification.read" class="unread-indicator">• Unread</span>
+            </div>
+          </div>
+
+          <div class="notification-actions">
+            <button *ngIf="!notification.read" 
+                    mat-icon-button 
+                    (click)="markAsRead(notification)"
+                    matTooltip="Mark as read">
+              <mat-icon>done</mat-icon>
+            </button>
+            <button *ngIf="notification.actionUrl" 
+                    mat-button 
+                    color="primary"
+                    [routerLink]="notification.actionUrl">
+              {{ notification.actionLabel }}
+            </button>
+            <button mat-icon-button 
+                    color="warn"
+                    (click)="deleteNotification(notification)"
+                    matTooltip="Delete notification">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Notification Settings -->
+  <div class="notification-settings">
+    <mat-card class="settings-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>settings</mat-icon>
+          Notification Settings
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="settings-options">
+          <div class="setting-item">
+            <mat-slide-toggle [checked]="true">
+              Email Notifications
+            </mat-slide-toggle>
+            <p>Receive notifications via email</p>
+          </div>
+          <div class="setting-item">
+            <mat-slide-toggle [checked]="true">
+              Push Notifications
+            </mat-slide-toggle>
+            <p>Receive push notifications in your browser</p>
+          </div>
+          <div class="setting-item">
+            <mat-slide-toggle [checked]="false">
+              SMS Notifications
+            </mat-slide-toggle>
+            <p>Receive notifications via SMS</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

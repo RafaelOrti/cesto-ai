@@ -7,7 +7,7 @@ import { NotificationService, Notification } from '../../services/notification.s
  * Shows toast notifications and persistent notifications
  */
 @Component({
-  selector: 'app-notifications',
+  selector: 'app-inline-notifications',
   templateUrl: './notifications.component.html',
   styleUrls: ['./notifications.component.scss']
 })

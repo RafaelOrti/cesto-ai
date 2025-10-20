@@ -92,16 +92,29 @@
 
     <!-- Right side - Controls in correct order -->
     <div class="header-right">
+      <!-- User Profile Section -->
+      <div class="user-profile" *ngIf="currentUser" (click)="onProfile()" style="cursor: pointer;" title="Perfil">
+        <div class="user-avatar">
+          <mat-icon>person</mat-icon>
+        </div>
+        <div class="user-info">
+          <span class="user-name">{{ userDisplayName }}</span>
+          <span class="user-role">{{ getRoleDisplayName() }}</span>
+        </div>
+      </div>
+
       <!-- Language selector -->
       <app-language-selector></app-language-selector>
 
-      <!-- Notifications button -->
-      <button mat-icon-button 
-              class="action-button" 
-              [matTooltip]="'navigation.notifications' | translate"
-              (click)="onNotifications()">
-        <mat-icon>notifications</mat-icon>
-      </button>
+      <!-- Notifications -->
+      <div class="notifications-wrapper">
+        <button mat-icon-button 
+                class="action-button" 
+                [matTooltip]="'navigation.notifications' | translate"
+                (click)="onNotifications()">
+          <mat-icon>notifications</mat-icon>
+        </button>
+      </div>
 
       <!-- Settings button -->
       <button mat-icon-button 

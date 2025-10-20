@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { AuthService } from './core/services/auth.service';
-import { Router } from '@angular/router';
+import { Router, NavigationEnd } from '@angular/router';
 import { ThemeInitializerService } from './core/services/theme-initializer.service';
 import { I18nService } from './core/services/i18n.service';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
@@ -13,6 +14,8 @@ export class AppComponent implements OnInit {
   title = 'Cesto AI';
   isLoggedIn = false;
   currentUser: any = null;
+  isAuthenticated = false;
+  isLoginPage = false;
 
   constructor(
     private authService: AuthService,
@@ -27,8 +30,16 @@ export class AppComponent implements OnInit {
     
     this.authService.isAuthenticated$.subscribe(isAuth => {
       this.isLoggedIn = isAuth;
+      this.isAuthenticated = isAuth;
       this.currentUser = this.authService.getCurrentUser();
     });
+
+    // Detect login page
+    this.router.events
+      .pipe(filter(event => event instanceof NavigationEnd))
+      .subscribe((event: NavigationEnd) => {
+        this.isLoginPage = event.url === '/login';
+      });
   }
 
   logout() {

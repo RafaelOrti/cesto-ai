@@ -1,4 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
+import { MatTableDataSource } from '@angular/material/table';
+import { MatPaginator } from '@angular/material/paginator';
+import { MatSort } from '@angular/material/sort';
 import { I18nService } from '../../../core/services/i18n.service';
 
 interface ChartDataPoint {
@@ -27,14 +30,24 @@ interface LegendItem {
   value: number;
 }
 
+interface CustomerRow {
+  favorite: boolean;
+  name: string;
+  color: string;
+  sales: number;
+  orders: number;
+  averageOrder: number;
+  frequency: number;
+}
+
 @Component({
   selector: 'app-client-insights',
   templateUrl: './client-insights.component.html',
   styleUrls: ['./client-insights.component.scss']
 })
-export class ClientInsightsComponent implements OnInit {
+export class ClientInsightsComponent implements OnInit, AfterViewInit {
   selectedFilter = 'Sales';
-  filters = ['Sales', 'Websites', 'Delivery date'];
+  filters = ['Sales', 'Orders', 'Delivery', 'Delivery date'];
 
   constructor(private i18nService: I18nService) {}
   
@@ -118,7 +131,7 @@ export class ClientInsightsComponent implements OnInit {
     { color: 'yellow', value: 83 },
     { color: 'green', value: 71 },
     { color: 'blue', value: 69 },
-    { color: 'purple', value: 77 },
+    { color: 'green', value: 77 },
     { color: 'pink', value: 80 },
     { color: 'cyan', value: 79 },
     { color: 'lime', value: 76 },
@@ -128,9 +141,22 @@ export class ClientInsightsComponent implements OnInit {
   private readonly CHART_WIDTH = 800;
   private readonly CHART_HEIGHT = 200;
   private readonly MAX_VALUE = 3000000;
+  yAxisLabels: string[] = [];
 
   ngOnInit(): void {
     this.loadAnalyticsData();
+    this.yAxisLabels = this.generateYAxisLabels(6); // 0 to max with 6 intervals
+  }
+
+  displayedColumns: string[] = ['favorite','name','sales','orders','averageOrder','frequency'];
+  dataSource = new MatTableDataSource<CustomerRow>([]);
+
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  @ViewChild(MatSort) sort!: MatSort;
+
+  ngAfterViewInit(): void {
+    this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
   }
 
   onFilterChange(filter: string): void {
@@ -140,6 +166,23 @@ export class ClientInsightsComponent implements OnInit {
 
   onDateRangeChange(): void {
     this.loadAnalyticsData();
+  }
+
+  // Global search (customer name)
+  applySearch(value: string): void {
+    this.dataSource.filter = value.trim().toLowerCase();
+  }
+
+  // Toggle favorites
+  toggleFavorite(row: CustomerRow): void {
+    row.favorite = !row.favorite;
+  }
+
+  // Example: refresh datasource after loading analytics
+  private setTableData(rows: CustomerRow[]): void {
+    this.dataSource.data = rows;
+    if (this.paginator) this.dataSource.paginator = this.paginator;
+    if (this.sort) this.dataSource.sort = this.sort;
   }
 
   generateReport(): void {
@@ -324,7 +367,7 @@ ${reportData.analyticsData.sales.map(data => `- ${data.month}: ${data.value.toLo
   }
 
   private getRandomColor(): string {
-    const colors = ['purple', 'pink', 'cyan', 'lime', 'indigo', 'teal', 'amber', 'emerald'];
+    const colors = ['green', 'pink', 'cyan', 'lime', 'indigo', 'teal', 'amber', 'emerald'];
     return colors[Math.floor(Math.random() * colors.length)];
   }
 
@@ -348,5 +391,21 @@ ${reportData.analyticsData.sales.map(data => `- ${data.month}: ${data.value.toLo
     const x = (index / (this.analyticsData.sales.length - 1)) * this.CHART_WIDTH;
     const y = this.CHART_HEIGHT - ((data.value / this.MAX_VALUE) * this.CHART_HEIGHT);
     return { x, y };
+  }
+
+  private generateYAxisLabels(steps: number): string[] {
+    if (steps <= 0) return [];
+    const labels: string[] = [];
+    const stepValue = this.MAX_VALUE / steps;
+    for (let i = steps; i >= 0; i--) {
+      const value = stepValue * i;
+      labels.push(this.formatMillions(value));
+    }
+    return labels;
+  }
+
+  private formatMillions(value: number): string {
+    const millions = value / 1_000_000;
+    return `${millions.toFixed(2)}M`;
   }
 }

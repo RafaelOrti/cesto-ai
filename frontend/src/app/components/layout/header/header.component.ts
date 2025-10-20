@@ -1,9 +1,10 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, HostListener } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, HostListener, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { I18nService } from '../../../core/services/i18n.service';
 import { SearchService, SearchSuggestion } from '../../../core/services/search.service';
 import { Subscription } from 'rxjs';
+import { NotificationsComponent } from '../../../core/components/notifications/notifications.component';
 
 @Component({
   selector: 'app-header',
@@ -13,6 +14,8 @@ import { Subscription } from 'rxjs';
 export class HeaderComponent implements OnInit, OnDestroy {
   @Input() currentUser: any = null;
   @Output() logout = new EventEmitter<void>();
+
+  @ViewChild(NotificationsComponent) notificationsComp?: NotificationsComponent;
 
   searchQuery = '';
   isSearchFocused = false;
@@ -61,37 +64,70 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   onSettings() {
+    console.log('Header - Settings clicked');
     // Navigate to settings page
+    this.router.navigate(['/settings']).then(success => {
+      console.log('Header - Settings navigation successful:', success);
+    }).catch(error => {
+      console.error('Header - Settings navigation error:', error);
+    });
+  }
+
+  onProfile() {
+    // Navega a la vista de perfil/ajustes de usuario
     this.router.navigate(['/settings']);
   }
 
   onHelp() {
+    console.log('Header - Help clicked');
     // Navigate to help page or open help modal
-    this.router.navigate(['/help']);
+    this.router.navigate(['/help']).then(success => {
+      console.log('Header - Help navigation successful:', success);
+    }).catch(error => {
+      console.error('Header - Help navigation error:', error);
+    });
   }
 
   onNotifications() {
-    // Navigate to notifications page or open notifications modal
-    this.router.navigate(['/notifications']);
+    console.log('Header - Notifications clicked');
+    // Navigate to notifications page instead of inline dropdown
+    this.router.navigate(['/notifications']).then(success => {
+      console.log('Header - Notifications navigation successful:', success);
+    }).catch(error => {
+      console.error('Header - Notifications navigation error:', error);
+    });
   }
 
   onSearch() {
+    console.log('Header - Search clicked');
     if (this.searchQuery.trim()) {
+      console.log('Header - Searching for:', this.searchQuery);
       this.hideSuggestions();
-      this.searchService.performSearch(this.searchQuery);
-      this.router.navigate(['/search'], { queryParams: { q: this.searchQuery } });
+      
+      // Navigate to products page with search query
+      this.router.navigate(['/client/products'], { 
+        queryParams: { search: this.searchQuery } 
+      }).then(success => {
+        console.log('Header - Search navigation successful:', success);
+      }).catch(error => {
+        console.error('Header - Search navigation error:', error);
+      });
+    } else {
+      console.log('Header - No search query provided');
+      // If no search query, just go to products page
+      this.router.navigate(['/client/products']).then(success => {
+        console.log('Header - Products navigation successful:', success);
+      }).catch(error => {
+        console.error('Header - Products navigation error:', error);
+      });
     }
   }
 
   onSearchFocus() {
+    console.log('Header - Search focused');
     this.isSearchFocused = true;
-    if (this.searchQuery.trim()) {
-      this.showSuggestions = true;
-    } else {
-      // Show recent searches when focused but no query
-      this.searchService.search('');
-      this.showSuggestions = true;
-    }
+    // Show suggestions when focused
+    this.showSuggestions = true;
   }
 
   onSearchBlur() {
@@ -103,8 +139,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   onSearchInput() {
+    console.log('Header - Search input:', this.searchQuery);
     if (this.searchQuery.trim()) {
-      this.searchService.search(this.searchQuery);
       this.showSuggestions = true;
     } else {
       this.hideSuggestions();
@@ -117,10 +153,14 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   selectSuggestion(suggestion: SearchSuggestion) {
+    console.log('Header - Suggestion selected:', suggestion);
     this.searchQuery = suggestion.title;
     this.hideSuggestions();
-    this.searchService.performSearch(this.searchQuery, suggestion);
-    this.router.navigate([`/${suggestion.type}`], { queryParams: { q: this.searchQuery } });
+    this.router.navigate([`/${suggestion.type}`], { queryParams: { q: this.searchQuery } }).then(success => {
+      console.log('Header - Suggestion navigation successful:', success);
+    }).catch(error => {
+      console.error('Header - Suggestion navigation error:', error);
+    });
   }
 
   hideSuggestions() {
@@ -129,10 +169,20 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   toggleQuickFilter(filter: any) {
+    console.log('Header - Quick filter toggled:', filter);
     filter.active = !filter.active;
     // Navigate to filtered view
-    this.router.navigate([`/${filter.id}`]);
+    this.router.navigate([`/${filter.id}`]).then(success => {
+      console.log('Header - Filter navigation successful:', success);
+    }).catch(error => {
+      console.error('Header - Filter navigation error:', error);
+    });
     this.hideSuggestions();
+  }
+
+  // Hide inline notifications dropdown on notifications route to avoid duplication
+  isNotificationsPage(): boolean {
+    return this.router.url.includes('/notifications');
   }
 
   clearRecentSearches() {
@@ -173,7 +223,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   get userDisplayName(): string {
     if (this.currentUser) {
-      return this.currentUser.email;
+      return this.currentUser.firstName || this.currentUser.email || 'User';
     }
     return 'User';
   }

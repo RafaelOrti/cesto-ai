@@ -10,16 +10,6 @@
     </div>
   </div>
 
-  <!-- User Profile Section -->
-  <div class="user-profile">
-    <div class="user-avatar">
-      <mat-icon>person</mat-icon>
-    </div>
-    <div class="user-info">
-      <span class="user-name">{{ getUserDisplayName() }}</span>
-      <span class="user-role">{{ getRoleDisplayName() }}</span>
-    </div>
-  </div>
 
   <!-- Navigation Menu -->
   <nav class="navigation-menu">
@@ -64,12 +54,9 @@
 
   <!-- Sidebar Footer -->
   <div class="sidebar-footer">
-    <button 
-      mat-icon-button 
-      class="collapse-btn"
-      (click)="toggleSidebar()">
-      <mat-icon>chevron_left</mat-icon>
-    </button>
+    <div class="version-info">
+      <span class="version-label">v{{ appVersion }}</span>
+    </div>
   </div>
 </div>
 

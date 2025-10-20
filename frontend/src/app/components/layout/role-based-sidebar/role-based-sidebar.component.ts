@@ -4,6 +4,7 @@ import { Subject } from 'rxjs';
 import { takeUntil, filter } from 'rxjs/operators';
 import { AuthService } from '../../../core/services/auth.service';
 import { I18nService } from '../../../core/services/i18n.service';
+import { environment } from '../../../../environments/environment';
 
 export interface NavigationItem {
   id: string;
@@ -27,6 +28,7 @@ export class RoleBasedSidebarComponent implements OnInit, OnDestroy {
   currentRole: string = '';
   currentRoute: string = '';
   isCollapsed: boolean = false;
+  appVersion: string = environment.version;
   
   // Navigation items based on roles
   navigationItems: NavigationItem[] = [
@@ -46,24 +48,17 @@ export class RoleBasedSidebarComponent implements OnInit, OnDestroy {
       roles: ['client', 'admin'],
       children: [
         {
-          id: 'client-suppliers-insights',
-          label: 'suppliers.insights',
-          icon: 'analytics',
-          route: '/client/suppliers/insights',
-          roles: ['client', 'admin']
-        },
-        {
-          id: 'client-suppliers-explore',
-          label: 'common.explore',
-          icon: 'search',
-          route: '/client/suppliers/explore',
-          roles: ['client', 'admin']
-        },
-        {
           id: 'client-suppliers-my',
-          label: 'suppliers.mySuppliers',
+          label: 'navigation.mySuppliers',
           icon: 'list',
           route: '/client/suppliers/my-suppliers',
+          roles: ['client', 'admin']
+        },
+        {
+          id: 'client-suppliers-search',
+          label: 'navigation.searchSuppliers',
+          icon: 'search',
+          route: '/client/suppliers/explore',
           roles: ['client', 'admin']
         }
       ]
@@ -73,20 +68,52 @@ export class RoleBasedSidebarComponent implements OnInit, OnDestroy {
       label: 'navigation.products',
       icon: 'inventory',
       route: '/client/products',
-      roles: ['client', 'admin']
+      roles: ['client', 'admin'],
+      children: [
+        {
+          id: 'client-products-all',
+          label: 'navigation.allItems',
+          icon: 'list',
+          route: '/client/products',
+          roles: ['client', 'admin']
+        },
+        {
+          id: 'client-products-on-sale',
+          label: 'navigation.onSale',
+          icon: 'local_offer',
+          route: '/client/products?tab=on-sale',
+          roles: ['client', 'admin']
+        }
+      ]
     },
     {
       id: 'client-orders',
       label: 'navigation.orders',
       icon: 'shopping_cart',
       route: '/client/orders',
-      roles: ['client', 'admin']
+      roles: ['client', 'admin'],
+      children: [
+        {
+          id: 'client-orders-past',
+          label: 'navigation.pastOrders',
+          icon: 'history',
+          route: '/client/orders?filter=past',
+          roles: ['client', 'admin']
+        },
+        {
+          id: 'client-orders-incoming',
+          label: 'navigation.incomingOrders',
+          icon: 'local_shipping',
+          route: '/client/orders?filter=incoming',
+          roles: ['client', 'admin']
+        }
+      ]
     },
     {
       id: 'client-shopping-list',
       label: 'navigation.shoppingList',
       icon: 'list_alt',
-      route: '/client/shopping-list',
+      route: '/client/shopping-lists',
       roles: ['client', 'admin']
     },
     {
@@ -115,7 +142,23 @@ export class RoleBasedSidebarComponent implements OnInit, OnDestroy {
       label: 'navigation.transactions',
       icon: 'receipt',
       route: '/client/transactions',
-      roles: ['client', 'admin']
+      roles: ['client', 'admin'],
+      children: [
+        {
+          id: 'client-transactions-invoices',
+          label: 'navigation.invoices',
+          icon: 'receipt_long',
+          route: '/client/transactions/invoices',
+          roles: ['client', 'admin']
+        },
+        {
+          id: 'client-transactions-purchase-orders',
+          label: 'navigation.purchaseOrders',
+          icon: 'shopping_cart_checkout',
+          route: '/client/transactions/purchase-orders',
+          roles: ['client', 'admin']
+        }
+      ]
     },
     
     // Supplier navigation
@@ -369,6 +412,9 @@ export class RoleBasedSidebarComponent implements OnInit, OnDestroy {
 
   onItemClick(item: NavigationItem): void {
     console.log('RoleBasedSidebar - Item clicked:', item);
+    console.log('RoleBasedSidebar - Current route:', this.currentRoute);
+    console.log('RoleBasedSidebar - Current role:', this.currentRole);
+    
     if (item.children) {
       item.isExpanded = !item.isExpanded;
       console.log('RoleBasedSidebar - Toggled expansion for item with children');
@@ -376,6 +422,9 @@ export class RoleBasedSidebarComponent implements OnInit, OnDestroy {
       console.log('RoleBasedSidebar - Navigating to:', item.route);
       this.router.navigate([item.route]).then(success => {
         console.log('RoleBasedSidebar - Navigation successful:', success);
+        if (success) {
+          console.log('RoleBasedSidebar - Navigation completed, new route:', this.router.url);
+        }
       }).catch(error => {
         console.error('RoleBasedSidebar - Navigation error:', error);
       });
@@ -383,7 +432,16 @@ export class RoleBasedSidebarComponent implements OnInit, OnDestroy {
   }
 
   onChildItemClick(child: NavigationItem): void {
-    this.router.navigate([child.route]);
+    console.log('RoleBasedSidebar - Child item clicked:', child);
+    console.log('RoleBasedSidebar - Navigating to child route:', child.route);
+    this.router.navigate([child.route]).then(success => {
+      console.log('RoleBasedSidebar - Child navigation successful:', success);
+      if (success) {
+        console.log('RoleBasedSidebar - Child navigation completed, new route:', this.router.url);
+      }
+    }).catch(error => {
+      console.error('RoleBasedSidebar - Child navigation error:', error);
+    });
   }
 
   isItemExpanded(item: NavigationItem): boolean {

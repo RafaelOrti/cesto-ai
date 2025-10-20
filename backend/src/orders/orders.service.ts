@@ -163,6 +163,60 @@ export class OrdersService {
   }
 
   /**
+   * Aggregate buyer analytics between optional dates
+   */
+  async getBuyerAnalytics(buyerId: string, dateFrom?: string, dateTo?: string): Promise<any> {
+    const query = this.orderRepository
+      .createQueryBuilder('order')
+      .leftJoin('order.items', 'items')
+      .where('order.buyerId = :buyerId', { buyerId });
+
+    if (dateFrom) {
+      query.andWhere('order.createdAt >= :dateFrom', { dateFrom });
+    }
+    if (dateTo) {
+      query.andWhere('order.createdAt <= :dateTo', { dateTo });
+    }
+
+    // Fetch raw orders needed for aggregation
+    const orders = await query.select(['order.id', 'order.createdAt', 'order.totalAmount', 'order.supplierId']).getMany();
+
+    // Trends by month (YYYY-MM)
+    const formatMonth = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    const orderTrends: Record<string, { orders: number; sales: number }> = {};
+    for (const o of orders) {
+      const key = formatMonth(new Date(o.createdAt));
+      if (!orderTrends[key]) orderTrends[key] = { orders: 0, sales: 0 };
+      orderTrends[key].orders += 1;
+      orderTrends[key].sales += Number(o.totalAmount || 0);
+    }
+
+    // Top suppliers table summary
+    const suppliersSummary: Record<string, { orders: number; sales: number; avgOrder: number }> = {};
+    for (const o of orders) {
+      const s = o.supplierId;
+      if (!suppliersSummary[s]) suppliersSummary[s] = { orders: 0, sales: 0, avgOrder: 0 };
+      suppliersSummary[s].orders += 1;
+      suppliersSummary[s].sales += Number(o.totalAmount || 0);
+    }
+    for (const s of Object.keys(suppliersSummary)) {
+      const data = suppliersSummary[s];
+      data.avgOrder = data.orders > 0 ? data.sales / data.orders : 0;
+    }
+
+    const totalOrders = orders.length;
+    const totalSales = orders.reduce((sum, o) => sum + Number(o.totalAmount || 0), 0);
+
+    return {
+      totalOrders,
+      totalSales,
+      averageOrderValue: totalOrders > 0 ? totalSales / totalOrders : 0,
+      trends: orderTrends,
+      suppliers: Object.entries(suppliersSummary).map(([supplierId, v]) => ({ supplierId, ...v }))
+    };
+  }
+
+  /**
    * Update order status (supplier action)
    */
   async updateOrderStatus(

@@ -42,6 +42,20 @@ export class OrdersController {
   }
 
   /**
+   * Buyer analytics (trends and suppliers summary)
+   * GET /api/v1/orders/buyer/analytics
+   */
+  @Get('buyer/analytics')
+  async getBuyerAnalytics(
+    @Request() req,
+    @Query('dateFrom') dateFrom?: string,
+    @Query('dateTo') dateTo?: string,
+  ) {
+    const buyerId = req.user.id;
+    return this.ordersService.getBuyerAnalytics(buyerId, dateFrom, dateTo);
+  }
+
+  /**
    * Get supplier orders
    * GET /api/v1/orders/supplier
    */

@@ -6,9 +6,9 @@
   background: var(--sidebar-gradient);
   backdrop-filter: blur(10px);
   border-right: 1px solid rgba(255, 255, 255, 0.1);
-  height: calc(100vh - 100px);
+  height: calc(100vh - 64px);
   position: fixed;
-  top: 100px;
+  top: 64px;
   left: 0;
   z-index: 999;
   display: flex;
@@ -217,6 +217,11 @@
       }
     }
   }
+}
+
+// The main content area should start after the sidebar width
+::ng-deep mat-sidenav-content.main-content {
+  margin-left: 280px;
 }
 
 // Responsive design

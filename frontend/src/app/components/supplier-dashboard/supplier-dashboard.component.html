@@ -1,25 +1,36 @@
 <div class="supplier-dashboard">
-  <!-- Header -->
-  <mat-card class="dashboard-header">
-    <mat-card-content>
-      <div class="header-content">
-        <div class="header-info">
-          <h1 class="mat-mdc-typography mat-headline-4">Supplier Dashboard</h1>
-          <p class="welcome-text mat-mdc-typography mat-body-1">Welcome back, {{ currentUser?.firstName || 'Supplier' }}!</p>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="loading-spinner">
+      <mat-spinner diameter="50"></mat-spinner>
+      <p>Cargando datos del dashboard...</p>
+    </div>
+  </div>
+
+  <!-- Dashboard Content -->
+  <div *ngIf="!isLoading" class="dashboard-content">
+    <!-- Header -->
+    <mat-card class="dashboard-header">
+      <mat-card-content>
+        <div class="header-content">
+          <div class="header-info">
+            <h1 class="mat-mdc-typography mat-headline-4">Panel de Proveedor</h1>
+            <p class="welcome-text mat-mdc-typography mat-body-1">¡Bienvenido de vuelta, {{ currentUser?.firstName || 'Proveedor' }}!</p>
+          </div>
+          <div class="header-actions">
+            <button mat-raised-button color="primary" class="action-btn">
+              <mat-icon>add</mat-icon>
+              Añadir Producto
+            </button>
+            <button mat-stroked-button color="primary" class="action-btn">
+              <mat-icon>inventory</mat-icon>
+              Gestionar Inventario
+            </button>
+          </div>
         </div>
-        <div class="header-actions">
-          <button mat-raised-button color="primary" class="action-btn">
-            <mat-icon>add</mat-icon>
-            Add Product
-          </button>
-          <button mat-stroked-button color="primary" class="action-btn">
-            <mat-icon>inventory</mat-icon>
-            Manage Inventory
-          </button>
-        </div>
-      </div>
-    </mat-card-content>
-  </mat-card>
+      </mat-card-content>
+    </mat-card>
 
   <!-- Stats Grid -->
   <div class="stats-grid">
@@ -94,7 +105,7 @@
           <div *ngFor="let order of recentOrders" class="order-item">
             <div class="order-info">
               <h4 class="order-id">{{ order.id }}</h4>
-              <p class="order-buyer">{{ order.buyer }}</p>
+              <p class="order-buyer">{{ order.client }}</p>
               <span class="order-date">{{ order.date }}</span>
             </div>
             <div class="order-details">
@@ -126,7 +137,7 @@
             </div>
             <div class="product-stats">
               <div class="product-revenue">${{ product.revenue | number:'1.2-2' }}</div>
-              <div class="product-stock" [class]="getStatusClass(product.status)">
+              <div class="product-stock">
                 {{ product.stock }} in stock
               </div>
             </div>
@@ -170,5 +181,6 @@
         </div>
       </mat-card-content>
     </mat-card>
+  </div>
   </div>
 </div>

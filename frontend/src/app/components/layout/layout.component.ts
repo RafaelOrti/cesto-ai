@@ -38,7 +38,8 @@ export class LayoutComponent implements OnInit {
       this.currentUser = user;
       
       // If user is on root path or generic dashboard, redirect to role-specific dashboard
-      if (user && (this.currentRoute === '' || this.currentRoute === '/dashboard')) {
+      if (user && (this.currentRoute === '' || this.currentRoute === '/dashboard' || this.currentRoute === '/')) {
+        console.log('[LAYOUT] Redirecting user to role-specific dashboard');
         this.roleRedirectService.redirectToRoleDashboard();
       }
     });

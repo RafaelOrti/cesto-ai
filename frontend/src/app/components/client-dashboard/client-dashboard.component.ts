@@ -1,8 +1,13 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
+import { MatTableDataSource } from '@angular/material/table';
+import { MatPaginator } from '@angular/material/paginator';
+import { MatSort } from '@angular/material/sort';
+import { ChartConfiguration } from 'chart.js';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { AuthService } from '../../core/services/auth.service';
 import { AnalyticsService } from '../../core/services/analytics.service';
+import { SupplierService } from '../../services/supplier.service';
 
 interface ChartDataPoint {
   label: string;
@@ -45,6 +50,8 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
   
   currentUser: any = null;
   isLoading = true;
+  // Selected metric for filters toggle group
+  metricSelected: 'sales' | 'orders' | 'delivery' = 'sales';
   
   // Dashboard Statistics
   stats = {
@@ -225,6 +232,19 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
     }
   ];
 
+  // Table data for Buyer Insights mock
+  displayedColumns: string[] = ['store', 'sales', 'orders', 'avgOrder', 'frequency'];
+  dataSource = new MatTableDataSource<any>([]);
+  chartData: ChartConfiguration<'line'>['data'] = { labels: [], datasets: [] };
+  chartOptions: ChartConfiguration<'line'>['options'] = {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: { x: { display: true }, y: { display: true } }
+  };
+
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  @ViewChild(MatSort) sort!: MatSort;
+
   // Notifications
   notifications = [
     {
@@ -255,12 +275,15 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
   
   constructor(
     private authService: AuthService,
-    private analyticsService: AnalyticsService
+    private analyticsService: AnalyticsService,
+    private supplierService: SupplierService
   ) {}
   
   ngOnInit(): void {
+    console.log('[CLIENT-DASHBOARD] Component initialized');
     this.loadUserData();
     this.loadDashboardData();
+    this.fetchAnalytics();
   }
   
   ngOnDestroy(): void {
@@ -331,6 +354,50 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
       { label: 'Dec', value: 12, date: '2023-12-01' },
       { label: 'Jan', value: 12, date: '2024-01-01' }
     ];
+  }
+
+  private fetchAnalytics(): void {
+    const filters = {
+      selectedFilter: 'Sales',
+      dateRange: { from: '2024-01-01', to: '2024-12-31' },
+      additionalFilters: []
+    } as any;
+
+    this.analyticsService.getAnalyticsData(filters).subscribe(res => {
+      // Chart.js dataset
+      this.chartData = {
+        labels: res.chartData.map(d => d.month),
+        datasets: [
+          { label: 'Sales', data: res.chartData.map(d => d.value), borderColor: '#2E7D32', backgroundColor: 'rgba(46,125,50,0.2)', pointBorderColor: '#2E7D32', pointBackgroundColor: '#fff', pointRadius: 4, borderWidth: 2, fill: true, tension: 0.35 }
+        ]
+      };
+      this.chartOptions = {
+        responsive: true,
+        plugins: {
+          legend: { display: false },
+          tooltip: { mode: 'index', intersect: false }
+        },
+        interaction: { mode: 'nearest', intersect: false },
+        scales: {
+          x: { grid: { display: false } },
+          y: { grid: { color: 'rgba(0,0,0,0.06)' } }
+        }
+      };
+
+      // Table datasource
+      const idToName = new Map<string, string>();
+      this.supplierService.getMySuppliers().subscribe(sups => sups.forEach(s => idToName.set((s as any).id || (s as any)._id || s.name, s.name)));
+      const rows = res.customerData.map(c => ({
+        store: idToName.get(c.name) || c.name,
+        sales: c.sales,
+        orders: c.orders,
+        avgOrder: c.averageOrder,
+        frequency: c.frequency
+      }));
+      this.dataSource.data = rows;
+      if (this.paginator) this.dataSource.paginator = this.paginator;
+      if (this.sort) this.dataSource.sort = this.sort;
+    });
   }
   
   // Event Handlers

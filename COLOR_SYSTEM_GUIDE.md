@@ -325,3 +325,4 @@ console.log(this.colorConfigService.getColor('primary.main'));
 ---
 
 Para más información o soporte, consulta la documentación de Angular Material o contacta al equipo de desarrollo.
+

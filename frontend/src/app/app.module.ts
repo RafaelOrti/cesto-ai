@@ -39,6 +39,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { NgChartsModule } from 'ng2-charts';
 import { DatePipe } from '@angular/common';
 
 import { AppRoutingModule } from './app-routing.module';
@@ -64,7 +65,8 @@ import { ColorThemeConfigComponent } from './components/admin-dashboard/color-th
 import { ProductsListComponent } from './components/products/products-list/products-list.component';
 import { ProductsOnSaleComponent } from './components/products/products-on-sale/products-on-sale.component';
 import { LoadingComponent } from './core/components/loading/loading.component';
-import { NotificationsComponent } from './core/components/notifications/notifications.component';
+// Removed duplicate NotificationsComponent import from core/components
+import { CoreModule } from './core/core.module';
 
 import { AuthService } from './core/services/auth.service';
 import { SupplierService } from './services/supplier.service';
@@ -96,8 +98,10 @@ import { UserManagementComponent } from './components/user-management/user-manag
 import { SystemSettingsComponent } from './components/system-settings/system-settings.component';
 import { ClientDashboardComponent } from './components/client-dashboard/client-dashboard.component';
 import { SupplierProductsComponent } from './components/supplier-products/supplier-products.component';
-import { SupplierInventoryComponent } from './components/supplier-inventory/supplier-inventory.component';
 import { SupplierAnalysisComponent } from './components/supplier-analysis/supplier-analysis.component';
+import { SettingsComponent } from './components/settings/settings.component';
+import { HelpComponent } from './components/help/help.component';
+import { NotificationsComponent } from './components/notifications/notifications.component';
 import { SharedModule } from './shared/shared.module';
 
 @NgModule({
@@ -129,7 +133,7 @@ import { SharedModule } from './shared/shared.module';
     ProductsListComponent,
     ProductsOnSaleComponent,
     LoadingComponent,
-    NotificationsComponent,
+    // Removed duplicate NotificationsComponent declaration (keep single declaration below)
     ProviderOrdersComponent,
     OnboardingComponent,
     AdvancedInventoryComponent,
@@ -137,10 +141,10 @@ import { SharedModule } from './shared/shared.module';
     SupplierProductsManagementComponent,
     UserManagementComponent,
     SystemSettingsComponent,
-    ClientDashboardComponent,
-    SupplierProductsComponent,
-    SupplierInventoryComponent,
-    SupplierAnalysisComponent,
+    // Removed duplicate declarations
+    SettingsComponent,
+    HelpComponent,
+    NotificationsComponent,
   ],
   imports: [
     BrowserModule,
@@ -153,6 +157,7 @@ import { SharedModule } from './shared/shared.module';
     AppRoutingModule,
     SuppliersModule,
     SharedModule,
+    CoreModule,
     MatToolbarModule,
     MatButtonModule,
     MatIconModule,
@@ -186,6 +191,7 @@ import { SharedModule } from './shared/shared.module';
     MatGridListModule,
     MatButtonToggleModule,
     MatAutocompleteModule,
+    NgChartsModule,
   ],
   providers: [
     AuthService,

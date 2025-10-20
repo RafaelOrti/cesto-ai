@@ -20,35 +20,35 @@ services:
     volumes:
       - redis_data:/data
 
-  # backend:
-  #   build:
-  #     context: ./backend
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - "3400:3400"
-  #   environment:
-  #     DATABASE_URL: postgresql://cesto_user:cesto_password@postgres:5432/cesto_ai
-  #     REDIS_URL: redis://redis:6379
-  #     JWT_SECRET: cesto-super-secret-jwt-key-2024-production-ready
-  #     PORT: 3400
-  #   depends_on:
-  #     - postgres
-  #     - redis
-  #   volumes:
-  #     - ./backend:/app
-  #     - /app/node_modules
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "3400:3400"
+    environment:
+      DATABASE_URL: postgresql://cesto_user:cesto_password@postgres:5432/cesto_ai
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: cesto-super-secret-jwt-key-2024-production-ready
+      PORT: 3400
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
 
-  # frontend:
-  #   build:
-  #     context: ./frontend
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - "4400:4400"
-  #   environment:
-  #     PORT: 4400
-  #   volumes:
-  #     - ./frontend:/app
-  #     - /app/node_modules
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "4400:4400"
+    environment:
+      PORT: 4400
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
 
   ai-services:
     build:

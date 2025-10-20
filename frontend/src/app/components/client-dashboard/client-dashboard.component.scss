@@ -1,14 +1,177 @@
 .client-dashboard {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  padding: 24px;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  padding: 16px 24px;
   position: relative;
   overflow-x: hidden;
   max-width: 100%;
   margin: 0;
+  
+  // Ensure content is visible
+  display: block;
+  visibility: visible;
+  z-index: 1;
 }
 
-// Header Styles
+// Buyer Insights header
+.bi-header {
+  background: linear-gradient(90deg, #2E7D32, #66BB6A);
+  color: #fff;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  .bi-header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .bi-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    font-size: 16px;
+  }
+  .bi-subtitle { opacity: .9; font-size: 12px; }
+}
+
+// Filters bar
+.bi-filters {
+  margin-bottom: 16px;
+  .filters-row {
+    display: grid;
+    grid-template-columns: auto 1fr 280px auto auto;
+    gap: 12px;
+    align-items: center;
+  }
+  .filter-search { width: 100%; }
+  .filter-range { width: 100%; }
+  .metric-tabs { gap: 4px; }
+}
+
+// Chart placeholder
+.bi-chart {
+  margin-bottom: 12px;
+  .chart-wrapper {
+    position: relative;
+    height: 320px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #ffffff;
+    border-radius: 4px;
+  }
+  .skeleton { position: absolute; inset: 0; background: linear-gradient(90deg,#f3f4f6 25%,#e5e7eb 37%,#f3f4f6 63%); background-size: 400% 100%; animation: shimmer 1.4s ease infinite; border-radius: 4px; }
+  @keyframes shimmer { 0% { background-position: 100% 0 } 100% { background-position: 0 0 } }
+  .chart-placeholder {
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .chart-legend {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    display: flex;
+    gap: 12px;
+    .legend-item { font-size: 12px; color: #0f172a; }
+    .legend-sales::before { content: ''; display: inline-block; width: 10px; height: 10px; background: #0ea5a4; border-radius: 50%; margin-right: 6px; }
+    .legend-orders::before { content: ''; display: inline-block; width: 10px; height: 10px; background: #64748b; border-radius: 50%; margin-right: 6px; }
+  }
+}
+
+// Table section
+.bi-table {
+  .full-width { width: 100%; }
+  table { width: 100%; }
+  th { font-weight: 600; }
+  .sticky-header thead { position: sticky; top: 0; z-index: 1; background: #fff; }
+  .table-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px; color:#64748b; }
+}
+
+.kpis-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+  .kpi-card {
+    text-align: center;
+    border-radius: 10px;
+    mat-card-title { font-size: 12px; color: #64748b; }
+    mat-card-content { font-size: 22px; font-weight: 700; color: #0f172a; }
+  }
+}
+
+// Professional Header Styles
+.dashboard-header-card {
+  margin-bottom: 32px;
+  background: linear-gradient(135deg, #2E7D32 0%, #4CAF50 100%);
+  color: white;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+  
+  .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    
+    .header-info {
+      .dashboard-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin: 0 0 8px 0;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        
+        .title-icon {
+          font-size: 2.5rem;
+          width: 2.5rem;
+          height: 2.5rem;
+        }
+      }
+      
+      .welcome-message {
+        font-size: 1.2rem;
+        margin: 0 0 4px 0;
+        opacity: 0.9;
+      }
+      
+      .dashboard-subtitle {
+        font-size: 1rem;
+        margin: 0;
+        opacity: 0.8;
+      }
+    }
+    
+    .header-actions {
+      display: flex;
+      gap: 16px;
+      
+      .primary-action-btn {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        
+        &:hover {
+          background: rgba(255, 255, 255, 0.3);
+        }
+      }
+      
+      .secondary-action-btn {
+        color: white;
+        border-color: rgba(255, 255, 255, 0.5);
+        
+        &:hover {
+          background: rgba(255, 255, 255, 0.1);
+        }
+      }
+    }
+  }
+}
+
+// Legacy header styles (keeping for compatibility)
 .dashboard-header {
   margin-bottom: 32px;
   
@@ -85,12 +248,16 @@
   }
 }
 
-// Statistics Grid
+// Professional Statistics Grid
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 24px;
   margin-bottom: 32px;
+  
+  @media (min-width: 1200px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 
 .stat-card {
@@ -111,7 +278,7 @@
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg, var(--color-primary-main), var(--color-accent-main));
+    background: linear-gradient(90deg, #2E7D32, #4CAF50);
   }
   
   &:hover {
@@ -119,12 +286,55 @@
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
   }
   
-  &.primary::before {
-    background: linear-gradient(90deg, #667eea, #764ba2);
+  &.stat-primary::before {
+    background: linear-gradient(90deg, #2E7D32, #4CAF50);
+  }
+  
+  &.stat-success::before {
+    background: linear-gradient(90deg, #4facfe, #00f2fe);
+  }
+  
+  &.stat-warning::before {
+    background: linear-gradient(90deg, #4CAF50, #66BB6A);
+  }
+  
+  &.stat-info::before {
+    background: linear-gradient(90deg, #8BC34A, #66BB6A);
+  }
+  
+  .stat-icon-container {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    
+    .stat-icon {
+      font-size: 1.8rem;
+      color: white;
+    }
+  }
+  
+  &.stat-primary .stat-icon-container {
+    background: linear-gradient(135deg, #2E7D32, #4CAF50);
+  }
+  
+  &.stat-success .stat-icon-container {
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+  }
+  
+  &.stat-warning .stat-icon-container {
+    background: linear-gradient(135deg, #4CAF50, #66BB6A);
+  }
+  
+  &.stat-info .stat-icon-container {
+    background: linear-gradient(135deg, #8BC34A, #66BB6A);
   }
   
   &.secondary::before {
-    background: linear-gradient(90deg, #f093fb, #f5576c);
+    background: linear-gradient(90deg, #4CAF50, #66BB6A);
   }
   
   &.accent::before {
@@ -151,11 +361,11 @@
   }
   
   &.primary .stat-icon {
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: linear-gradient(135deg, #2E7D32, #4CAF50);
   }
   
   &.secondary .stat-icon {
-    background: linear-gradient(135deg, #f093fb, #f5576c);
+    background: linear-gradient(135deg, #4CAF50, #66BB6A);
   }
   
   &.accent .stat-icon {
@@ -262,11 +472,11 @@
   }
   
   &.action-primary::before {
-    background: linear-gradient(90deg, #667eea, #764ba2);
+    background: linear-gradient(90deg, #2E7D32, #4CAF50);
   }
   
   &.action-secondary::before {
-    background: linear-gradient(90deg, #f093fb, #f5576c);
+    background: linear-gradient(90deg, #4CAF50, #66BB6A);
   }
   
   &.action-accent::before {
@@ -293,11 +503,11 @@
   }
   
   &.action-primary .action-icon {
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: linear-gradient(135deg, #2E7D32, #4CAF50);
   }
   
   &.action-secondary .action-icon {
-    background: linear-gradient(135deg, #f093fb, #f5576c);
+    background: linear-gradient(135deg, #4CAF50, #66BB6A);
   }
   
   &.action-accent .action-icon {
@@ -506,7 +716,7 @@
       width: 32px;
       height: 32px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #667eea, #764ba2);
+      background: linear-gradient(135deg, #2E7D32, #4CAF50);
       color: white;
       display: flex;
       align-items: center;

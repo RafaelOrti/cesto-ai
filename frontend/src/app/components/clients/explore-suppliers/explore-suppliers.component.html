@@ -1,168 +1,196 @@
 <div class="explore-suppliers">
-  <div class="page-header">
-    <h1>{{ i18n.translate('suppliers.exploreSuppliers') }}</h1>
-    <div class="header-actions">
-      <div class="search-bar">
-        <input 
-          type="text" 
-          [(ngModel)]="searchQuery" (ngModelChange)="onSearchChange()" 
-          (input)="onSearch()"
-          [placeholder]="i18n.translate('suppliers.searchPlaceholder')"
-          class="search-input"
-        >
-        <button class="search-btn">
-          <i class="icon-search"></i>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <div class="recommended-section">
-    <h2>{{ i18n.translate('suppliers.recommendedForYou') }}</h2>
-    <p class="section-description">{{ i18n.translate('suppliers.suppliersMatchPatterns') }}</p>
-    
-    <div class="recommended-grid">
-      <div class="supplier-card recommended" *ngFor="let supplier of recommendedSuppliersList" [attr.data-supplier-id]="supplier.id">
-        <div class="supplier-header">
-          <div class="supplier-logo">
-            <img [src]="supplier.logo" [alt]="supplier.name" class="logo-image">
-          </div>
-          <div class="supplier-info">
-            <h3>{{ supplier.name }}</h3>
-            <p>{{ supplier.description }}</p>
-            <div class="supplier-rating">
-              <span class="rating">⭐ {{ supplier.rating }}</span>
-            </div>
-          </div>
-          <div class="supplier-actions">
-            <button class="add-btn" (click)="addSupplier(supplier)">
-              <i class="icon-plus"></i> {{ i18n.translate('suppliers.addSupplier') }}
-            </button>
-            <button class="view-btn" (click)="viewSupplier(supplier)">
-              <i class="icon-eye"></i> {{ i18n.translate('common.view') }}
-            </button>
-          </div>
-        </div>
-        <div class="supplier-tags">
-          <span class="tag recommended-tag" *ngIf="supplier.isRecommended">{{ i18n.translate('common.recommended') }}</span>
-          <span class="tag new-tag" *ngIf="supplier.isNew">{{ i18n.translate('common.new') }}</span>
-          <span class="tag offer-tag" *ngIf="supplier.hasSpecialOffer">{{ i18n.translate('common.specialOffer') }}</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="category-section">
-    <h3>{{ i18n.translate('common.filterByCategory') }}</h3>
-    <div class="category-grid">
-      <div 
-        class="category-item" 
-        *ngFor="let category of categories"
-        [class.selected]="selectedCategory === category.id"
+  <!-- Category Filters Section -->
+  <div class="category-filters">
+    <div class="filter-buttons">
+      <button 
+        *ngFor="let category of categories" 
+        class="category-btn"
+        [class.active]="selectedCategory === category.id"
         (click)="onCategorySelect(category.id)"
+        [style.background-color]="category.color"
       >
-        <div class="category-icon">{{ category.icon }}</div>
+        <span class="category-icon">{{ category.icon }}</span>
         <span class="category-name">{{ category.name }}</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Additional Filters Section -->
+  <div class="additional-filters-section">
+    <h3 class="filters-title">Ytterligare filter</h3>
+    
+    <!-- Supplier Tabs -->
+    <div class="supplier-tabs">
+      <button 
+        class="tab-btn"
+        [class.active]="selectedTab === 'all'"
+        (click)="onTabChange('all')"
+      >
+        Alla leverantörer
+      </button>
+      <button 
+        class="tab-btn"
+        [class.active]="selectedTab === 'favorites'"
+        (click)="onTabChange('favorites')"
+      >
+        Mina favoriter
+      </button>
+      <button 
+        class="tab-btn"
+        [class.active]="selectedTab === 'new'"
+        (click)="onTabChange('new')"
+      >
+        Nya leverantörer
+      </button>
+    </div>
+  </div>
+
+  <!-- Suppliers Table -->
+  <div class="suppliers-table">
+    <div class="table-header">
+      <div class="header-cell name-col">Namn</div>
+      <div class="header-cell delivery-col">Senaste leverans</div>
+      <div class="header-cell future-col">Framtida leverans</div>
+      <div class="header-cell campaign-col">Kampanj</div>
+      <div class="header-cell products-col">Nya produkter</div>
+      <div class="header-cell action-col">Action</div>
+    </div>
+
+    <div class="table-body">
+      <div 
+        *ngFor="let supplier of filteredSuppliers" 
+        class="table-row"
+        (click)="viewSupplierDetails(supplier)"
+      >
+        <div class="table-cell name-col">
+          <div class="supplier-info">
+            <button 
+              class="favorite-btn"
+              [class.favorited]="supplier.isFavorite"
+              (click)="toggleFavorite(supplier); $event.stopPropagation()"
+            >
+              <mat-icon>{{ supplier.isFavorite ? 'favorite' : 'favorite_border' }}</mat-icon>
+            </button>
+            <span class="supplier-name">{{ supplier.name }}</span>
+          </div>
+        </div>
+        <div class="table-cell delivery-col">
+          <span class="delivery-date">{{ supplier.lastDelivery }}</span>
+        </div>
+        <div class="table-cell future-col">
+          <span class="future-delivery">{{ supplier.futureDelivery }}</span>
+        </div>
+        <div class="table-cell campaign-col">
+          <mat-checkbox 
+            [checked]="supplier.hasCampaign"
+            (change)="supplier.hasCampaign = $event.checked; $event.stopPropagation()"
+          ></mat-checkbox>
+        </div>
+        <div class="table-cell products-col">
+          <mat-checkbox 
+            [checked]="supplier.hasNewProducts"
+            (change)="supplier.hasNewProducts = $event.checked; $event.stopPropagation()"
+          ></mat-checkbox>
+        </div>
+        <div class="table-cell action-col">
+          <button 
+            class="order-btn"
+            (click)="orderFromSupplier(supplier); $event.stopPropagation()"
+          >
+            Beställ
+          </button>
+        </div>
       </div>
     </div>
   </div>
 
-  <div class="filters-section">
-    <h3>{{ i18n.translate('common.additionalFilters') }}</h3>
-    <div class="filters-grid">
-      <label class="filter-item">
-        <input 
-          type="checkbox" 
-          [ngModel]="selectedFilters.freeDelivery"
-          (ngModelChange)="onFilterChange('freeDelivery')"
-        >
-        <span class="filter-label">{{ i18n.translate('common.freeDelivery') }}</span>
-      </label>
-      <label class="filter-item">
-        <input 
-          type="checkbox" 
-          [ngModel]="selectedFilters.coDelivery"
-          (ngModelChange)="onFilterChange('coDelivery')"
-        >
-        <span class="filter-label">{{ i18n.translate('common.coDelivery') }}</span>
-      </label>
-      <label class="filter-item">
-        <input 
-          type="checkbox" 
-          [ngModel]="selectedFilters.onSale"
-          (ngModelChange)="onFilterChange('onSale')"
-        >
-        <span class="filter-label">{{ i18n.translate('common.onSale') }}</span>
-      </label>
-      <label class="filter-item">
-        <input 
-          type="checkbox" 
-          [ngModel]="selectedFilters.newProducts"
-          (ngModelChange)="onFilterChange('newProducts')"
-        >
-        <span class="filter-label">{{ i18n.translate('common.newProducts') }}</span>
-      </label>
-    </div>
-  </div>
-
-  <div class="all-suppliers-section">
-    <h2>{{ i18n.translate('suppliers.allSuppliers') }}</h2>
-    <p class="section-description">{{ i18n.translate('suppliers.browseAllSuppliers') }}</p>
+  <!-- Products Section (Bottom) -->
+  <div class="products-section">
+    <h3 class="section-title">Products from Selected Suppliers</h3>
     
-    <div class="suppliers-grid">
-      <div 
-        class="supplier-card" 
-        *ngFor="let supplier of filteredSuppliers"
-        [class]="getStatusClass(supplier)"
-        [attr.data-supplier-id]="supplier.id"
-      >
-        <div class="supplier-header">
-          <div class="supplier-logo">
-            <img [src]="supplier.logo" [alt]="supplier.name" class="logo-image">
-          </div>
-          <div class="supplier-info">
-            <h3>{{ supplier.name }}</h3>
-            <p>{{ supplier.description }}</p>
-            <div class="supplier-rating">
-              <span class="rating">⭐ {{ supplier.rating }}</span>
+    <div class="products-table">
+      <div class="table-header">
+        <div class="header-cell pic-col">Product pic</div>
+        <div class="header-cell desc-col">Description</div>
+        <div class="header-cell moq-col">MOQ</div>
+        <div class="header-cell price-col">Price</div>
+        <div class="header-cell action-col">Add to bag</div>
+      </div>
+
+      <div class="table-body">
+        <div class="table-row product-row">
+          <div class="table-cell pic-col">
+            <div class="product-image">
+              <img src="assets/images/milk-cartons.jpg" alt="Product" class="product-pic">
             </div>
           </div>
-          <div class="supplier-actions">
-            <button class="view-btn" (click)="viewSupplier(supplier)">
-              <i class="icon-eye"></i> {{ i18n.translate('common.view') }}
-            </button>
-            <button class="add-btn" (click)="addSupplier(supplier)">
-              <i class="icon-plus"></i> {{ i18n.translate('common.add') }}
+          <div class="table-cell desc-col">
+            <div class="product-description">
+              <h4>Långreerad Mjölk 0,1%</h4>
+              <p>Long-life Milk 0.1%</p>
+            </div>
+          </div>
+          <div class="table-cell moq-col">
+            <span class="moq">10 st</span>
+          </div>
+          <div class="table-cell price-col">
+            <span class="price">200 kr</span>
+          </div>
+          <div class="table-cell action-col">
+            <button class="add-to-bag-btn">
+              Add to bag
             </button>
           </div>
         </div>
-        
-        <div class="supplier-tags">
-          <span class="tag" [class]="getStatusClass(supplier) + '-tag'">
-            {{ getSupplierStatus(supplier) }}
-          </span>
-          <span class="tag delivery-tag" *ngFor="let option of supplier.deliveryOptions">
-            {{ option === 'free-delivery' ? i18n.translate('common.freeDelivery') : i18n.translate('common.coDelivery') }}
-          </span>
+
+        <div class="table-row product-row">
+          <div class="table-cell pic-col">
+            <div class="product-image">
+              <img src="assets/images/milk-cartons.jpg" alt="Product" class="product-pic">
+            </div>
+          </div>
+          <div class="table-cell desc-col">
+            <div class="product-description">
+              <h4>Långreerad Mjölk 1 L</h4>
+              <p>Long-life Milk 1 L</p>
+            </div>
+          </div>
+          <div class="table-cell moq-col">
+            <span class="moq">1 st</span>
+          </div>
+          <div class="table-cell price-col">
+            <span class="price">600 kr</span>
+          </div>
+          <div class="table-cell action-col">
+            <button class="add-to-bag-btn">
+              Add to bag
+            </button>
+          </div>
         </div>
 
-        <div class="supplier-categories">
-          <span class="category-tag" *ngFor="let categoryId of supplier.categories">
-            {{ getCategoryName(categoryId) }}
-          </span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="help-section">
-    <div class="help-card">
-      <h3>{{ i18n.translate('common.needHelpFindingSuppliers') }}</h3>
-      <p>{{ i18n.translate('common.aiPoweredRecommendations') }}</p>
-      <div class="help-features">
-        <div class="feature" *ngFor="let feature of [i18n.translate('common.aiRecommendations'), i18n.translate('common.deliveryOptions'), i18n.translate('common.qualityAssurance')]">
-          <i [class]="getFeatureIcon(feature)"></i>
-          <span>{{ feature }}</span>
+        <div class="table-row product-row">
+          <div class="table-cell pic-col">
+            <div class="product-image">
+              <img src="assets/images/milk-cartons.jpg" alt="Product" class="product-pic">
+            </div>
+          </div>
+          <div class="table-cell desc-col">
+            <div class="product-description">
+              <h4>Lättmjölk 1 L HV 00 st</h4>
+              <p>Light Milk 1 L HV 00 units</p>
+            </div>
+          </div>
+          <div class="table-cell moq-col">
+            <span class="moq">1 st</span>
+          </div>
+          <div class="table-cell price-col">
+            <span class="price">600 kr</span>
+          </div>
+          <div class="table-cell action-col">
+            <button class="add-to-bag-btn">
+              Add to bag
+            </button>
+          </div>
         </div>
       </div>
     </div>

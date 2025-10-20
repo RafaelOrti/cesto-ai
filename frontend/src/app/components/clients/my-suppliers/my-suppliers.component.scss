@@ -51,6 +51,24 @@
     width: 100%;
   }
 
+  .quick-filters {
+    margin-top: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+
+    .filter-chip {
+      background: #f1f8e9;
+      color: #2E7D32;
+      border: 1px solid rgba(46, 125, 50, 0.2);
+    }
+
+    .mat-mdc-chip-selected {
+      background: #2E7D32;
+      color: #fff;
+    }
+  }
+
   .filter-controls {
     display: flex;
     gap: 16px;

@@ -1,69 +1,110 @@
 <div class="client-insights">
-  <div class="insights-header">
-    <h1>{{ 'clientInsights.title' | translate }}</h1>
-    <div class="header-actions">
-      <button class="export-btn" (click)="exportData()">
-        <i class="icon-export"></i> {{ 'common.export' | translate }}
-      </button>
-      <button class="settings-btn">
-        <i class="icon-settings"></i>
-      </button>
-    </div>
-  </div>
-
-  <div class="controls-bar">
-    <div class="filter-section">
-      <select [(ngModel)]="selectedFilter" (change)="onFilterChange(selectedFilter)">
-        <option *ngFor="let filter of filters" [value]="filter">{{ filter }}</option>
-      </select>
-      
-      <div class="date-range">
-        <input type="date" [(ngModel)]="dateRange.from" (change)="onDateRangeChange()">
-        <span>-</span>
-        <input type="date" [(ngModel)]="dateRange.to" (change)="onDateRangeChange()">
-      </div>
-      
-      <button class="comparison-btn" (click)="addComparison()">{{ 'clientInsights.addComparison' | translate }}</button>
-      <button class="generate-btn" (click)="generateReport()">{{ 'clientInsights.generate' | translate }}</button>
-    </div>
-  </div>
-
-  <div class="chart-section">
-    <div class="chart-container">
-      <div class="chart-header">
-        <h3>{{ selectedFilter }} Analytics</h3>
-        <div class="chart-legend">
-          <div class="legend-item" *ngFor="let item of legendData">
-            <div class="legend-dot" [style.background-color]="item.color"></div>
-            <span>{{ item.value }}</span>
-          </div>
+  <!-- Professional Header -->
+  <mat-card class="insights-header-card">
+    <mat-card-content>
+      <div class="header-content">
+        <div class="header-info">
+          <h1 class="insights-title">
+            <mat-icon class="title-icon">analytics</mat-icon>
+            {{ 'clientInsights.title' | translate }}
+          </h1>
+          <p class="insights-subtitle">Análisis detallado del rendimiento de clientes y tendencias de negocio</p>
         </div>
       </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Professional Controls -->
+  <mat-card class="controls-card">
+    <mat-card-content>
+      <div class="controls-section">
+        <div class="filter-controls">
+          <div class="tab-filters">
+            <button mat-stroked-button
+                    *ngFor="let tab of filters"
+                    [color]="selectedFilter===tab ? 'primary' : undefined"
+                    [class.active]="selectedFilter===tab"
+                    (click)="onFilterChange(tab)">{{ tab }}</button>
+          </div>
+          
+          <mat-form-field appearance="outline" class="date-field">
+            <mat-label>Fecha desde</mat-label>
+            <input matInput type="date" [(ngModel)]="dateRange.from" (change)="onDateRangeChange()">
+          </mat-form-field>
+          
+          <mat-form-field appearance="outline" class="date-field">
+            <mat-label>Fecha hasta</mat-label>
+            <input matInput type="date" [(ngModel)]="dateRange.to" (change)="onDateRangeChange()">
+          </mat-form-field>
+          
+          <mat-form-field appearance="outline" class="search-field">
+            <mat-label>{{ 'common.search' | translate }}</mat-label>
+            <input matInput type="text" (input)="applySearch($event.target.value)">
+            <mat-icon matSuffix>search</mat-icon>
+          </mat-form-field>
+        </div>
+        
+        <div class="action-buttons">
+          <button mat-raised-button color="primary" (click)="addComparison()">
+            <mat-icon>compare</mat-icon>
+            {{ 'clientInsights.addComparison' | translate }}
+          </button>
+          <button mat-raised-button color="accent" (click)="generateReport()">
+            <mat-icon>assessment</mat-icon>
+            {{ 'clientInsights.generate' | translate }}
+          </button>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Professional Chart Section -->
+  <mat-card class="chart-section-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon class="chart-icon">trending_up</mat-icon>
+        {{ selectedFilter }} Analytics
+      </mat-card-title>
+      <mat-card-subtitle>Análisis de tendencias y rendimiento</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="chart-legend">
+        <mat-chip-set>
+          <mat-chip *ngFor="let item of legendData" class="legend-chip">
+            <div class="legend-dot" [style.background-color]="item.color"></div>
+            {{ item.value }}
+          </mat-chip>
+        </mat-chip-set>
+      </div>
       
-      <div class="line-chart">
+      <div class="chart-container">
         <div class="chart-area">
           <div class="y-axis">
-            <div class="y-label" *ngFor="let label of ['3.00M', '2.50M', '2.00M', '1.50M', '1.00M', '0.50M', '0.00M']">
+            <div class="y-label" *ngFor="let label of yAxisLabels">
               {{ label }}
             </div>
           </div>
           
           <div class="chart-line">
             <svg width="100%" height="100%" viewBox="0 0 800 200">
+              <!-- horizontal gridlines based on labels count -->
+              <ng-container *ngFor="let label of yAxisLabels; let i = index">
+                <line [attr.x1]="0" [attr.x2]="800" [attr.y1]="(i/(yAxisLabels.length-1))*200" [attr.y2]="(i/(yAxisLabels.length-1))*200" stroke="#e9ecef" stroke-width="1" />
+              </ng-container>
               <polyline
                 [attr.points]="getChartPoints()"
                 fill="none"
-                stroke="#20B2AA"
+                stroke="#2E7D32"
                 stroke-width="3"
               />
               <circle
                 *ngFor="let point of getChartPointsArray()"
                 [attr.cx]="point.x"
                 [attr.cy]="point.y"
-                r="4"
-                fill="#20B2AA"
+                r="6"
+                fill="#2E7D32"
                 stroke="white"
-                stroke-width="2"
+                stroke-width="3"
               />
             </svg>
           </div>
@@ -75,54 +116,153 @@
           </div>
         </div>
       </div>
-    </div>
-  </div>
+    </mat-card-content>
+  </mat-card>
 
-  <div class="table-section">
-    <div class="table-container">
-      <table class="performance-table">
-        <thead>
-          <tr>
-            <th>{{ 'common.customer' | translate }}</th>
-            <th>{{ 'common.orders' | translate }} ({{ summaryTotals.totalStores }})</th>
-            <th>{{ 'clientInsights.averageOrder' | translate }}</th>
-            <th>{{ 'clientInsights.frequency' | translate }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let customer of customerData">
-            <td class="customer-cell">
-              <div class="customer-indicator" [style.background-color]="customer.color"></div>
-              {{ customer.name }}
+  <!-- Professional Data Table -->
+  <mat-card class="table-section-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon class="table-icon">table_chart</mat-icon>
+        Datos Detallados de Clientes
+      </mat-card-title>
+      <mat-card-subtitle>Análisis comparativo y métricas de rendimiento</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="table-container">
+        <table mat-table [dataSource]="dataSource" matSort class="insights-table">
+
+          <ng-container matColumnDef="favorite">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+              <mat-icon>star</mat-icon>
+              <div class="column-filter">
+                <button mat-icon-button aria-label="toggle favorites" (click)="toggleFavFilter()"><mat-icon>star</mat-icon></button>
+              </div>
+            </th>
+            <td mat-cell *matCellDef="let row">
+              <button mat-icon-button (click)="toggleFavorite(row)">
+                <mat-icon>{{ row.favorite ? 'star' : 'star_border' }}</mat-icon>
+              </button>
             </td>
-            <td>{{ customer.orders | number }}</td>
-            <td>{{ customer.averageOrder }}</td>
-            <td>{{ customer.frequency }}</td>
-          </tr>
-        </tbody>
-        <tfoot>
-          <tr class="summary-row">
-            <td><strong>{{ 'clientInsights.amountOfStores' | translate }} ({{ summaryTotals.totalStores }})</strong></td>
-            <td><strong>{{ summaryTotals.totalOrders | number }}</strong></td>
-            <td><strong>{{ summaryTotals.averageOrder }}</strong></td>
-            <td><strong>{{ summaryTotals.averageValue }}</strong></td>
-          </tr>
-        </tfoot>
-      </table>
-    </div>
-  </div>
+          </ng-container>
+
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'common.customer' | translate }}
+              <div class="column-filter">
+                <mat-form-field appearance="standard" class="mini-field full">
+                  <input matInput placeholder="{{ 'common.search' | translate }}" (input)="applySearch($event.target.value)">
+                </mat-form-field>
+              </div>
+            </th>
+            <td mat-cell *matCellDef="let row" class="customer-cell">
+              <div class="customer-info">
+                <div class="customer-indicator" [style.background-color]="row.color"></div>
+                <span class="customer-name">{{ row.name }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="sales">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'common.sales' | translate }}
+              <div class="column-filter">
+                <mat-form-field appearance="outline" class="mini-field">
+                  <mat-label>Min</mat-label>
+                  <input matInput type="number" (input)="setRange('sales','Min',$event.target.value)">
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="mini-field">
+                  <mat-label>Max</mat-label>
+                  <input matInput type="number" (input)="setRange('sales','Max',$event.target.value)">
+                </mat-form-field>
+              </div>
+            </th>
+            <td mat-cell *matCellDef="let row" class="sales-cell">
+              <span class="sales-value">${{ row.sales | number }}</span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="orders">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'common.orders' | translate }}
+              <div class="column-filter">
+                <mat-form-field appearance="outline" class="mini-field">
+                  <mat-label>Min</mat-label>
+                  <input matInput type="number" (input)="setRange('orders','Min',$event.target.value)">
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="mini-field">
+                  <mat-label>Max</mat-label>
+                  <input matInput type="number" (input)="setRange('orders','Max',$event.target.value)">
+                </mat-form-field>
+              </div>
+            </th>
+            <td mat-cell *matCellDef="let row" class="orders-cell">
+              <span class="orders-value">{{ row.orders | number }}</span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="averageOrder">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'clientInsights.averageOrder' | translate }}
+              <div class="column-filter">
+                <mat-form-field appearance="outline" class="mini-field">
+                  <mat-label>Min</mat-label>
+                  <input matInput type="number" (input)="setRange('averageOrder','Min',$event.target.value)">
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="mini-field">
+                  <mat-label>Max</mat-label>
+                  <input matInput type="number" (input)="setRange('averageOrder','Max',$event.target.value)">
+                </mat-form-field>
+              </div>
+            </th>
+            <td mat-cell *matCellDef="let row" class="avg-order-cell">
+              <span class="avg-order-value">${{ row.averageOrder }}</span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="frequency">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ 'clientInsights.frequency' | translate }}
+              <div class="column-filter">
+                <mat-form-field appearance="outline" class="mini-field">
+                  <mat-label>Min</mat-label>
+                  <input matInput type="number" (input)="setRange('frequency','Min',$event.target.value)">
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="mini-field">
+                  <mat-label>Max</mat-label>
+                  <input matInput type="number" (input)="setRange('frequency','Max',$event.target.value)">
+                </mat-form-field>
+              </div>
+            </th>
+            <td mat-cell *matCellDef="let row" class="frequency-cell">
+              <mat-chip class="frequency-chip">{{ row.frequency }}</mat-chip>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns" class="table-header-row"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-data-row"></tr>
+        </table>
+        <mat-paginator [pageSize]="10" [pageSizeOptions]="[10,25,50]" class="table-paginator"></mat-paginator>
+      </div>
+    </mat-card-content>
+  </mat-card>
 
   <div class="additional-analytics">
     <div class="analytics-grid">
-      <div class="analytics-card">
-        <h4>Top Performing Clients</h4>
-        <div class="performance-list">
-          <div class="performance-item" *ngFor="let customer of customerData.slice(0, 3)">
-            <span class="customer-name">{{ customer.name }}</span>
-            <span class="performance-value">{{ customer.orders | number }}</span>
+      <mat-card class="analytics-card top-clients-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon class="card-icon">emoji_events</mat-icon>
+            Top Performing Clients
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="performance-list">
+            <div class="performance-item" *ngFor="let customer of customerData.slice(0, 3)">
+              <div class="performance-rank">{{ customerData.indexOf(customer) + 1 }}</div>
+              <div class="performance-info">
+                <span class="customer-name">{{ customer.name }}</span>
+                <span class="performance-value">{{ customer.orders | number }} pedidos</span>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+        </mat-card-content>
+      </mat-card>
       
       <div class="analytics-card">
         <h4>Trend Analysis</h4>
@@ -159,6 +299,12 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <div class="footer-actions">
+      <button class="export-btn" (click)="exportData()">
+        <i class="icon-export"></i> {{ 'common.export' | translate }}
+      </button>
     </div>
   </div>
 </div>

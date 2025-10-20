@@ -1,10 +1,12 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { I18nService } from '../../../core/services/i18n.service';
 
 interface Category {
   id: string;
   name: string;
   icon: string;
+  color: string;
 }
 
 interface Supplier {
@@ -18,6 +20,14 @@ interface Supplier {
   categories: string[];
   deliveryOptions: string[];
   isNew: boolean;
+  lastDelivery: string;
+  futureDelivery: string;
+  hasCampaign: boolean;
+  hasNewProducts: boolean;
+  isFavorite: boolean;
+  minimumOrder: string;
+  shippingCost: string;
+  freeShippingThreshold: string;
 }
 
 interface SupplierFilters {
@@ -35,6 +45,7 @@ interface SupplierFilters {
 export class ExploreSuppliersComponent implements OnInit {
   searchQuery = '';
   selectedCategory = '';
+  selectedTab = 'all'; // 'all', 'favorites', 'new'
   selectedFilters: SupplierFilters = {
     freeDelivery: false,
     coDelivery: false,
@@ -42,81 +53,148 @@ export class ExploreSuppliersComponent implements OnInit {
     newProducts: false
   };
 
-  constructor(public i18n: I18nService) {}
+  constructor(
+    public i18n: I18nService,
+    private router: Router
+  ) {}
 
   categories: Category[] = [
-    { id: 'dairy', name: 'Dairy', icon: '🥛' },
-    { id: 'fruits', name: 'Fruits', icon: '🍎' },
-    { id: 'bakery', name: 'Bakery', icon: '🥖' },
-    { id: 'fish', name: 'Fish', icon: '🐟' },
-    { id: 'meat', name: 'Meat', icon: '🥩' },
-    { id: 'vegetables', name: 'Vegetables', icon: '🥕' }
+    { id: 'pharmacy', name: 'Apotek & Hälsa', icon: '💊', color: '#e3f2fd' },
+    { id: 'children', name: 'Barn & Baby', icon: '👶', color: '#fce4ec' },
+    { id: 'drinks', name: 'Dryck', icon: '🥤', color: '#e8f5e8' },
+    { id: 'snacks', name: 'Mellanmål', icon: '🍪', color: '#fff3e0' },
+    { id: 'household', name: 'Hushåll', icon: '🏠', color: '#f3e5f5' },
+    { id: 'meat', name: 'Kött & Chark', icon: '🥩', color: '#ffebee' },
+    { id: 'ready-meals', name: 'Färdigmat', icon: '🍱', color: '#e0f2f1' },
+    { id: 'vegetables', name: 'Frukt & Grönt', icon: '🥕', color: '#e8f5e8' },
+    { id: 'ice-cream', name: 'Glass', icon: '🍦', color: '#fff8e1' },
+    { id: 'bakery', name: 'Bakery', icon: '🥖', color: '#fafafa' }
   ];
 
   private recommendedSuppliers: Supplier[] = [
     {
       id: '1',
-      name: 'Gatimport',
-      description: 'Premium food products and ingredients',
-      logo: 'assets/images/gatimport-logo.png',
+      name: 'Bärta',
+      description: 'Premium organic products and natural ingredients',
+      logo: 'assets/images/barta-logo.png',
       rating: 4.8,
       isRecommended: true,
       hasSpecialOffer: true,
-      categories: ['dairy', 'meat'],
+      categories: ['vegetables', 'household'],
       deliveryOptions: ['free-delivery', 'co-delivery'],
-      isNew: false
+      isNew: false,
+      lastDelivery: '2024-02-19',
+      futureDelivery: 'Söka ett lägre order',
+      hasCampaign: true,
+      hasNewProducts: false,
+      isFavorite: true,
+      minimumOrder: 'No minimum',
+      shippingCost: '100 kr',
+      freeShippingThreshold: '2 items'
     },
     {
       id: '2',
-      name: 'Fresh Foods Co',
-      description: 'Fresh vegetables and fruits daily delivery',
-      logo: 'assets/images/fresh-foods-logo.png',
+      name: 'Galatea',
+      description: 'Fresh dairy and cheese products',
+      logo: 'assets/images/galatea-logo.png',
       rating: 4.6,
       isRecommended: true,
       hasSpecialOffer: false,
-      categories: ['vegetables', 'fruits'],
+      categories: ['dairy', 'ready-meals'],
       deliveryOptions: ['free-delivery'],
-      isNew: true
+      isNew: true,
+      lastDelivery: '2024-01-18',
+      futureDelivery: 'Inget beställn',
+      hasCampaign: false,
+      hasNewProducts: true,
+      isFavorite: false,
+      minimumOrder: '500 kr',
+      shippingCost: '50 kr',
+      freeShippingThreshold: '3 items'
     },
     {
       id: '3',
-      name: 'Ocean Catch',
-      description: 'Fresh seafood and fish products',
-      logo: 'assets/images/ocean-catch-logo.png',
+      name: 'PAOL och There',
+      description: 'Artisan bakery and gourmet products',
+      logo: 'assets/images/paol-logo.png',
       rating: 4.7,
       isRecommended: true,
       hasSpecialOffer: true,
-      categories: ['fish'],
+      categories: ['bakery', 'snacks'],
       deliveryOptions: ['co-delivery'],
-      isNew: false
+      isNew: false,
+      lastDelivery: '2024-02-15',
+      futureDelivery: '2024-01-31',
+      hasCampaign: true,
+      hasNewProducts: false,
+      isFavorite: true,
+      minimumOrder: '200 kr',
+      shippingCost: '75 kr',
+      freeShippingThreshold: '4 items'
+    },
+    {
+      id: '4',
+      name: 'Hugos Chark',
+      description: 'Premium meat and charcuterie products',
+      logo: 'assets/images/hugos-logo.png',
+      rating: 4.9,
+      isRecommended: true,
+      hasSpecialOffer: false,
+      categories: ['meat', 'ready-meals'],
+      deliveryOptions: ['free-delivery'],
+      isNew: true,
+      lastDelivery: '2024-02-20',
+      futureDelivery: '2024-02-28',
+      hasCampaign: false,
+      hasNewProducts: true,
+      isFavorite: false,
+      minimumOrder: '300 kr',
+      shippingCost: '100 kr',
+      freeShippingThreshold: '2 items'
     }
   ];
 
   private allSuppliers: Supplier[] = [
     ...this.recommendedSuppliers,
     {
-      id: '4',
-      name: 'Bakery Master',
-      description: 'Artisan breads and pastries',
-      logo: 'assets/images/bakery-master-logo.png',
-      rating: 4.5,
-      isRecommended: false,
-      hasSpecialOffer: false,
-      categories: ['bakery'],
-      deliveryOptions: [],
-      isNew: true
-    },
-    {
       id: '5',
-      name: 'Meat Premium',
-      description: 'High-quality meat products',
-      logo: 'assets/images/meat-premium-logo.png',
+      name: 'Luntgårdens Mejeri',
+      description: 'Glada kor som mättar glada magar - Milk from Sweden',
+      logo: 'assets/images/luntgardens-logo.png',
       rating: 4.9,
       isRecommended: false,
       hasSpecialOffer: true,
-      categories: ['meat'],
+      categories: ['dairy', 'ready-meals'],
       deliveryOptions: ['free-delivery'],
-      isNew: false
+      isNew: false,
+      lastDelivery: '2024-02-22',
+      futureDelivery: '2024-03-01',
+      hasCampaign: true,
+      hasNewProducts: true,
+      isFavorite: false,
+      minimumOrder: 'No minimum',
+      shippingCost: '100 kr',
+      freeShippingThreshold: '2 items'
+    },
+    {
+      id: '6',
+      name: 'Fresh Market',
+      description: 'Fresh fruits and vegetables daily delivery',
+      logo: 'assets/images/fresh-market-logo.png',
+      rating: 4.5,
+      isRecommended: false,
+      hasSpecialOffer: false,
+      categories: ['vegetables', 'fruits'],
+      deliveryOptions: ['co-delivery'],
+      isNew: true,
+      lastDelivery: '2024-02-18',
+      futureDelivery: '2024-02-25',
+      hasCampaign: false,
+      hasNewProducts: true,
+      isFavorite: false,
+      minimumOrder: '250 kr',
+      shippingCost: '80 kr',
+      freeShippingThreshold: '3 items'
     }
   ];
 
@@ -128,6 +206,7 @@ export class ExploreSuppliersComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadRecommendedSuppliers();
+    this.filterSuppliers();
   }
 
   onSearch(): void {
@@ -135,7 +214,7 @@ export class ExploreSuppliersComponent implements OnInit {
   }
 
   onCategorySelect(category: string): void {
-    this.selectedCategory = category;
+    this.selectedCategory = category === this.selectedCategory ? '' : category;
     this.filterSuppliers();
   }
 
@@ -146,6 +225,32 @@ export class ExploreSuppliersComponent implements OnInit {
 
   onSearchChange(): void {
     this.filterSuppliers();
+  }
+
+  onTabChange(tab: string): void {
+    this.selectedTab = tab;
+    this.filterSuppliers();
+  }
+
+  toggleFavorite(supplier: Supplier): void {
+    supplier.isFavorite = !supplier.isFavorite;
+    this.showNotification(
+      supplier.isFavorite 
+        ? `${supplier.name} added to favorites` 
+        : `${supplier.name} removed from favorites`, 
+      'success'
+    );
+  }
+
+  orderFromSupplier(supplier: Supplier): void {
+    console.log('Ordering from supplier:', supplier);
+    // Navigate to supplier's product page or order page
+    this.router.navigate(['/client/supplier', supplier.id, 'products']);
+  }
+
+  viewSupplierDetails(supplier: Supplier): void {
+    console.log('Viewing supplier details:', supplier);
+    this.router.navigate(['/client/supplier', supplier.id]);
   }
 
   addSupplier(supplier: Supplier): void {
@@ -442,12 +547,28 @@ Best regards,
   private filterSuppliers(): void {
     let suppliers = [...this.allSuppliers];
 
+    // Apply tab filter first
+    suppliers = this.applyTabFilter(suppliers);
+    
+    // Then apply other filters
     suppliers = this.applySearchFilter(suppliers);
     suppliers = this.applyCategoryFilter(suppliers);
     suppliers = this.applyDeliveryFilters(suppliers);
     suppliers = this.applySpecialFilters(suppliers);
 
     this.filteredSuppliers = suppliers;
+  }
+
+  private applyTabFilter(suppliers: Supplier[]): Supplier[] {
+    switch (this.selectedTab) {
+      case 'favorites':
+        return suppliers.filter(supplier => supplier.isFavorite);
+      case 'new':
+        return suppliers.filter(supplier => supplier.isNew);
+      case 'all':
+      default:
+        return suppliers;
+    }
   }
 
   private applySearchFilter(suppliers: Supplier[]): Supplier[] {

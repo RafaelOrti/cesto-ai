@@ -1,9 +1,13 @@
 import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-supplier-inventory',
   templateUrl: './supplier-inventory.component.html',
-  styleUrls: ['./supplier-inventory.component.scss']
+  styleUrls: ['./supplier-inventory.component.scss'],
+  standalone: true,
+  imports: [CommonModule, FormsModule]
 })
 export class SupplierInventoryComponent implements OnInit {
   inventoryItems: any[] = [];

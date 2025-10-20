@@ -1,8 +1,11 @@
 .client-insights {
-  padding: 2rem;
-  background-color: #f8f9fa;
-  min-height: calc(100vh - 128px); // Ajustar para el header y padding
+  padding: 32px;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  min-height: calc(100vh - 128px);
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
 .insights-header {
@@ -377,5 +380,275 @@
 
   .analytics-grid {
     grid-template-columns: 1fr !important;
+  }
+}
+
+// Professional Material Design Styles
+.insights-header-card {
+  background: linear-gradient(135deg, #2E7D32 0%, #4CAF50 100%);
+  color: white;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+  
+  .header-content {
+    .header-info {
+      .insights-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin: 0 0 8px 0;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        
+        .title-icon {
+          font-size: 2.5rem;
+          width: 2.5rem;
+          height: 2.5rem;
+        }
+      }
+      
+      .insights-subtitle {
+        font-size: 1rem;
+        margin: 0;
+        opacity: 0.9;
+      }
+    }
+  }
+}
+
+.controls-card,
+.chart-section-card,
+.table-section-card {
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  
+  .chart-icon,
+  .table-icon {
+    margin-right: 8px;
+    color: #2E7D32;
+  }
+}
+
+.controls-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  
+  .filter-controls {
+    display: flex;
+    gap: 16px;
+    flex: 1;
+    
+    .filter-field,
+    .date-field,
+    .search-field {
+      min-width: 150px;
+    }
+
+    // Ensure the search input grows to use available space
+    .search-field {
+      flex: 1 1 auto;
+      width: 100%;
+    }
+  }
+  
+  .action-buttons {
+    display: flex;
+    gap: 12px;
+  }
+}
+
+.chart-legend {
+  margin-bottom: 24px;
+  
+  .legend-chip {
+    margin-right: 8px;
+    
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 6px;
+      display: inline-block;
+    }
+  }
+}
+
+.insights-table {
+  width: 100%;
+  
+  .table-header-row {
+    background: #f8f9fa;
+    
+    th {
+      font-weight: 600;
+      color: #333;
+    }
+  }
+  
+  .table-data-row {
+    &:hover {
+      background: #f8f9fa;
+    }
+  }
+  
+  .customer-cell {
+    .customer-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      
+      .customer-indicator {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+      }
+      
+      .customer-name {
+        font-weight: 500;
+      }
+    }
+  }
+  
+  .sales-cell .sales-value,
+  .avg-order-cell .avg-order-value {
+    font-weight: 600;
+    color: #4caf50;
+  }
+  
+  .orders-cell .orders-value {
+    font-weight: 600;
+    color: #2196f3;
+  }
+  
+  .frequency-chip {
+    background: #e3f2fd;
+    color: #1976d2;
+  }
+}
+
+.analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+  
+  .analytics-card {
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    
+    .card-icon {
+      margin-right: 8px;
+      color: #2E7D32;
+    }
+  }
+}
+
+.top-clients-card {
+  .performance-list {
+    .performance-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid #eee;
+      
+      &:last-child {
+        border-bottom: none;
+      }
+      
+      .performance-rank {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #2E7D32, #4CAF50);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 0.9rem;
+      }
+      
+      .performance-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        
+        .customer-name {
+          font-weight: 600;
+          color: #333;
+        }
+        
+        .performance-value {
+          font-size: 0.9rem;
+          color: #666;
+        }
+      }
+    }
+  }
+}
+
+.trend-analysis-card,
+.seasonal-patterns-card {
+  .trend-info,
+  .seasonal-info {
+    .trend-item,
+    .season-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid #eee;
+      
+      &:last-child {
+        border-bottom: none;
+      }
+      
+      .trend-icon,
+      .season-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #2E7D32, #4CAF50);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      .trend-details,
+      .season-details {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        
+        .trend-label,
+        .season-label {
+          font-size: 0.9rem;
+          color: #666;
+        }
+        
+        .trend-value,
+        .season-value {
+          font-weight: 600;
+          color: #333;
+          
+          &.positive {
+            color: #4caf50;
+          }
+        }
+      }
+    }
+  }
+}
+
+.footer-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 24px;
+  
+  .export-btn {
+    min-width: 200px;
   }
 }

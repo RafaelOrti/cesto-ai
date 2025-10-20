@@ -213,3 +213,4 @@ export class ColorConfigService {
     this.applyPaletteToCSS();
   }
 }
+

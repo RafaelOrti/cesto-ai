@@ -1,6 +1,7 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Inject } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, of, BehaviorSubject } from 'rxjs';
-import { delay, map } from 'rxjs/operators';
+import { delay, map, switchMap } from 'rxjs/operators';
 
 export interface ChartDataPoint {
   month: string;
@@ -157,7 +158,7 @@ export class AnalyticsService {
     additionalFilters: []
   });
 
-  constructor() {}
+  constructor(private http: HttpClient, @Inject('API_BASE_URL') private apiBaseUrl: string) {}
 
   getFilters(): Observable<FilterOptions[]> {
     return of([
@@ -172,9 +173,12 @@ export class AnalyticsService {
   }
 
   getAnalyticsData(filters: AnalyticsFilters): Observable<{ chartData: ChartDataPoint[], customerData: CustomerData[], summaryTotals: SummaryTotals, legendData: LegendItem[] }> {
-    return of(filters).pipe(
-      delay(300), // Simulate API call
-      map(f => this.processFilters(f))
+    const params = new HttpParams()
+      .set('dateFrom', filters.dateRange.from)
+      .set('dateTo', filters.dateRange.to);
+
+    return this.http.get<any>(`${this.apiBaseUrl}/orders/buyer/analytics`, { params }).pipe(
+      map(res => this.transformBackendAnalytics(res))
     );
   }
 
@@ -220,7 +224,7 @@ export class AnalyticsService {
       { color: 'yellow', value: customerData.filter(c => c.color === 'yellow').length, label: 'Low Volume' },
       { color: 'green', value: customerData.filter(c => c.color === 'green').length, label: 'New Customers' },
       { color: 'blue', value: customerData.filter(c => c.color === 'blue').length, label: 'Regular Customers' },
-      { color: 'purple', value: Math.floor(customerData.length * 0.3), label: 'Premium Customers' },
+      { color: 'green', value: Math.floor(customerData.length * 0.3), label: 'Premium Customers' },
       { color: 'pink', value: Math.floor(customerData.length * 0.1), label: 'VIP Customers' }
     ];
 
@@ -230,6 +234,39 @@ export class AnalyticsService {
       summaryTotals,
       legendData
     };
+  }
+
+  private transformBackendAnalytics(res: any): { chartData: ChartDataPoint[], customerData: CustomerData[], summaryTotals: SummaryTotals, legendData: LegendItem[] } {
+    const chartData: ChartDataPoint[] = Object.entries(res.trends || {}).map(([month, v]: any) => ({
+      month,
+      value: (v as any).sales,
+      date: new Date(`${month}-01`)
+    }));
+
+    const customerData: CustomerData[] = (res.suppliers || []).map((s: any, idx: number) => ({
+      name: s.supplierId,
+      color: ['red','orange','yellow','green','blue'][idx % 5],
+      sales: s.sales,
+      orders: s.orders,
+      averageOrder: s.avgOrder,
+      frequency: Math.max(1, Math.round(s.orders / 2)),
+      dateRange: { from: new Date(), to: new Date() }
+    }));
+
+    const summaryTotals: SummaryTotals = {
+      totalStores: customerData.length,
+      totalSales: res.totalSales || 0,
+      totalOrders: res.totalOrders || 0,
+      averageOrder: res.averageOrderValue || 0,
+      averageFrequency: customerData.length ? Math.round(customerData.reduce((a,c)=>a+c.frequency,0)/customerData.length) : 0
+    };
+
+    const legendData: LegendItem[] = [
+      { color: 'red', value: 1, label: 'Sales' },
+      { color: 'blue', value: 1, label: 'Orders' }
+    ];
+
+    return { chartData, customerData, summaryTotals, legendData };
   }
 
   updateFilters(filters: Partial<AnalyticsFilters>): void {

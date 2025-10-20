@@ -263,6 +263,9 @@ export class SupplierDashboardComponent implements OnInit, OnDestroy {
   ) {}
   
   ngOnInit(): void {
+    console.log('[SUPPLIER-DASHBOARD] Component initialized');
+    console.log('[SUPPLIER-DASHBOARD] Current isLoading:', this.isLoading);
+    console.log('[SUPPLIER-DASHBOARD] Current supplierStats:', this.supplierStats);
     this.loadUserData();
     this.loadDashboardData();
   }
@@ -284,14 +287,17 @@ export class SupplierDashboardComponent implements OnInit, OnDestroy {
   }
   
   private loadDashboardData(): void {
+    console.log('[SUPPLIER-DASHBOARD] Loading dashboard data...');
     this.isLoading = true;
     
     // Simulate API calls
     setTimeout(() => {
+      console.log('[SUPPLIER-DASHBOARD] Loading stats and chart data...');
       this.loadStats();
       this.loadChartData();
       this.isLoading = false;
-    }, 1000);
+      console.log('[SUPPLIER-DASHBOARD] Dashboard data loaded, isLoading:', this.isLoading);
+    }, 500); // Reduced timeout for faster loading
   }
   
   private loadStats(): void {

@@ -111,7 +111,11 @@ export const translations = {
       profile: 'Profile',
       logout: 'Logout',
       login: 'Login',
-      register: 'Register'
+      register: 'Register',
+      supplierDashboard: 'Supplier Dashboard',
+      supplierProducts: 'Supplier Products',
+      supplierInventory: 'Supplier Inventory',
+      supplierAnalysis: 'Supplier Analysis'
     },
     admin: {
       clientViews: 'Client Views',
@@ -356,7 +360,11 @@ export const translations = {
       profile: 'Profil',
       logout: 'Logga ut',
       login: 'Logga in',
-      register: 'Registrera'
+      register: 'Registrera',
+      supplierDashboard: 'Leverantörspanel',
+      supplierProducts: 'Leverantörsprodukter',
+      supplierInventory: 'Leverantörslager',
+      supplierAnalysis: 'Leverantörsanalys'
     },
     admin: {
       clientViews: 'Klientvyer',
@@ -597,7 +605,11 @@ export const translations = {
       profile: 'Perfil',
       logout: 'Cerrar Sesión',
       login: 'Iniciar Sesión',
-      register: 'Registrarse'
+      register: 'Registrarse',
+      supplierDashboard: 'Panel de Proveedor',
+      supplierProducts: 'Productos del Proveedor',
+      supplierInventory: 'Inventario del Proveedor',
+      supplierAnalysis: 'Análisis del Proveedor'
     },
     admin: {
       clientViews: 'Vistas de Cliente',
@@ -856,7 +868,11 @@ export const translations = {
       profile: 'Profil',
       logout: 'Déconnexion',
       login: 'Connexion',
-      register: 'S\'inscrire'
+      register: 'S\'inscrire',
+      supplierDashboard: 'Tableau Fournisseur',
+      supplierProducts: 'Produits Fournisseur',
+      supplierInventory: 'Inventaire Fournisseur',
+      supplierAnalysis: 'Analyse Fournisseur'
     },
     admin: {
       clientViews: 'Vues Client',
@@ -1471,7 +1487,11 @@ export const translations = {
       profile: 'Profilo',
       logout: 'Disconnetti',
       login: 'Accedi',
-      register: 'Registrati'
+      register: 'Registrati',
+      supplierDashboard: 'Dashboard Fornitore',
+      supplierProducts: 'Prodotti Fornitore',
+      supplierInventory: 'Inventario Fornitore',
+      supplierAnalysis: 'Analisi Fornitore'
     },
     admin: {
       clientViews: 'Viste Cliente',

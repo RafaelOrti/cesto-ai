@@ -33,3 +33,4 @@ import { ColorConfigComponent } from './color-config.component';
   ]
 })
 export class ColorConfigModule { }
+

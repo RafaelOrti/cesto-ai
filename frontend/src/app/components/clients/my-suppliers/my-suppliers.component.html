@@ -25,6 +25,16 @@
           [placeholder]="i18n.translate('suppliers.searchPlaceholder')">
         <mat-icon matSuffix>search</mat-icon>
       </mat-form-field>
+      <!-- Quick filter chips under searchbar to match mock -->
+      <mat-chip-set class="quick-filters">
+        <mat-chip 
+          *ngFor="let filter of quickFilters"
+          [selected]="filter.active"
+          (click)="toggleQuickFilter(filter)"
+          class="filter-chip">
+          {{ filter.label }}
+        </mat-chip>
+      </mat-chip-set>
     </div>
 
     <div class="filter-controls">

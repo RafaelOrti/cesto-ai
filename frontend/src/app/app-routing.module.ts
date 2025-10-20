@@ -31,6 +31,9 @@ import { UserManagementComponent } from './components/user-management/user-manag
 import { SystemSettingsComponent } from './components/system-settings/system-settings.component';
 import { EanManagementComponent } from './components/ean-management/ean-management.component';
 import { SupplierProductsManagementComponent } from './components/supplier-products-management/supplier-products-management.component';
+import { SettingsComponent } from './components/settings/settings.component';
+import { HelpComponent } from './components/help/help.component';
+import { NotificationsComponent } from './components/notifications/notifications.component';
 
 const routes: Routes = [
   // Public routes
@@ -57,7 +60,7 @@ const routes: Routes = [
       },
       {
         path: 'dashboard',
-        component: ClientDashboardComponent,
+        component: ClientInsightsComponent,
       },
       {
         path: 'suppliers',
@@ -107,10 +110,26 @@ const routes: Routes = [
       },
       {
         path: 'transactions',
-        component: TransactionsComponent,
+        children: [
+          {
+            path: 'invoices',
+            component: TransactionsComponent,
+          },
+          {
+            path: 'purchase-orders',
+            component: TransactionsComponent,
+          },
+          {
+            path: '',
+            redirectTo: 'invoices',
+            pathMatch: 'full'
+          }
+        ]
       },
     ],
   },
+
+  // Settings, Help, and Notifications will be rendered inside Layout (see legacy section below)
 
   // Supplier routes
   {
@@ -239,7 +258,21 @@ const routes: Routes = [
           },
           {
             path: 'transactions',
-            component: TransactionsComponent,
+            children: [
+              {
+                path: 'invoices',
+                component: TransactionsComponent,
+              },
+              {
+                path: 'purchase-orders',
+                component: TransactionsComponent,
+              },
+              {
+                path: '',
+                redirectTo: 'invoices',
+                pathMatch: 'full'
+              }
+            ]
           },
         ],
       },
@@ -353,6 +386,19 @@ const routes: Routes = [
         path: 'edi',
         component: EdiComponent,
       },
+      // Global utility routes rendered within the layout
+      {
+        path: 'settings',
+        component: SettingsComponent,
+      },
+      {
+        path: 'help',
+        component: HelpComponent,
+      },
+      {
+        path: 'notifications',
+        component: NotificationsComponent,
+      },
     ],
   },
 
@@ -389,8 +435,8 @@ const routes: Routes = [
   // Catch all route
   {
     path: '**',
-    redirectTo: 'client',
-  },
+    redirectTo: ''
+  }
 ];
 
 @NgModule({

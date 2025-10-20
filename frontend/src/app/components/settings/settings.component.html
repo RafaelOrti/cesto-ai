@@ -1,0 +1,183 @@
+<div class="settings-container">
+  <div class="settings-header">
+    <h1 class="settings-title">{{ 'navigation.settings' | translate }}</h1>
+    <p class="settings-subtitle">Manage your account settings and preferences</p>
+  </div>
+
+  <form [formGroup]="settingsForm" class="settings-form">
+    <!-- Personal Information -->
+    <mat-card class="settings-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>person</mat-icon>
+          Personal Information
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>First Name</mat-label>
+            <input matInput formControlName="firstName" placeholder="Enter your first name">
+            <mat-error *ngIf="settingsForm.get('firstName')?.hasError('required')">
+              First name is required
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Last Name</mat-label>
+            <input matInput formControlName="lastName" placeholder="Enter your last name">
+            <mat-error *ngIf="settingsForm.get('lastName')?.hasError('required')">
+              Last name is required
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Email</mat-label>
+            <input matInput formControlName="email" type="email" placeholder="Enter your email">
+            <mat-error *ngIf="settingsForm.get('email')?.hasError('required')">
+              Email is required
+            </mat-error>
+            <mat-error *ngIf="settingsForm.get('email')?.hasError('email')">
+              Please enter a valid email
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Phone</mat-label>
+            <input matInput formControlName="phone" placeholder="Enter your phone number">
+          </mat-form-field>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Preferences -->
+    <mat-card class="settings-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>preferences</mat-icon>
+          Preferences
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Language</mat-label>
+            <mat-select formControlName="language">
+              <mat-option *ngFor="let lang of languages" [value]="lang.code">
+                {{ lang.flag }} {{ lang.name }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Theme</mat-label>
+            <mat-select formControlName="theme">
+              <mat-option *ngFor="let theme of themes" [value]="theme.value">
+                <mat-icon>{{ theme.icon }}</mat-icon>
+                {{ theme.name }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Notifications -->
+    <mat-card class="settings-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>notifications</mat-icon>
+          Notifications
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content formGroupName="notifications">
+        <div class="notification-settings">
+          <div class="notification-item">
+            <mat-slide-toggle formControlName="email">
+              Email Notifications
+            </mat-slide-toggle>
+            <p class="notification-description">Receive notifications via email</p>
+          </div>
+
+          <div class="notification-item">
+            <mat-slide-toggle formControlName="push">
+              Push Notifications
+            </mat-slide-toggle>
+            <p class="notification-description">Receive push notifications in your browser</p>
+          </div>
+
+          <div class="notification-item">
+            <mat-slide-toggle formControlName="sms">
+              SMS Notifications
+            </mat-slide-toggle>
+            <p class="notification-description">Receive notifications via SMS</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Privacy -->
+    <mat-card class="settings-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>privacy_tip</mat-icon>
+          Privacy
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content formGroupName="privacy">
+        <div class="privacy-settings">
+          <div class="privacy-item">
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Profile Visibility</mat-label>
+              <mat-select formControlName="profileVisibility">
+                <mat-option value="public">Public</mat-option>
+                <mat-option value="private">Private</mat-option>
+                <mat-option value="contacts">Contacts Only</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <div class="privacy-item">
+            <mat-slide-toggle formControlName="dataSharing">
+              Allow Data Sharing
+            </mat-slide-toggle>
+            <p class="privacy-description">Allow sharing of anonymized data for research purposes</p>
+          </div>
+
+          <div class="privacy-item">
+            <mat-slide-toggle formControlName="analytics">
+              Analytics
+            </mat-slide-toggle>
+            <p class="privacy-description">Help improve our service by sharing usage analytics</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Actions -->
+    <div class="settings-actions">
+      <button mat-raised-button color="primary" (click)="onSave()" [disabled]="isLoading">
+        <mat-icon *ngIf="isLoading">refresh</mat-icon>
+        <mat-icon *ngIf="!isLoading">save</mat-icon>
+        {{ isLoading ? 'Saving...' : 'Save Settings' }}
+      </button>
+
+      <button mat-button (click)="onReset()">
+        <mat-icon>restore</mat-icon>
+        Reset
+      </button>
+
+      <button mat-button color="accent" (click)="onExportData()">
+        <mat-icon>download</mat-icon>
+        Export Data
+      </button>
+
+      <button mat-button color="warn" (click)="onDeleteAccount()">
+        <mat-icon>delete_forever</mat-icon>
+        Delete Account
+      </button>
+    </div>
+  </form>
+</div>

@@ -84,6 +84,14 @@ export class MySuppliersComponent extends BaseComponent implements OnInit, OnDes
     { value: 'inactive', label: 'Inactive' }
   ];
 
+  // Quick filter chips under the search bar
+  quickFilters = [
+    { id: 'freeDelivery', label: 'Free delivery', active: false },
+    { id: 'coDelivery', label: 'Co-delivery', active: false },
+    { id: 'onSale', label: 'On sale', active: false },
+    { id: 'suppliers', label: 'Suppliers', active: false },
+  ];
+
   constructor(
     protected fb: FormBuilder,
     private supplierService: SupplierService
@@ -423,8 +431,31 @@ export class MySuppliersComponent extends BaseComponent implements OnInit, OnDes
       const matchesStatus = this.selectedStatus === 'all' || 
         supplier.relationshipStatus === this.selectedStatus;
 
-      return matchesSearch && matchesCategory && matchesStatus;
+      // Apply quick filters (demo logic)
+      const quickFiltersOk = this.quickFilters.every(f => !f.active) || (
+        this.quickFilters.filter(f => f.active).every(f => {
+          switch (f.id) {
+            case 'freeDelivery':
+              return supplier.deliveryAreas && supplier.deliveryAreas.length > 0; // placeholder
+            case 'coDelivery':
+              return true; // placeholder until API supports flag
+            case 'onSale':
+              return (supplier.totalProducts || 0) > 0; // placeholder
+            case 'suppliers':
+              return true;
+            default:
+              return true;
+          }
+        })
+      );
+
+      return matchesSearch && matchesCategory && matchesStatus && quickFiltersOk;
     });
+  }
+
+  toggleQuickFilter(filter: any): void {
+    filter.active = !filter.active;
+    this.applyFilters();
   }
 
   requestRelationship(supplier: MySupplier): void {

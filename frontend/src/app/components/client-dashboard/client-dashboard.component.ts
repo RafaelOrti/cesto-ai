@@ -773,14 +773,12 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
       comparison: this.showComparison
     });
 
-    // Simulate API call
-    setTimeout(() => {
-      this.fetchAnalytics();
-      this.isGenerating = false;
-      this.notificationService.success(
-        this.i18n.translate('buyerInsights.insightsGenerated')
-      );
-    }, 1500);
+    // Use real backend data
+    this.fetchAnalytics();
+    this.isGenerating = false;
+    this.notificationService.success(
+      this.i18n.translate('buyerInsights.insightsGenerated')
+    );
   }
 
   downloadExcelReport(): void {

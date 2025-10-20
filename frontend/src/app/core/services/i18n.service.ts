@@ -122,12 +122,14 @@ const fallbackTranslations: any = {
       mySuppliers: 'My Suppliers',
       manageRelationships: 'Manage Relationships',
       searchPlaceholder: 'Search suppliers...',
+      searchBar: 'Search suppliers, brands, categories',
       insights: 'Insights',
       explore: 'Explore',
       title: 'Suppliers',
       subtitle: 'Manage your supplier relationships',
       addSupplier: 'Add Supplier',
       searchSuppliers: 'Search suppliers, brands, categories',
+      discoverSuppliers: 'Discover new suppliers and manage relationships',
       filterByCategory: 'Filter by Category',
       filterByStatus: 'Filter by Status',
       viewDetails: 'View Details',
@@ -145,7 +147,22 @@ const fallbackTranslations: any = {
       lastOrderDate: 'Last Order Date',
       relationshipStatus: 'Relationship Status',
       verified: 'Verified',
-      unverified: 'Unverified'
+      unverified: 'Unverified',
+      clearFilters: 'Clear Filters',
+      filters: {
+        freeDelivery: 'Free Delivery',
+        coDelivery: 'Co-Delivery',
+        onSale: 'On Sale',
+        suppliersMayNeedToBuy: 'Suppliers may need to buy',
+        suppliersStoppedBuying: 'Suppliers stopped buying',
+        combinedDelivery: 'Combined Delivery',
+        freeShippingCost: 'Free Shipping Cost',
+        activeCampaigns: 'Active Campaigns',
+        newProducts: 'New Products'
+      },
+      recommendations: {
+        all: 'All Suppliers'
+      }
     },
     login: {
       welcomeBack: 'Welcome Back',
@@ -535,12 +552,14 @@ const fallbackTranslations: any = {
       mySuppliers: 'Mis Proveedores',
       manageRelationships: 'Gestionar Relaciones',
       searchPlaceholder: 'Buscar proveedores...',
+      searchBar: 'Buscar proveedores, marcas, categorías',
       insights: 'Insights',
       explore: 'Explorar',
       title: 'Proveedores',
       subtitle: 'Gestiona tus relaciones con proveedores',
       addSupplier: 'Agregar Proveedor',
       searchSuppliers: 'Buscar proveedores, marcas, categorías',
+      discoverSuppliers: 'Descubre nuevos proveedores y gestiona relaciones',
       filterByCategory: 'Filtrar por Categoría',
       filterByStatus: 'Filtrar por Estado',
       viewDetails: 'Ver Detalles',
@@ -558,7 +577,22 @@ const fallbackTranslations: any = {
       lastOrderDate: 'Fecha del Último Pedido',
       relationshipStatus: 'Estado de la Relación',
       verified: 'Verificado',
-      unverified: 'No Verificado'
+      unverified: 'No Verificado',
+      clearFilters: 'Limpiar Filtros',
+      filters: {
+        freeDelivery: 'Envío Gratis',
+        coDelivery: 'Co-Envío',
+        onSale: 'En Oferta',
+        suppliersMayNeedToBuy: 'Proveedores que pueden necesitar comprar',
+        suppliersStoppedBuying: 'Proveedores que dejaron de comprar',
+        combinedDelivery: 'Envío Combinado',
+        freeShippingCost: 'Costo de Envío Gratis',
+        activeCampaigns: 'Campañas Activas',
+        newProducts: 'Productos Nuevos'
+      },
+      recommendations: {
+        all: 'Todos los Proveedores'
+      }
     },
     login: {
       welcomeBack: 'Bienvenido de Vuelta',

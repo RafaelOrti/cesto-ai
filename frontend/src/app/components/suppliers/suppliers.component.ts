@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil, debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { I18nService } from '../../core/services/i18n.service';
 
 export interface SupplierCategory {
   id: string;
@@ -117,7 +118,10 @@ export class SuppliersComponent implements OnInit, OnDestroy {
     { id: 'all', name: 'All Suppliers', icon: 'fas fa-th', active: false }
   ];
 
-  constructor(private router: Router) {
+  constructor(
+    private router: Router,
+    public i18n: I18nService
+  ) {
     this.setupSearchDebounce();
   }
 

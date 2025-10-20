@@ -5,10 +5,12 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { NotificationsComponent } from './components/notifications/notifications.component';
+import { TranslatePipe } from './pipes/translate.pipe';
 
 @NgModule({
   declarations: [
     NotificationsComponent,
+    TranslatePipe,
   ],
   imports: [
     CommonModule,
@@ -18,6 +20,7 @@ import { NotificationsComponent } from './components/notifications/notifications
   ],
   exports: [
     NotificationsComponent,
+    TranslatePipe,
   ]
 })
 export class CoreModule {}

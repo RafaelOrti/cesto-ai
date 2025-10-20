@@ -14,10 +14,14 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatBadgeModule } from '@angular/material/badge';
 
+// Shared module for TranslatePipe
+import { SharedModule } from '../../shared/shared.module';
+
 import { SuppliersComponent } from './suppliers.component';
 import { SearchSuppliersComponent } from './search-suppliers/search-suppliers.component';
 import { SupplierProfileComponent } from './supplier-profile/supplier-profile.component';
 import { MySuppliersComponent } from '../clients/my-suppliers/my-suppliers.component';
+import { TranslatePipe } from '../../core/pipes/translate.pipe';
 
 const routes = [
   {
@@ -36,13 +40,16 @@ const routes = [
     SuppliersComponent,
     SearchSuppliersComponent,
     SupplierProfileComponent,
-    MySuppliersComponent
+    MySuppliersComponent,
+    TranslatePipe
   ],
   imports: [
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
     RouterModule.forChild(routes),
+    // Shared module for TranslatePipe
+    SharedModule,
     // Angular Material
     MatButtonModule,
     MatCardModule,

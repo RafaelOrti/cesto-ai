@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil, debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { I18nService } from '../../../core/services/i18n.service';
 
 export interface Supplier {
   id: string;
@@ -100,7 +101,10 @@ export class SearchSuppliersComponent implements OnInit, OnDestroy {
     onSale: false
   };
 
-  constructor(private router: Router) {
+  constructor(
+    private router: Router,
+    public i18n: I18nService
+  ) {
     this.setupSearchDebounce();
   }
 
@@ -178,7 +182,7 @@ export class SearchSuppliersComponent implements OnInit, OnDestroy {
     }
   }
 
-  private applyFilters(): void {
+  applyFilters(): void {
     let filtered = [...this.suppliers];
 
     // Apply search query

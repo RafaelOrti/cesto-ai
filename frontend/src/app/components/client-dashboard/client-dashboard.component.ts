@@ -4,10 +4,15 @@ import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { ChartConfiguration } from 'chart.js';
 import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { takeUntil, finalize } from 'rxjs/operators';
 import { AuthService } from '../../core/services/auth.service';
 import { AnalyticsService } from '../../core/services/analytics.service';
 import { SupplierService } from '../../services/supplier.service';
+import { OrderService } from '../../services/order.service';
+import { ClientDashboardService, DashboardStats, DashboardChartData, RecentActivity, DashboardNotification } from '../../services/client-dashboard.service';
+import { I18nService } from '../../core/services/i18n.service';
+import { NotificationService } from '../../core/services/notification.service';
+import * as XLSX from 'xlsx';
 
 interface ChartDataPoint {
   label: string;
@@ -40,6 +45,23 @@ interface TopSupplier {
   lastOrder: string;
 }
 
+interface FilterOption {
+  id: string;
+  label: string;
+  type: 'delivered' | 'deliveryDate' | 'supplier' | 'product' | 'custom';
+  value?: any;
+}
+
+interface InsightRow {
+  store: string;
+  sales: number;
+  orders: number;
+  avgOrder: number;
+  frequency: number;
+  icon?: string;
+  color?: string;
+}
+
 @Component({
   selector: 'app-client-dashboard',
   templateUrl: './client-dashboard.component.html',
@@ -50,8 +72,29 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
   
   currentUser: any = null;
   isLoading = true;
+  isGenerating = false;
+  
   // Selected metric for filters toggle group
-  metricSelected: 'sales' | 'orders' | 'delivery' = 'sales';
+  metricSelected: 'sales' | 'orders' | 'deliveries' | 'deliveryDate' = 'sales';
+  
+  // Filters
+  activeFilters: FilterOption[] = [];
+  availableFilterTypes = [
+    { value: 'delivered', label: 'Delivered' },
+    { value: 'deliveryDate', label: 'Delivery Date' },
+    { value: 'supplier', label: 'Supplier' },
+    { value: 'product', label: 'Product' }
+  ];
+  
+  // Date range
+  dateRangeStart: Date = new Date(new Date().setMonth(new Date().getMonth() - 12));
+  dateRangeEnd: Date = new Date();
+  dateRangeText = '';
+  
+  // Comparison
+  showComparison = false;
+  comparisonDateRangeStart?: Date;
+  comparisonDateRangeEnd?: Date;
   
   // Dashboard Statistics
   stats = {
@@ -186,29 +229,7 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
   ];
 
   // Recent Activity
-  recentActivity = [
-    {
-      title: 'Order Placed',
-      description: 'Order #ORD-001 placed with Fresh Foods Co.',
-      time: '2 hours ago',
-      type: 'order',
-      status: 'completed'
-    },
-    {
-      title: 'Supplier Added',
-      description: 'Organic Farm Co. added to your supplier list',
-      time: '4 hours ago',
-      type: 'supplier',
-      status: 'completed'
-    },
-    {
-      title: 'Payment Processed',
-      description: 'Payment of €1,250.50 processed successfully',
-      time: '6 hours ago',
-      type: 'payment',
-      status: 'completed'
-    }
-  ];
+  recentActivity: RecentActivity[] = [];
 
   // Customer Data (for suppliers list)
   customerData = [
@@ -232,51 +253,70 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
     }
   ];
 
-  // Table data for Buyer Insights mock
+  // Table data for Buyer Insights
   displayedColumns: string[] = ['store', 'sales', 'orders', 'avgOrder', 'frequency'];
-  dataSource = new MatTableDataSource<any>([]);
+  dataSource = new MatTableDataSource<InsightRow>([]);
+  totalStores = 0;
+  totalSales = 0;
+  totalOrders = 0;
+  
+  // Chart configuration
   chartData: ChartConfiguration<'line'>['data'] = { labels: [], datasets: [] };
   chartOptions: ChartConfiguration<'line'>['options'] = {
     responsive: true,
-    plugins: { legend: { display: false } },
-    scales: { x: { display: true }, y: { display: true } }
+    maintainAspectRatio: false,
+    plugins: { 
+      legend: { display: false },
+      tooltip: {
+        mode: 'index',
+        intersect: false,
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        titleColor: '#fff',
+        bodyColor: '#fff',
+        borderColor: '#2E7D32',
+        borderWidth: 1,
+        padding: 12,
+        displayColors: true,
+        callbacks: {
+          label: function(context) {
+            return context.dataset.label + ': ' + context.parsed.y.toLocaleString();
+          }
+        }
+      }
+    },
+    interaction: {
+      mode: 'nearest',
+      axis: 'x',
+      intersect: false
+    },
+    scales: { 
+      x: { 
+        display: true,
+        grid: { display: false },
+        ticks: { color: '#64748b', font: { size: 11 } }
+      },
+      y: { 
+        display: true,
+        grid: { color: 'rgba(0,0,0,0.06)' },
+        ticks: { color: '#64748b', font: { size: 11 } }
+      }
+    }
   };
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
   // Notifications
-  notifications = [
-    {
-      id: '1',
-      title: 'Order Delivered',
-      message: 'Your order ORD-001 has been delivered successfully',
-      type: 'success',
-      time: '2 hours ago',
-      read: false
-    },
-    {
-      id: '2',
-      title: 'New Supplier Available',
-      message: 'Organic Farm Co. is now available in your area',
-      type: 'info',
-      time: '4 hours ago',
-      read: false
-    },
-    {
-      id: '3',
-      title: 'Low Stock Alert',
-      message: 'Milk inventory is running low',
-      type: 'warning',
-      time: '6 hours ago',
-      read: true
-    }
-  ];
+  notifications: DashboardNotification[] = [];
   
   constructor(
     private authService: AuthService,
     private analyticsService: AnalyticsService,
-    private supplierService: SupplierService
+    private supplierService: SupplierService,
+    private orderService: OrderService,
+    private clientDashboardService: ClientDashboardService,
+    public i18n: I18nService,
+    private notificationService: NotificationService
   ) {}
   
   ngOnInit(): void {
@@ -284,6 +324,7 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
     this.loadUserData();
     this.loadDashboardData();
     this.fetchAnalytics();
+    this.updateDateRangeText();
   }
   
   ngOnDestroy(): void {
@@ -305,14 +346,39 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
   private loadDashboardData(): void {
     this.isLoading = true;
     
-    // Simulate API calls
-    setTimeout(() => {
-      this.loadStats();
-      this.loadChartData();
-      this.isLoading = false;
-    }, 1000);
+    this.clientDashboardService.getDashboardData()
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.isLoading = false)
+      )
+      .subscribe({
+        next: (data) => {
+          this.loadStatsFromService(data.stats);
+          this.loadChartDataFromService(data.chartData);
+          this.loadRecentActivityFromService(data.recentActivity);
+          this.loadNotificationsFromService(data.notifications);
+          this.quickActions = data.quickActions;
+        },
+        error: (error) => {
+          console.error('Error loading dashboard data:', error);
+          this.notificationService.error('Error loading dashboard data');
+          // Load default data on error
+          this.loadDefaultData();
+        }
+      });
   }
   
+  private loadStatsFromService(dashboardStats: DashboardStats): void {
+    this.stats = {
+      totalOrders: dashboardStats.totalOrders,
+      activeSuppliers: dashboardStats.activeSuppliers,
+      totalSpent: dashboardStats.totalSpent,
+      pendingOrders: dashboardStats.pendingOrders,
+      monthlyGrowth: dashboardStats.monthlyGrowth,
+      averageOrderValue: dashboardStats.averageOrderValue
+    };
+  }
+
   private loadStats(): void {
     this.stats = {
       totalOrders: 156,
@@ -324,6 +390,27 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
     };
   }
   
+  private loadChartDataFromService(chartData: DashboardChartData): void {
+    this.ordersChartData = chartData.orders;
+    this.spendingChartData = chartData.spending;
+    this.suppliersChartData = chartData.suppliers;
+  }
+
+  private loadRecentActivityFromService(activity: RecentActivity[]): void {
+    this.recentActivity = activity;
+  }
+
+  private loadNotificationsFromService(notifications: DashboardNotification[]): void {
+    this.notifications = notifications;
+  }
+
+  private loadDefaultData(): void {
+    this.loadStats();
+    this.loadChartData();
+    this.recentActivity = [];
+    this.notifications = [];
+  }
+
   private loadChartData(): void {
     // Orders chart data (last 6 months)
     this.ordersChartData = [
@@ -357,47 +444,133 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
   }
 
   private fetchAnalytics(): void {
-    const filters = {
-      selectedFilter: 'Sales',
-      dateRange: { from: '2024-01-01', to: '2024-12-31' },
-      additionalFilters: []
-    } as any;
+    // Generate sample data for the chart
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb'];
+    const salesData = [0.75, 0.85, 0.65, 1.2, 1.5, 1.75, 1.6, 1.4, 1.3, 1.25, 1.8, 2.1, 2.25, 2.0];
 
-    this.analyticsService.getAnalyticsData(filters).subscribe(res => {
-      // Chart.js dataset
-      this.chartData = {
-        labels: res.chartData.map(d => d.month),
-        datasets: [
-          { label: 'Sales', data: res.chartData.map(d => d.value), borderColor: '#2E7D32', backgroundColor: 'rgba(46,125,50,0.2)', pointBorderColor: '#2E7D32', pointBackgroundColor: '#fff', pointRadius: 4, borderWidth: 2, fill: true, tension: 0.35 }
-        ]
-      };
-      this.chartOptions = {
-        responsive: true,
-        plugins: {
-          legend: { display: false },
-          tooltip: { mode: 'index', intersect: false }
-        },
-        interaction: { mode: 'nearest', intersect: false },
-        scales: {
-          x: { grid: { display: false } },
-          y: { grid: { color: 'rgba(0,0,0,0.06)' } }
+    // Chart.js dataset
+    this.chartData = {
+      labels: months,
+      datasets: [
+        { 
+          label: 'Sales Analytics', 
+          data: salesData, 
+          borderColor: '#2E7D32', 
+          backgroundColor: 'rgba(46,125,50,0.2)', 
+          pointBorderColor: '#2E7D32', 
+          pointBackgroundColor: '#fff', 
+          pointRadius: 6, 
+          borderWidth: 3, 
+          fill: true, 
+          tension: 0.4,
+          pointHoverRadius: 8,
+          pointHoverBackgroundColor: '#2E7D32',
+          pointHoverBorderColor: '#fff',
+          pointHoverBorderWidth: 2
         }
-      };
+      ]
+    };
 
-      // Table datasource
-      const idToName = new Map<string, string>();
-      this.supplierService.getMySuppliers().subscribe(sups => sups.forEach(s => idToName.set((s as any).id || (s as any)._id || s.name, s.name)));
-      const rows = res.customerData.map(c => ({
-        store: idToName.get(c.name) || c.name,
-        sales: c.sales,
-        orders: c.orders,
-        avgOrder: c.averageOrder,
-        frequency: c.frequency
-      }));
-      this.dataSource.data = rows;
-      if (this.paginator) this.dataSource.paginator = this.paginator;
-      if (this.sort) this.dataSource.sort = this.sort;
-    });
+    this.chartOptions = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { 
+          display: true,
+          position: 'top',
+          labels: {
+            usePointStyle: true,
+            padding: 20,
+            font: {
+              size: 14,
+              weight: 500
+            }
+          }
+        },
+        tooltip: {
+          mode: 'index',
+          intersect: false,
+          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          titleColor: '#fff',
+          bodyColor: '#fff',
+          borderColor: '#2E7D32',
+          borderWidth: 1,
+          padding: 12,
+          displayColors: true,
+          callbacks: {
+            label: function(context) {
+              return context.dataset.label + ': €' + (context.parsed.y * 1000000).toLocaleString() + 'M';
+            }
+          }
+        }
+      },
+      interaction: {
+        mode: 'nearest',
+        axis: 'x',
+        intersect: false
+      },
+      scales: {
+        x: {
+          display: true,
+          grid: { display: false },
+          ticks: { 
+            color: '#64748b', 
+            font: { size: 12, weight: 500 },
+            padding: 8
+          },
+          title: {
+            display: true,
+            text: 'Months',
+            color: '#64748b',
+            font: { size: 14, weight: 600 }
+          }
+        },
+        y: {
+          display: true,
+          grid: { 
+            color: 'rgba(0,0,0,0.06)'
+          },
+          ticks: { 
+            color: '#64748b', 
+            font: { size: 12, weight: 500 },
+            padding: 8,
+            callback: function(value) {
+              return '€' + value + 'M';
+            }
+          },
+          title: {
+            display: true,
+            text: 'Sales (Millions)',
+            color: '#64748b',
+            font: { size: 14, weight: 600 }
+          }
+        }
+      }
+    };
+
+    // Generate sample table data
+    const sampleStores = [
+      { name: 'Fresh Foods Co.', sales: 15600, orders: 24, avgOrder: 650, frequency: 3.2 },
+      { name: 'Beverage Solutions', sales: 12400, orders: 18, avgOrder: 689, frequency: 2.8 },
+      { name: 'Dairy Farm Co.', sales: 8900, orders: 15, avgOrder: 593, frequency: 2.5 },
+      { name: 'Organic Farm Co.', sales: 11200, orders: 20, avgOrder: 560, frequency: 3.0 },
+      { name: 'Meat & More', sales: 9800, orders: 16, avgOrder: 613, frequency: 2.7 }
+    ];
+
+    const rows = sampleStores.map(store => ({
+      store: store.name,
+      sales: store.sales,
+      orders: store.orders,
+      avgOrder: store.avgOrder,
+      frequency: store.frequency,
+      icon: this.getStoreIcon(store.name),
+      color: this.getStoreColor(store.name)
+    }));
+
+    this.dataSource.data = rows;
+    this.updateTableTotals();
+    if (this.paginator) this.dataSource.paginator = this.paginator;
+    if (this.sort) this.dataSource.sort = this.sort;
   }
   
   // Event Handlers
@@ -416,13 +589,45 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
     // Navigate to supplier details
   }
   
-  onNotificationClick(notification: any): void {
+  onNotificationClick(notification: DashboardNotification): void {
     console.log('Notification clicked:', notification);
-    notification.read = true;
+    if (!notification.read) {
+      this.clientDashboardService.markNotificationAsRead(notification.id)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (result) => {
+            if (result.success) {
+              notification.read = true;
+            }
+          },
+          error: (error) => {
+            console.error('Error marking notification as read:', error);
+          }
+        });
+    }
   }
   
   onRefreshData(): void {
-    this.loadDashboardData();
+    this.isLoading = true;
+    this.clientDashboardService.refreshDashboardData()
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.isLoading = false)
+      )
+      .subscribe({
+        next: (data) => {
+          this.loadStatsFromService(data.stats);
+          this.loadChartDataFromService(data.chartData);
+          this.loadRecentActivityFromService(data.recentActivity);
+          this.loadNotificationsFromService(data.notifications);
+          this.quickActions = data.quickActions;
+          this.notificationService.success('Dashboard data refreshed successfully');
+        },
+        error: (error) => {
+          console.error('Error refreshing dashboard data:', error);
+          this.notificationService.error('Error refreshing dashboard data');
+        }
+      });
   }
   
   // Utility Methods
@@ -510,5 +715,143 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
       default:
         return 'change-neutral';
     }
+  }
+
+  // New methods for Buyer Insights Dashboard
+  
+  onMetricChange(metric: 'sales' | 'orders' | 'deliveries' | 'deliveryDate'): void {
+    this.metricSelected = metric;
+    console.log('[BUYER-INSIGHTS] Metric changed to:', metric);
+  }
+
+  addFilter(): void {
+    const newFilter: FilterOption = {
+      id: `filter-${Date.now()}`,
+      label: this.i18n.translate('buyerInsights.chooseFilter'),
+      type: 'custom'
+    };
+    this.activeFilters.push(newFilter);
+  }
+
+  removeFilter(filterId: string): void {
+    this.activeFilters = this.activeFilters.filter(f => f.id !== filterId);
+  }
+
+  updateDateRangeText(): void {
+    const start = this.formatDate(this.dateRangeStart.toISOString());
+    const end = this.formatDate(this.dateRangeEnd.toISOString());
+    this.dateRangeText = `${start} - ${end}`;
+  }
+
+  toggleComparison(): void {
+    this.showComparison = !this.showComparison;
+    if (this.showComparison && !this.comparisonDateRangeStart) {
+      // Set default comparison period (previous year)
+      this.comparisonDateRangeStart = new Date(this.dateRangeStart);
+      this.comparisonDateRangeStart.setFullYear(this.comparisonDateRangeStart.getFullYear() - 1);
+      this.comparisonDateRangeEnd = new Date(this.dateRangeEnd);
+      this.comparisonDateRangeEnd.setFullYear(this.comparisonDateRangeEnd.getFullYear() - 1);
+    }
+  }
+
+  generateInsights(): void {
+    this.isGenerating = true;
+    console.log('[BUYER-INSIGHTS] Generating insights with filters:', {
+      metric: this.metricSelected,
+      dateRange: { start: this.dateRangeStart, end: this.dateRangeEnd },
+      filters: this.activeFilters,
+      comparison: this.showComparison
+    });
+
+    // Simulate API call
+    setTimeout(() => {
+      this.fetchAnalytics();
+      this.isGenerating = false;
+      this.notificationService.success(
+        this.i18n.translate('buyerInsights.insightsGenerated')
+      );
+    }, 1500);
+  }
+
+  downloadExcelReport(): void {
+    try {
+      // Prepare data for Excel
+      const exportData = this.dataSource.data.map(row => ({
+        'Store': row.store,
+        'Sales €': row.sales,
+        'Orders': row.orders,
+        'Average Order €': row.avgOrder,
+        'Frequency': row.frequency
+      }));
+
+      // Add summary row
+      exportData.push({
+        'Store': `Total (${this.totalStores} stores)`,
+        'Sales €': this.totalSales,
+        'Orders': this.totalOrders,
+        'Average Order €': this.totalSales / this.totalOrders || 0,
+        'Frequency': 0
+      });
+
+      // Create workbook
+      const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(exportData);
+      const wb: XLSX.WorkBook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Buyer Insights');
+
+      // Generate filename with date
+      const date = new Date().toISOString().split('T')[0];
+      const filename = `buyer-insights-${date}.xlsx`;
+
+      // Download
+      XLSX.writeFile(wb, filename);
+
+      this.notificationService.success(
+        this.i18n.translate('buyerInsights.reportDownloaded')
+      );
+    } catch (error) {
+      console.error('Error downloading Excel report:', error);
+      this.notificationService.error(
+        this.i18n.translate('buyerInsights.reportDownloadError')
+      );
+    }
+  }
+
+  requestAIAnalysis(): void {
+    // Placeholder for AI integration with Groq/AI Services
+    this.notificationService.info(
+      this.i18n.translate('buyerInsights.aiAnalysisRequested')
+    );
+    
+    console.log('[BUYER-INSIGHTS] AI Analysis requested');
+    // TODO: Integrate with AI services endpoint
+    // this.analyticsService.requestAIInsights(this.dataSource.data).subscribe(...)
+  }
+
+  getStoreIcon(store: string): string {
+    // Generate consistent icon based on store name
+    const icons = ['store', 'local_grocery_store', 'shopping_basket', 'storefront', 'business'];
+    const index = store.charCodeAt(0) % icons.length;
+    return icons[index];
+  }
+
+  getStoreColor(store: string): string {
+    // Generate consistent color based on store name
+    const colors = ['#2E7D32', '#4CAF50', '#66BB6A', '#81C784', '#A5D6A7'];
+    const index = store.charCodeAt(0) % colors.length;
+    return colors[index];
+  }
+
+  private updateTableTotals(): void {
+    this.totalStores = this.dataSource.data.length;
+    this.totalSales = this.dataSource.data.reduce((sum, row) => sum + row.sales, 0);
+    this.totalOrders = this.dataSource.data.reduce((sum, row) => sum + row.orders, 0);
+  }
+
+  getTotalFrequency(): number {
+    return this.dataSource.data.reduce((sum, row) => sum + row.frequency, 0);
+  }
+
+  getTotalAvgOrder(): number {
+    return this.totalOrders > 0 ? this.totalSales / this.totalOrders : 0;
   }
 }

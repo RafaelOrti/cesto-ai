@@ -1,128 +1,296 @@
-<div class="client-dashboard">
-  <mat-card class="bi-header">
-    <mat-card-content>
-      <div class="bi-header-content">
-        <div class="bi-title">
-          <mat-icon>insights</mat-icon>
-          <span>Información del Cliente</span>
-        </div>
-        <div class="bi-subtitle">Análisis de rendimiento y tendencias</div>
-        <div class="bi-actions">
-          <button mat-stroked-button color="primary" (click)="onRefreshData()">
-            <mat-icon>refresh</mat-icon>
-            Actualizar
-          </button>
-        </div>
+<div class="buyer-insights-dashboard">
+  <!-- Header Section -->
+  <div class="insights-header">
+    <div class="header-left">
+      <mat-icon class="header-icon">insights</mat-icon>
+      <div class="header-text">
+        <h1 class="header-title">{{ i18n.translate('buyerInsights.title') }}</h1>
+        <p class="header-subtitle">Análisis de tendencias y rendimiento</p>
       </div>
-    </mat-card-content>
-  </mat-card>
-
-  <mat-card class="bi-filters mat-elevation-z1">
-    <mat-card-content>
-      <div class="filters-row">
-        <mat-button-toggle-group name="metric" [(ngModel)]="metricSelected" class="metric-tabs" appearance="legacy">
-          <mat-button-toggle value="sales">Sales</mat-button-toggle>
-          <mat-button-toggle value="orders">Orders</mat-button-toggle>
-          <mat-button-toggle value="delivery">Delivery date</mat-button-toggle>
-        </mat-button-toggle-group>
-        <mat-form-field appearance="outline" class="filter-search">
-          <mat-label>Choose filter</mat-label>
-          <input matInput placeholder="Stores, supplier, delivery date..." />
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="filter-range">
-          <mat-label>Fecha</mat-label>
-          <input matInput placeholder="1 Feb 2022 - 31 Jan 2023" />
-          <button mat-icon-button matSuffix aria-label="calendar">
-            <mat-icon>calendar_today</mat-icon>
-          </button>
-        </mat-form-field>
-
-        <button mat-stroked-button color="primary">
-          <mat-icon>add</mat-icon>
-          Add comparison
-        </button>
-
-        <button mat-raised-button color="primary">
-          <mat-icon>auto_graph</mat-icon>
-          Generate
-        </button>
-      </div>
-    </mat-card-content>
-  </mat-card>
-
-  <div class="kpis-grid">
-    <mat-card class="kpi-card">
-      <mat-card-title>Total Orders</mat-card-title>
-      <mat-card-content>{{ stats.totalOrders | number }}</mat-card-content>
-    </mat-card>
-    <mat-card class="kpi-card">
-      <mat-card-title>Total Spent</mat-card-title>
-      <mat-card-content>{{ stats.totalSpent | number:'1.0-0' }}</mat-card-content>
-    </mat-card>
-    <mat-card class="kpi-card">
-      <mat-card-title>Avg Order</mat-card-title>
-      <mat-card-content>{{ stats.averageOrderValue | number:'1.0-0' }}</mat-card-content>
-    </mat-card>
-    <mat-card class="kpi-card">
-      <mat-card-title>Pending</mat-card-title>
-      <mat-card-content>{{ stats.pendingOrders }}</mat-card-content>
-    </mat-card>
+    </div>
+    <div class="header-actions">
+      <button mat-icon-button 
+              matTooltip="{{ i18n.translate('buyerInsights.aiAnalysis') }}"
+              (click)="requestAIAnalysis()"
+              class="ai-button">
+        <mat-icon>psychology</mat-icon>
+      </button>
+      <button mat-icon-button 
+              matTooltip="{{ i18n.translate('buyerInsights.downloadReport') }}"
+              (click)="downloadExcelReport()"
+              class="download-button">
+        <mat-icon>download</mat-icon>
+      </button>
+    </div>
   </div>
 
-  <mat-card class="bi-chart mat-elevation-z1" [class.loading]="isLoading">
+  <!-- Date Input Section -->
+  <div class="date-input-section">
+    <mat-form-field appearance="outline" class="delivery-date-field">
+      <mat-label>Delivery date</mat-label>
+      <input matInput [matDatepicker]="picker" placeholder="Select delivery date">
+      <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+      <mat-datepicker #picker></mat-datepicker>
+    </mat-form-field>
+  </div>
+
+  <!-- Filters Section -->
+  <mat-card class="filters-card">
     <mat-card-content>
-      <div class="chart-wrapper">
-        <div class="skeleton" *ngIf="isLoading"></div>
-        <canvas *ngIf="!isLoading" baseChart
-                [type]="'line'"
-                [data]="chartData"
-                [options]="chartOptions">
-        </canvas>
+      <div class="filters-container">
+        <!-- Add Filter Button -->
+        <button mat-stroked-button (click)="addFilter()" class="add-filter-btn">
+          <mat-icon>add</mat-icon>
+          {{ i18n.translate('buyerInsights.chooseFilter') }}
+        </button>
+
+        <!-- Metric Toggle -->
+        <mat-button-toggle-group [(ngModel)]="metricSelected" 
+                                 (change)="onMetricChange(metricSelected)"
+                                 class="metric-toggle">
+          <mat-button-toggle value="sales">
+            {{ i18n.translate('buyerInsights.sales') }}
+          </mat-button-toggle>
+          <mat-button-toggle value="orders">
+            {{ i18n.translate('buyerInsights.orders') }}
+          </mat-button-toggle>
+          <mat-button-toggle value="deliveries">
+            {{ i18n.translate('buyerInsights.deliveries') }}
+          </mat-button-toggle>
+          <mat-button-toggle value="deliveryDate">
+            {{ i18n.translate('buyerInsights.deliveryDate') }}
+          </mat-button-toggle>
+        </mat-button-toggle-group>
+
+        <!-- Date Range Picker -->
+        <mat-form-field appearance="outline" class="date-range-field">
+          <mat-label>{{ i18n.translate('buyerInsights.dateRange') }}</mat-label>
+          <mat-date-range-input [rangePicker]="picker">
+            <input matStartDate 
+                   [(ngModel)]="dateRangeStart" 
+                   (dateChange)="updateDateRangeText()"
+                   placeholder="{{ i18n.translate('common.startDate') }}">
+            <input matEndDate 
+                   [(ngModel)]="dateRangeEnd" 
+                   (dateChange)="updateDateRangeText()"
+                   placeholder="{{ i18n.translate('common.endDate') }}">
+          </mat-date-range-input>
+          <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-date-range-picker #picker></mat-date-range-picker>
+        </mat-form-field>
+
+        <!-- Add Comparison Button -->
+        <button mat-stroked-button 
+                (click)="toggleComparison()"
+                [class.active]="showComparison"
+                class="comparison-btn">
+          <mat-icon>{{ showComparison ? 'check' : 'add' }}</mat-icon>
+          {{ i18n.translate('buyerInsights.addComparison') }}
+        </button>
+
+        <!-- Generate Button -->
+        <button mat-raised-button 
+                color="primary" 
+                (click)="generateInsights()"
+                [disabled]="isGenerating"
+                class="generate-btn">
+          <mat-icon>{{ isGenerating ? 'hourglass_empty' : 'auto_graph' }}</mat-icon>
+          {{ i18n.translate(isGenerating ? 'buyerInsights.generating' : 'buyerInsights.generate') }}
+        </button>
+      </div>
+
+      <!-- Active Filters Display -->
+      <div class="active-filters" *ngIf="activeFilters.length > 0">
+        <mat-chip-set>
+          <mat-chip *ngFor="let filter of activeFilters" 
+                    [removable]="true"
+                    (removed)="removeFilter(filter.id)">
+            {{ filter.label }}
+            <mat-icon matChipRemove>cancel</mat-icon>
+          </mat-chip>
+        </mat-chip-set>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Chart Section -->
+  <mat-card class="chart-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>trending_up</mat-icon>
+        Sales Analytics
+      </mat-card-title>
+      <mat-card-subtitle>Análisis de tendencias y rendimiento</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="chart-container">
+        <!-- Legend with colored indicators -->
         <div class="chart-legend">
-          <span class="legend-item legend-sales">Sales</span>
-          <span class="legend-item legend-orders">Orders</span>
+          <div class="legend-item sales-legend">
+            <span class="legend-dot"></span>
+            <span class="legend-label">Sales</span>
+          </div>
+          <div class="legend-item orders-legend">
+            <span class="legend-dot"></span>
+            <span class="legend-label">Orders</span>
+          </div>
+          <div class="legend-item revenue-legend">
+            <span class="legend-dot"></span>
+            <span class="legend-label">Revenue</span>
+          </div>
+        </div>
+        
+        <div class="chart-wrapper" *ngIf="!isLoading && chartData.datasets && chartData.datasets.length > 0">
+          <canvas baseChart
+                  [type]="'line'"
+                  [data]="chartData"
+                  [options]="chartOptions">
+          </canvas>
+        </div>
+
+        <div class="chart-loading" *ngIf="isLoading">
+          <mat-spinner diameter="40"></mat-spinner>
+          <p>{{ i18n.translate('common.loading') }}</p>
+        </div>
+
+        <div class="chart-empty" *ngIf="!isLoading && (!chartData.datasets || chartData.datasets.length === 0)">
+          <mat-icon>trending_up</mat-icon>
+          <p>{{ i18n.translate('buyerInsights.noChartData') }}</p>
         </div>
       </div>
     </mat-card-content>
   </mat-card>
 
-  <mat-card class="bi-table mat-elevation-z1">
+  <!-- Table Section -->
+  <mat-card class="table-card">
     <mat-card-content>
-      <div class="table-empty" *ngIf="!isLoading && dataSource.data.length === 0">
-        <mat-icon>inbox</mat-icon>
-        <p>No hay datos disponibles en el rango seleccionado.</p>
+      <div class="table-header">
+        <div class="table-title">
+          <mat-icon>filter_list</mat-icon>
+          <span>{{ i18n.translate('buyerInsights.detailedView') }}</span>
+        </div>
+        <div class="table-search">
+          <mat-form-field appearance="outline" class="search-field">
+            <mat-label>{{ i18n.translate('common.search') }}</mat-label>
+            <input matInput 
+                   (keyup)="dataSource.filter = $any($event.target).value"
+                   placeholder="{{ i18n.translate('buyerInsights.searchStores') }}">
+            <mat-icon matPrefix>search</mat-icon>
+          </mat-form-field>
+        </div>
       </div>
-      <table *ngIf="dataSource.data.length > 0" mat-table [dataSource]="dataSource" matSort class="mat-elevation-z0 full-width sticky-header">
-        <ng-container matColumnDef="store">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Store </th>
-          <td mat-cell *matCellDef="let row"> {{ row.store }} </td>
-        </ng-container>
 
-        <ng-container matColumnDef="sales">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Sales € </th>
-          <td mat-cell *matCellDef="let row"> {{ row.sales | number:'1.0-0' }} </td>
-        </ng-container>
+      <div class="table-container">
+        <table mat-table 
+               [dataSource]="dataSource" 
+               matSort
+               class="insights-table">
+          
+          <!-- Store Column -->
+          <ng-container matColumnDef="store">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+              {{ i18n.translate('buyerInsights.store') }}
+            </th>
+            <td mat-cell *matCellDef="let row">
+              <div class="store-cell">
+                <div class="store-icon" [style.background-color]="row.color">
+                  <mat-icon>{{ row.icon }}</mat-icon>
+                </div>
+                <span class="store-name">{{ row.store }}</span>
+              </div>
+            </td>
+            <td mat-footer-cell *matFooterCellDef>
+              <strong>{{ i18n.translate('buyerInsights.amountOfStores') }}: {{ totalStores }}</strong>
+            </td>
+          </ng-container>
 
-        <ng-container matColumnDef="orders">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Orders </th>
-          <td mat-cell *matCellDef="let row"> {{ row.orders }} </td>
-        </ng-container>
+          <!-- Sales Column -->
+          <ng-container matColumnDef="sales">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+              {{ i18n.translate('buyerInsights.salesEuro') }}
+            </th>
+            <td mat-cell *matCellDef="let row">
+              {{ row.sales | number:'1.0-0' }}
+            </td>
+            <td mat-footer-cell *matFooterCellDef>
+              <strong>{{ totalSales | number:'1.0-0' }}</strong>
+            </td>
+          </ng-container>
 
-        <ng-container matColumnDef="avgOrder">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Average order € </th>
-          <td mat-cell *matCellDef="let row"> {{ row.avgOrder | number:'1.0-0' }} </td>
-        </ng-container>
+          <!-- Orders Column -->
+          <ng-container matColumnDef="orders">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+              {{ i18n.translate('buyerInsights.orders') }}
+            </th>
+            <td mat-cell *matCellDef="let row">
+              {{ row.orders }}
+            </td>
+            <td mat-footer-cell *matFooterCellDef>
+              <strong>{{ totalOrders }}</strong>
+            </td>
+          </ng-container>
 
-        <ng-container matColumnDef="frequency">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Frequency </th>
-          <td mat-cell *matCellDef="let row"> {{ row.frequency }} </td>
-        </ng-container>
+          <!-- Average Order Column -->
+          <ng-container matColumnDef="avgOrder">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+              {{ i18n.translate('buyerInsights.avgOrderEuro') }}
+            </th>
+            <td mat-cell *matCellDef="let row">
+              {{ row.avgOrder | number:'1.0-0' }}
+            </td>
+            <td mat-footer-cell *matFooterCellDef>
+              <strong>{{ getTotalAvgOrder() | number:'1.0-0' }}</strong>
+            </td>
+          </ng-container>
 
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-      </table>
-      <mat-paginator [pageSize]="10" [pageSizeOptions]="[5,10,20]" showFirstLastButtons></mat-paginator>
+          <!-- Frequency Column -->
+          <ng-container matColumnDef="frequency">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+              {{ i18n.translate('buyerInsights.frequency') }}
+            </th>
+            <td mat-cell *matCellDef="let row">
+              {{ row.frequency }}
+            </td>
+            <td mat-footer-cell *matFooterCellDef>
+              <strong>{{ getTotalFrequency() }}</strong>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+          <tr mat-footer-row *matFooterRowDef="displayedColumns" class="total-row"></tr>
+        </table>
+
+        <div class="table-empty" *ngIf="!isLoading && dataSource.data.length === 0">
+          <mat-icon>inbox</mat-icon>
+          <p>{{ i18n.translate('buyerInsights.noData') }}</p>
+          <button mat-raised-button color="primary" (click)="generateInsights()">
+            {{ i18n.translate('buyerInsights.generate') }}
+          </button>
+        </div>
+      </div>
+
+      <mat-paginator [pageSize]="10" 
+                     [pageSizeOptions]="[5, 10, 20, 50]"
+                     showFirstLastButtons>
+      </mat-paginator>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- AI Insights Card (if available) -->
+  <mat-card class="ai-insights-card" *ngIf="false">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>psychology</mat-icon>
+        {{ i18n.translate('buyerInsights.aiInsights') }}
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <p>{{ i18n.translate('buyerInsights.aiInsightsDescription') }}</p>
+      <button mat-raised-button color="accent" (click)="requestAIAnalysis()">
+        <mat-icon>auto_awesome</mat-icon>
+        {{ i18n.translate('buyerInsights.requestAnalysis') }}
+      </button>
     </mat-card-content>
   </mat-card>
 </div>

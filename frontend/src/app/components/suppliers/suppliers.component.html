@@ -1,1 +1,349 @@
-<!-- Template is defined inline in the component -->
+<div class="suppliers-dashboard">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1 class="page-title">{{ 'suppliers.mySuppliers' | translate }}</h1>
+      <p>{{ 'suppliers.manageRelationships' | translate }}</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-primary" routerLink="/suppliers/search">
+        <i class="fas fa-search"></i>
+        {{ 'suppliers.searchForSuppliers' | translate }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Explore Suppliers Section -->
+  <div class="explore-suppliers-section">
+    <h2 class="section-title">{{ 'suppliers.exploreSuppliers' | translate }}</h2>
+    
+    <!-- Main Search -->
+    <div class="main-search-container">
+      <div class="main-search-field">
+        <i class="fas fa-search search-icon"></i>
+        <input 
+          type="text" 
+          [(ngModel)]="mainSearchTerm" 
+          (input)="onMainSearch()" 
+          [placeholder]="'suppliers.searchPlaceholder' | translate"
+          class="search-input">
+      </div>
+    </div>
+
+    <!-- Recommendation Bar -->
+    <div class="recommendation-bar">
+      <div class="recommendation-filters">
+        <span class="filter-label">{{ 'suppliers.recommendations.all' | translate }}:</span>
+        <div class="recommendation-buttons">
+          <button *ngFor="let rec of recommendations" 
+                  class="recommendation-btn" 
+                  [class.active]="rec.active"
+                  (click)="onRecommendationSelect(rec)">
+            <i [class]="rec.icon"></i>
+            <span>{{rec.name}}</span>
+          </button>
+        </div>
+      </div>
+      <div class="add-supplier-section">
+        <i class="fas fa-shopping-cart cart-icon"></i>
+        <button class="add-supplier-btn" (click)="onAddSupplier()">
+          <i class="fas fa-plus"></i>
+          <span>{{ 'suppliers.addSupplier' | translate }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Category Filters -->
+    <div class="category-filters">
+      <h3 class="filter-title">{{ 'common.category' | translate }}</h3>
+      <div class="categories-container">
+        <button *ngFor="let category of categories" 
+                class="category-btn" 
+                [class.active]="category.active"
+                (click)="onCategorySelect(category)">
+          <span class="category-icon">{{category.icon}}</span>
+          <span class="category-name">{{getCategoryName(category)}}</span>
+        </button>
+        <button class="more-categories-btn" (click)="showMoreCategories()">
+          <i class="fas fa-ellipsis-h"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Secondary Search -->
+    <div class="secondary-search-container">
+      <div class="secondary-search-field">
+        <i class="fas fa-search search-icon"></i>
+        <input 
+          type="text" 
+          [(ngModel)]="secondarySearchTerm" 
+          (input)="onSecondarySearch()" 
+          [placeholder]="'suppliers.searchBar' | translate"
+          class="search-input">
+      </div>
+    </div>
+
+    <!-- Special Filters Bar -->
+    <div class="special-filters-bar">
+      <div class="quick-filters">
+        <button class="quick-filter-btn" 
+                [class.active]="filters.freeDelivery"
+                (click)="toggleFilter('freeDelivery')">
+          {{ 'suppliers.filters.freeDelivery' | translate }}
+        </button>
+        <button class="quick-filter-btn" 
+                [class.active]="filters.coDelivery"
+                (click)="toggleFilter('coDelivery')">
+          {{ 'suppliers.filters.coDelivery' | translate }}
+        </button>
+        <button class="quick-filter-btn" 
+                [class.active]="filters.onSale"
+                (click)="toggleFilter('onSale')">
+          {{ 'suppliers.filters.onSale' | translate }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Detailed Filters -->
+    <div class="detailed-filters">
+      <div class="filter-checkboxes">
+        <label class="filter-checkbox">
+          <input type="checkbox" [(ngModel)]="filters.suppliersMayNeedToBuy" (change)="applyFilters()">
+          <span class="checkmark"></span>
+          <span>{{ 'suppliers.filters.suppliersMayNeedToBuy' | translate }}</span>
+        </label>
+        
+        <label class="filter-checkbox">
+          <input type="checkbox" [(ngModel)]="filters.suppliersStoppedBuying" (change)="applyFilters()">
+          <span class="checkmark"></span>
+          <span>{{ 'suppliers.filters.suppliersStoppedBuying' | translate }}</span>
+        </label>
+
+        <label class="filter-checkbox">
+          <input type="checkbox" [(ngModel)]="filters.combinedDelivery" (change)="applyFilters()">
+          <span class="checkmark"></span>
+          <span>{{ 'suppliers.filters.combinedDelivery' | translate }}</span>
+        </label>
+
+        <label class="filter-checkbox">
+          <input type="checkbox" [(ngModel)]="filters.freeShippingCost" (change)="applyFilters()">
+          <span class="checkmark"></span>
+          <span>{{ 'suppliers.filters.freeShippingCost' | translate }}</span>
+        </label>
+
+        <label class="filter-checkbox">
+          <input type="checkbox" [(ngModel)]="filters.activeCampaigns" (change)="applyFilters()">
+          <span class="checkmark"></span>
+          <span>{{ 'suppliers.filters.activeCampaigns' | translate }}</span>
+        </label>
+
+        <label class="filter-checkbox">
+          <input type="checkbox" [(ngModel)]="filters.newProducts" (change)="applyFilters()">
+          <span class="checkmark"></span>
+          <span>{{ 'suppliers.filters.newProducts' | translate }}</span>
+        </label>
+      </div>
+
+      <div class="filter-actions">
+        <span class="active-filters-count" *ngIf="getActiveFiltersCount() > 0">
+          {{getActiveFiltersCount()}} {{ 'products.filters' | translate }} active
+        </span>
+        <button class="clear-filters-btn" (click)="clearAllFilters()">
+          {{ 'suppliers.clearFilters' | translate }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Suppliers Listing -->
+  <div class="suppliers-listing">
+    <div class="suppliers-table-container">
+      <div class="table-header">
+        <h3>{{ 'suppliers.mySuppliers' | translate }} ({{filteredSuppliers.length}})</h3>
+        <div class="view-options">
+          <button class="view-btn" [class.active]="viewMode === 'table'" (click)="setViewMode('table')">
+            <i class="fas fa-table"></i>
+          </button>
+          <button class="view-btn" [class.active]="viewMode === 'cards'" (click)="setViewMode('cards')">
+            <i class="fas fa-th-large"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Table View -->
+      <div *ngIf="viewMode === 'table'" class="table-view">
+        <table class="suppliers-table">
+          <thead>
+            <tr>
+              <th>{{ 'suppliers.table.name' | translate }}</th>
+              <th>{{ 'suppliers.table.lastDelivery' | translate }}</th>
+              <th>{{ 'suppliers.table.futureDelivery' | translate }}</th>
+              <th>{{ 'suppliers.table.campaign' | translate }}</th>
+              <th>{{ 'suppliers.table.newProducts' | translate }}</th>
+              <th>{{ 'suppliers.table.actions' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let supplier of filteredSuppliers; trackBy: trackBySupplierId" 
+                class="supplier-row" 
+                [attr.data-supplier-id]="supplier.id">
+              <!-- Supplier Info -->
+              <td class="supplier-cell">
+                <div class="supplier-info">
+                  <button class="favorite-btn" 
+                          [class.active]="supplier.isFavorite"
+                          (click)="toggleFavorite(supplier)">
+                    <i class="fas fa-heart"></i>
+                  </button>
+                  <div class="supplier-logo">
+                    <img *ngIf="supplier.logo || supplier.imageUrl" 
+                         [src]="supplier.logo || supplier.imageUrl" 
+                         [alt]="supplier.supplierName">
+                    <div *ngIf="!supplier.logo && !supplier.imageUrl" class="logo-placeholder">
+                      {{supplier.supplierName.charAt(0)}}
+                    </div>
+                  </div>
+                  <div class="supplier-details">
+                    <h4>{{supplier.supplierName}}</h4>
+                    <p>{{supplier.companyName}}</p>
+                  </div>
+                </div>
+              </td>
+
+              <!-- Last Delivery -->
+              <td class="delivery-cell">
+                <span *ngIf="supplier.lastOrderDate" class="delivery-date">
+                  {{formatDate(supplier.lastOrderDate)}}
+                </span>
+                <span *ngIf="!supplier.lastOrderDate" class="no-data">-</span>
+              </td>
+
+              <!-- Future Delivery -->
+              <td class="delivery-cell">
+                <span *ngIf="supplier.futureDelivery" class="delivery-date">
+                  {{formatDate(supplier.futureDelivery)}}
+                </span>
+                <span *ngIf="!supplier.futureDelivery" class="no-data">-</span>
+              </td>
+
+              <!-- Active Campaigns -->
+              <td class="campaigns-cell">
+                <div *ngIf="supplier.activeCampaigns.length > 0" class="campaigns-list">
+                  <span *ngFor="let campaign of supplier.activeCampaigns.slice(0, 1)" 
+                        class="campaign-badge"
+                        [title]="campaign.name">
+                    -{{campaign.discount}}%
+                  </span>
+                  <span *ngIf="supplier.activeCampaigns.length > 1" class="more-campaigns">
+                    +{{supplier.activeCampaigns.length - 1}}
+                  </span>
+                </div>
+                <span *ngIf="supplier.activeCampaigns.length === 0" class="no-data">-</span>
+              </td>
+
+              <!-- New Products -->
+              <td class="products-cell">
+                <span *ngIf="supplier.newProducts.length > 0" class="new-products-count">
+                  {{supplier.newProducts.length}} {{ 'suppliers.filters.newProducts' | translate }}
+                </span>
+                <span *ngIf="supplier.newProducts.length === 0" class="no-data">-</span>
+              </td>
+
+              <!-- Actions -->
+              <td class="actions-cell">
+                <div class="action-buttons">
+                  <button class="btn btn-sm btn-primary action-btn" 
+                          (click)="viewSupplier(supplier.id)"
+                          [title]="'common.view' | translate">
+                    {{ 'common.view' | translate }}
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Cards View -->
+      <div *ngIf="viewMode === 'cards'" class="cards-view">
+        <div class="suppliers-grid">
+          <div *ngFor="let supplier of filteredSuppliers; trackBy: trackBySupplierId" 
+               class="supplier-card"
+               [attr.data-supplier-id]="supplier.id">
+            
+            <!-- Supplier Image -->
+            <div class="supplier-image">
+              <img *ngIf="supplier.imageUrl || supplier.logo" 
+                   [src]="supplier.imageUrl || supplier.logo" 
+                   [alt]="supplier.supplierName">
+              <div *ngIf="!supplier.imageUrl && !supplier.logo" class="supplier-placeholder">
+                <i class="fas fa-store"></i>
+              </div>
+              <button class="favorite-btn-card" 
+                      [class.active]="supplier.isFavorite"
+                      (click)="toggleFavorite(supplier)">
+                <i class="fas fa-heart"></i>
+              </button>
+            </div>
+
+            <!-- Supplier Info -->
+            <div class="supplier-card-body">
+              <h3 class="supplier-name">{{supplier.supplierName}}</h3>
+              <p class="supplier-description">{{supplier.description || supplier.companyName}}</p>
+              
+              <!-- Supplier Features -->
+              <div class="supplier-features">
+                <span *ngIf="supplier.freeDelivery || supplier.deliveryInfo.freeShipping" 
+                      class="feature-tag free-delivery">
+                  <i class="fas fa-shipping-fast"></i>
+                  {{ 'suppliers.features.freeDelivery' | translate }}
+                </span>
+                <span *ngIf="supplier.onSale" class="feature-tag on-sale">
+                  <i class="fas fa-tag"></i>
+                  {{ 'suppliers.features.onSale' | translate }}
+                </span>
+                <span *ngIf="supplier.coDelivery || supplier.deliveryInfo.combinedDelivery" 
+                      class="feature-tag co-delivery">
+                  <i class="fas fa-truck"></i>
+                  {{ 'suppliers.features.coDelivery' | translate }}
+                </span>
+              </div>
+
+              <!-- Supplier Actions -->
+              <div class="supplier-actions">
+                <button class="btn btn-primary btn-block" 
+                        (click)="viewSupplier(supplier.id)">
+                  <i class="fas fa-eye"></i>
+                  {{ 'common.viewDetails' | translate }}
+                </button>
+                <button class="btn btn-secondary btn-block" 
+                        (click)="viewSupplierProducts(supplier)">
+                  <i class="fas fa-shopping-cart"></i>
+                  {{ 'products.viewDetails' | translate }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- No Results -->
+      <div *ngIf="!loading && filteredSuppliers.length === 0" class="no-results">
+        <i class="fas fa-search"></i>
+        <h3>{{ 'suppliers.noResults' | translate }}</h3>
+        <p>{{ 'suppliers.tryAdjusting' | translate }}</p>
+        <button class="btn btn-primary" (click)="clearAllFilters()">
+          {{ 'suppliers.clearFilters' | translate }}
+        </button>
+      </div>
+
+      <!-- Loading State -->
+      <div *ngIf="loading" class="loading-state">
+        <div class="loading-spinner">
+          <i class="fas fa-spinner fa-spin"></i>
+        </div>
+        <p>{{ 'suppliers.loading' | translate }}</p>
+      </div>
+    </div>
+  </div>
+</div>

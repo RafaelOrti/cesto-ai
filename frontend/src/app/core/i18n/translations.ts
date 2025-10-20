@@ -53,6 +53,8 @@ export const translations = {
       user: 'User',
       help: 'Help',
       refresh: 'Refresh',
+      startDate: 'Start Date',
+      endDate: 'End Date',
       category: 'Category',
       allCategories: 'All Categories',
       verified: 'Verified',
@@ -152,6 +154,38 @@ export const translations = {
       insights: 'Insights',
       recommendations: 'Recommendations'
     },
+    buyerInsights: {
+      title: 'Buyer Insights',
+      chooseFilter: 'Choose filter',
+      sales: 'Sales',
+      orders: 'Orders',
+      deliveries: 'Deliveries',
+      deliveryDate: 'Delivery date',
+      dateRange: 'Date Range',
+      addComparison: 'Add comparison',
+      generate: 'Generate',
+      generating: 'Generating...',
+      downloadReport: 'Download Report',
+      aiAnalysis: 'AI Analysis',
+      detailedView: 'Detailed View',
+      searchStores: 'Search stores...',
+      store: 'Store',
+      salesEuro: 'Sales €',
+      avgOrderEuro: 'Average order €',
+      frequency: 'Frequency',
+      amountOfStores: 'Amount of stores',
+      noData: 'No data available in the selected range.',
+      noChartData: 'No chart data available. Please generate insights.',
+      insightsGenerated: 'Insights generated successfully',
+      reportDownloaded: 'Report downloaded successfully',
+      reportDownloadError: 'Error downloading report',
+      aiAnalysisRequested: 'AI analysis requested. This feature will be available soon.',
+      aiInsights: 'AI-Powered Insights',
+      aiInsightsDescription: 'Get intelligent recommendations and analysis powered by AI',
+      requestAnalysis: 'Request AI Analysis',
+      startDate: 'Start Date',
+      endDate: 'End Date'
+    },
     products: {
       title: 'Products',
       searchPlaceholder: 'Search products...',
@@ -219,6 +253,8 @@ export const translations = {
       suppliersMatchPatterns: 'Suppliers that match your buying patterns and preferences',
       allSuppliers: 'All Suppliers',
       browseAllSuppliers: 'Browse all available suppliers in your area',
+      discoverSuppliers: 'Discover a selection of Suppliers',
+      searchForSuppliers: 'Search for suppliers',
       categories: {
         dairy: 'Dairy',
         fruitsVegetables: 'Fruits & Vegetables',
@@ -237,7 +273,13 @@ export const translations = {
         freeDelivery: 'FREE DELIVERY',
         coDelivery: 'CO-DELIVERY',
         onSale: 'ON SALE',
-        suppliersEtc: 'SUPPLIERS ETC'
+        suppliersEtc: 'SUPPLIERS ETC',
+        suppliersMayNeedToBuy: 'Suppliers I may need to buy from',
+        suppliersStoppedBuying: 'Suppliers I have stopped buying from',
+        combinedDelivery: 'Combined delivery',
+        freeShippingCost: 'Free shipping cost',
+        activeCampaigns: 'Active campaigns',
+        newProducts: 'New products'
       },
       features: {
         freeDelivery: 'Free Delivery',
@@ -245,6 +287,14 @@ export const translations = {
         coDelivery: 'Co-Delivery',
         recentlyAdded: 'New',
         popular: 'Popular'
+      },
+      table: {
+        name: 'Name',
+        lastDelivery: 'Last Delivery',
+        futureDelivery: 'Future Delivery',
+        campaign: 'Campaign',
+        newProducts: 'New Products',
+        actions: 'Actions'
       }
     }
   },
@@ -302,6 +352,8 @@ export const translations = {
       user: 'Användare',
       help: 'Hjälp',
       refresh: 'Uppdatera',
+      startDate: 'Startdatum',
+      endDate: 'Slutdatum',
       category: 'Kategori',
       allCategories: 'Alla Kategorier',
       verified: 'Verifierad',
@@ -401,6 +453,38 @@ export const translations = {
       insights: 'Insikter',
       recommendations: 'Rekommendationer'
     },
+    buyerInsights: {
+      title: 'Köparinsikter',
+      chooseFilter: 'Välj filter',
+      sales: 'Försäljning',
+      orders: 'Beställningar',
+      deliveries: 'Leveranser',
+      deliveryDate: 'Leveransdatum',
+      dateRange: 'Datumintervall',
+      addComparison: 'Lägg till jämförelse',
+      generate: 'Generera',
+      generating: 'Genererar...',
+      downloadReport: 'Ladda ner rapport',
+      aiAnalysis: 'AI-analys',
+      detailedView: 'Detaljerad vy',
+      searchStores: 'Sök butiker...',
+      store: 'Butik',
+      salesEuro: 'Försäljning €',
+      avgOrderEuro: 'Genomsnittlig order €',
+      frequency: 'Frekvens',
+      amountOfStores: 'Antal butiker',
+      noData: 'Ingen data tillgänglig i det valda intervallet.',
+      noChartData: 'Ingen diagramdata tillgänglig. Vänligen generera insikter.',
+      insightsGenerated: 'Insikter genererade framgångsrikt',
+      reportDownloaded: 'Rapport nedladdad framgångsrikt',
+      reportDownloadError: 'Fel vid nedladdning av rapport',
+      aiAnalysisRequested: 'AI-analys begärd. Denna funktion kommer snart att vara tillgänglig.',
+      aiInsights: 'AI-drivna insikter',
+      aiInsightsDescription: 'Få intelligenta rekommendationer och analyser drivna av AI',
+      requestAnalysis: 'Begär AI-analys',
+      startDate: 'Startdatum',
+      endDate: 'Slutdatum'
+    },
     products: {
       title: 'Produkter',
       searchPlaceholder: 'Sök produkter...',
@@ -464,6 +548,12 @@ export const translations = {
       insights: 'Insikter',
       mySuppliers: 'Mina leverantörer',
       manageRelationships: 'Hantera dina leverantörsrelationer och visa godkända leverantörer',
+      recommendedForYou: 'Rekommenderat för Dig',
+      suppliersMatchPatterns: 'Leverantörer som matchar dina köpmönster och preferenser',
+      allSuppliers: 'Alla Leverantörer',
+      browseAllSuppliers: 'Bläddra bland alla tillgängliga leverantörer i ditt område',
+      discoverSuppliers: 'Upptäck ett urval av leverantörer',
+      searchForSuppliers: 'Sök efter leverantörer',
       categories: {
         dairy: 'Mejeri',
         fruitsVegetables: 'Frukt & Grönt',
@@ -482,7 +572,13 @@ export const translations = {
         freeDelivery: 'GRATIS FRAKT',
         coDelivery: 'SAMLEVERANS',
         onSale: 'REA',
-        suppliersEtc: 'LEVERANTÖRER ETC'
+        suppliersEtc: 'LEVERANTÖRER ETC',
+        suppliersMayNeedToBuy: 'Leverantörer jag eventuellt behöver handla från',
+        suppliersStoppedBuying: 'Leverantörer jag har slutat handla från',
+        combinedDelivery: 'Samleverans',
+        freeShippingCost: 'Gratis fraktkostnad',
+        activeCampaigns: 'Aktiva kampanjer',
+        newProducts: 'Nya produkter'
       },
       features: {
         freeDelivery: 'Gratis frakt',
@@ -490,6 +586,14 @@ export const translations = {
         coDelivery: 'Samleverans',
         recentlyAdded: 'Ny',
         popular: 'Populär'
+      },
+      table: {
+        name: 'Namn',
+        lastDelivery: 'Senaste leverans',
+        futureDelivery: 'Framtida leverans',
+        campaign: 'Kampanj',
+        newProducts: 'Nya produkter',
+        actions: 'Åtgärder'
       }
     }
   },
@@ -547,6 +651,8 @@ export const translations = {
       user: 'Usuario',
       help: 'Ayuda',
       refresh: 'Actualizar',
+      startDate: 'Fecha de Inicio',
+      endDate: 'Fecha de Fin',
       category: 'Categoría',
       allCategories: 'Todas las Categorías',
       verified: 'Verificado',
@@ -646,6 +752,38 @@ export const translations = {
       insights: 'Insights',
       recommendations: 'Recomendaciones'
     },
+    buyerInsights: {
+      title: 'Información del Comprador',
+      chooseFilter: 'Elegir filtro',
+      sales: 'Ventas',
+      orders: 'Pedidos',
+      deliveries: 'Entregas',
+      deliveryDate: 'Fecha de entrega',
+      dateRange: 'Rango de Fechas',
+      addComparison: 'Añadir comparación',
+      generate: 'Generar',
+      generating: 'Generando...',
+      downloadReport: 'Descargar Reporte',
+      aiAnalysis: 'Análisis IA',
+      detailedView: 'Vista Detallada',
+      searchStores: 'Buscar tiendas...',
+      store: 'Tienda',
+      salesEuro: 'Ventas €',
+      avgOrderEuro: 'Pedido promedio €',
+      frequency: 'Frecuencia',
+      amountOfStores: 'Cantidad de tiendas',
+      noData: 'No hay datos disponibles en el rango seleccionado.',
+      noChartData: 'No hay datos de gráfico disponibles. Por favor genere insights.',
+      insightsGenerated: 'Insights generados exitosamente',
+      reportDownloaded: 'Reporte descargado exitosamente',
+      reportDownloadError: 'Error al descargar el reporte',
+      aiAnalysisRequested: 'Análisis IA solicitado. Esta función estará disponible pronto.',
+      aiInsights: 'Insights Impulsados por IA',
+      aiInsightsDescription: 'Obtenga recomendaciones y análisis inteligentes impulsados por IA',
+      requestAnalysis: 'Solicitar Análisis IA',
+      startDate: 'Fecha de Inicio',
+      endDate: 'Fecha de Fin'
+    },
     products: {
       title: 'Productos',
       searchPlaceholder: 'Buscar productos...',
@@ -709,6 +847,12 @@ export const translations = {
       insights: 'Insights',
       mySuppliers: 'Mis Proveedores',
       manageRelationships: 'Gestiona tus relaciones con proveedores y ve proveedores aprobados',
+      recommendedForYou: 'Recomendado para Ti',
+      suppliersMatchPatterns: 'Proveedores que coinciden con tus patrones de compra y preferencias',
+      allSuppliers: 'Todos los Proveedores',
+      browseAllSuppliers: 'Explora todos los proveedores disponibles en tu área',
+      discoverSuppliers: 'Descubre una selección de proveedores',
+      searchForSuppliers: 'Buscar proveedores',
       categories: {
         dairy: 'Lácteos',
         fruitsVegetables: 'Frutas y Verduras',
@@ -723,12 +867,32 @@ export const translations = {
         popular: 'Popular',
         all: 'Todos los Proveedores'
       },
+      filters: {
+        freeDelivery: 'ENVÍO GRATIS',
+        coDelivery: 'ENTREGA COMBINADA',
+        onSale: 'EN OFERTA',
+        suppliersEtc: 'PROVEEDORES ETC',
+        suppliersMayNeedToBuy: 'Proveedores de los que posiblemente necesite comprar',
+        suppliersStoppedBuying: 'Proveedores de los que he dejado de comprar',
+        combinedDelivery: 'Entrega combinada',
+        freeShippingCost: 'Envío gratuito',
+        activeCampaigns: 'Campañas activas',
+        newProducts: 'Nuevos productos'
+      },
       features: {
         freeDelivery: 'Entrega Gratis',
         onSale: 'En Oferta',
         coDelivery: 'Co-Entrega',
         recentlyAdded: 'Nuevo',
         popular: 'Popular'
+      },
+      table: {
+        name: 'Nombre',
+        lastDelivery: 'Última entrega',
+        futureDelivery: 'Entrega futura',
+        campaign: 'Campaña',
+        newProducts: 'Nuevos productos',
+        actions: 'Acciones'
       }
     },
     inventory: {

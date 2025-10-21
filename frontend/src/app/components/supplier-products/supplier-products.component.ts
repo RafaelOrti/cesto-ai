@@ -610,4 +610,8 @@ export class SupplierProductsComponent implements OnInit, OnDestroy {
     const category = this.categories.find(c => c.id === categoryId);
     return category ? category.name : 'Sin categoría';
   }
+
+  min(a: number, b: number): number {
+    return Math.min(a, b);
+  }
 }

@@ -113,7 +113,7 @@
                   <p>{{ transaction.reference }}</p>
                 </div>
                 <div class="transaction-amount" [ngClass]="getAmountClass(transaction.amount)">
-                  {{ formatCurrency(Math.abs(transaction.amount)) }}
+                  {{ formatCurrency(abs(transaction.amount)) }}
                 </div>
               </div>
               

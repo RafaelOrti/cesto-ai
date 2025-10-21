@@ -19,6 +19,7 @@ import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatSortModule } from '@angular/material/sort';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatSelectModule } from '@angular/material/select';
+import { MatOptionModule } from '@angular/material/core';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatBadgeModule } from '@angular/material/badge';
@@ -30,6 +31,7 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatStepperModule } from '@angular/material/stepper';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
+// Note: MatDateRangeInputModule and MatDateRangePickerModule are part of MatDatepickerModule
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatSliderModule } from '@angular/material/slider';
@@ -42,12 +44,14 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { NgChartsModule } from 'ng2-charts';
 import { DatePipe } from '@angular/common';
 
+import { DateTimePickerModule } from './shared/components/datetime-picker/datetime-picker.module';
+
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { LoginComponent } from './components/login/login.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { ClientInsightsComponent } from './components/clients/client-insights/client-insights.component';
-import { ExploreSuppliersComponent } from './components/clients/explore-suppliers/explore-suppliers.component';
+import { SupplierInventoryComponent } from './components/supplier-inventory/supplier-inventory.component';
 import { SuppliersModule } from './components/suppliers/suppliers.module';
 import { ProductsComponent } from './components/products/products.component';
 import { OrdersComponent } from './components/orders/orders.component';
@@ -62,8 +66,6 @@ import { EANComponent } from './components/ean/ean.component';
 import { AdminDashboardComponent } from './components/admin-dashboard/admin-dashboard.component';
 import { RoleBasedSidebarComponent } from './components/layout/role-based-sidebar/role-based-sidebar.component';
 import { ColorThemeConfigComponent } from './components/admin-dashboard/color-theme-config/color-theme-config.component';
-import { ProductsListComponent } from './components/products/products-list/products-list.component';
-import { ProductsOnSaleComponent } from './components/products/products-on-sale/products-on-sale.component';
 import { LoadingComponent } from './core/components/loading/loading.component';
 // Removed duplicate NotificationsComponent import from core/components
 import { CoreModule } from './core/core.module';
@@ -102,6 +104,8 @@ import { SupplierAnalysisComponent } from './components/supplier-analysis/suppli
 import { SettingsComponent } from './components/settings/settings.component';
 import { HelpComponent } from './components/help/help.component';
 import { NotificationsComponent } from './components/notifications/notifications.component';
+import { WishlistComponent } from './components/wishlist/wishlist.component';
+import { CheckoutComponent } from './components/checkout/checkout.component';
 import { SharedModule } from './shared/shared.module';
 
 @NgModule({
@@ -111,7 +115,6 @@ import { SharedModule } from './shared/shared.module';
     DashboardComponent,
     ClientDashboardComponent,
     ClientInsightsComponent,
-    ExploreSuppliersComponent,
     ProductsComponent,
     OrdersComponent,
     ShoppingListComponent,
@@ -130,8 +133,6 @@ import { SharedModule } from './shared/shared.module';
     AdminDashboardComponent,
     RoleBasedSidebarComponent,
     ColorThemeConfigComponent,
-    ProductsListComponent,
-    ProductsOnSaleComponent,
     LoadingComponent,
     // Removed duplicate NotificationsComponent declaration (keep single declaration below)
     ProviderOrdersComponent,
@@ -145,6 +146,8 @@ import { SharedModule } from './shared/shared.module';
     SettingsComponent,
     HelpComponent,
     NotificationsComponent,
+    WishlistComponent,
+    CheckoutComponent,
   ],
   imports: [
     BrowserModule,
@@ -171,6 +174,7 @@ import { SharedModule } from './shared/shared.module';
     MatSortModule,
     MatDialogModule,
     MatSelectModule,
+    MatOptionModule,
     MatCheckboxModule,
     MatChipsModule,
     MatBadgeModule,
@@ -191,7 +195,9 @@ import { SharedModule } from './shared/shared.module';
     MatGridListModule,
     MatButtonToggleModule,
     MatAutocompleteModule,
+    // MatDateRangeInputModule and MatDateRangePickerModule are included in MatDatepickerModule
     NgChartsModule,
+    DateTimePickerModule,
   ],
   providers: [
     AuthService,

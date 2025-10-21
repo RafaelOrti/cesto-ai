@@ -10,8 +10,8 @@
         <div class="header-info">
           <span class="info-icon" title="Your saved products">💝</span>
           <span class="item-count">{{ filteredItems.length }} items</span>
-          <span class="ai-count" *ngIf="filteredItems.filter(item => item.aiRecommended).length > 0">
-            {{ filteredItems.filter(item => item.aiRecommended).length }} AI recommended
+          <span class="ai-count" *ngIf="getAIRecommendedCount() > 0">
+            {{ getAIRecommendedCount() }} AI recommended
           </span>
         </div>
       </div>
@@ -210,7 +210,7 @@
             </div>
             <div class="ai-confidence" *ngIf="item.aiRecommended && item.aiConfidence">
               <i class="fas fa-brain"></i>
-              <span>{{ Math.round(item.aiConfidence * 100) }}% confidence</span>
+                <span>{{ round(item.aiConfidence * 100) }}% confidence</span>
             </div>
           </div>
 
@@ -307,7 +307,7 @@
             </div>
             <div class="ai-confidence" *ngIf="item.aiRecommended && item.aiConfidence">
               <i class="fas fa-brain"></i>
-              <span>{{ Math.round(item.aiConfidence * 100) }}% confidence</span>
+                <span>{{ round(item.aiConfidence * 100) }}% confidence</span>
             </div>
           </div>
 

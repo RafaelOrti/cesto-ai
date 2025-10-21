@@ -1010,5 +1010,9 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       { timestamp: new Date(), level: 'error', message: 'Database connection failed', source: 'database' }
     ];
   }
+
+  min(a: number, b: number): number {
+    return Math.min(a, b);
+  }
 }
 

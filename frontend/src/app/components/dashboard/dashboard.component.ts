@@ -42,6 +42,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
     to: '2023-01-31'
   };
 
+  // Materials date range
+  materialsStartDate: Date | null = null;
+  materialsEndDate: Date | null = null;
+
   additionalFilters: AdditionalFilter[] = [
     { key: 'highVolume', label: 'High Volume', active: false },
     { key: 'highFrequency', label: 'High Frequency', active: false },
@@ -102,11 +106,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
   loadInitialData(): void {
     console.log('[DASHBOARD] Loading initial data...');
     
-    // For now, load mock data to test if the component renders
-    this.loadMockData();
-    
-    // Original code commented out for debugging
-    /*
     forkJoin({
       filters: this.analyticsService.getFilters(),
       analytics: this.analyticsService.getAnalyticsData(this.getCurrentFilters())
@@ -122,9 +121,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('[DASHBOARD] Error loading initial data:', error);
+        // Fallback to mock data if API fails
+        console.log('[DASHBOARD] Falling back to mock data due to API error');
+        this.loadMockData();
       }
     });
-    */
   }
 
   private loadMockData(): void {
@@ -336,6 +337,30 @@ export class DashboardComponent implements OnInit, OnDestroy {
       this.comparisonFilters.dateRange = { from: '', to: '' };
     }
     this.comparisonFilters.dateRange.to = date;
+  }
+
+  onMaterialsStartDateChange(date: Date | null): void {
+    this.materialsStartDate = date;
+    console.log('Materials start date changed:', date);
+    // Here you can add logic to filter materials based on the selected date
+    this.loadMaterialsData();
+  }
+
+  onMaterialsEndDateChange(date: Date | null): void {
+    this.materialsEndDate = date;
+    console.log('Materials end date changed:', date);
+    // Here you can add logic to filter materials based on the selected date
+    this.loadMaterialsData();
+  }
+
+  private loadMaterialsData(): void {
+    if (this.materialsStartDate && this.materialsEndDate) {
+      console.log('Loading materials data for range:', {
+        start: this.materialsStartDate,
+        end: this.materialsEndDate
+      });
+      // Add your materials data loading logic here
+    }
   }
 
   @HostListener('document:click', ['$event'])

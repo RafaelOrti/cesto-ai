@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, HostListener, ViewChild } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { I18nService } from '../../../core/services/i18n.service';
@@ -17,19 +17,19 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   @ViewChild(NotificationsComponent) notificationsComp?: NotificationsComponent;
 
-  searchQuery = '';
-  isSearchFocused = false;
-  showSuggestions = false;
+  // Search properties
+  searchQuery: string = '';
   searchSuggestions: SearchSuggestion[] = [];
-  selectedSuggestionIndex = -1;
-  quickFilters: any[] = [];
+  showSuggestions: boolean = false;
+  isSearchFocused: boolean = false;
+  selectedSuggestionIndex: number = -1;
   private searchSubscription?: Subscription;
 
   constructor(
     private router: Router,
     private authService: AuthService,
-    public i18n: I18nService,
-    private searchService: SearchService
+    private searchService: SearchService,
+    public i18n: I18nService
   ) {}
 
   ngOnInit() {
@@ -39,18 +39,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
         this.searchSuggestions = suggestions;
       }
     );
-
-    // Initialize quick filters
-    this.initializeQuickFilters();
-  }
-
-  initializeQuickFilters() {
-    this.quickFilters = [
-      { id: 'products', label: 'Products', icon: 'inventory_2', active: false },
-      { id: 'suppliers', label: 'Suppliers', icon: 'business', active: false },
-      { id: 'orders', label: 'Orders', icon: 'shopping_cart', active: false },
-      { id: 'analytics', label: 'Analytics', icon: 'analytics', active: false }
-    ];
   }
 
   ngOnDestroy() {
@@ -98,43 +86,34 @@ export class HeaderComponent implements OnInit, OnDestroy {
     });
   }
 
+  // Hide inline notifications dropdown on notifications route to avoid duplication
+  isNotificationsPage(): boolean {
+    return this.router.url.includes('/notifications');
+  }
+
+  // Search functionality
   onSearch() {
-    console.log('Header - Search clicked');
     if (this.searchQuery.trim()) {
       console.log('Header - Searching for:', this.searchQuery);
-      this.hideSuggestions();
-      
-      // Navigate to products page with search query
-      this.router.navigate(['/client/products'], { 
-        queryParams: { search: this.searchQuery } 
-      }).then(success => {
-        console.log('Header - Search navigation successful:', success);
-      }).catch(error => {
-        console.error('Header - Search navigation error:', error);
-      });
-    } else {
-      console.log('Header - No search query provided');
-      // If no search query, just go to products page
-      this.router.navigate(['/client/products']).then(success => {
-        console.log('Header - Products navigation successful:', success);
-      }).catch(error => {
-        console.error('Header - Products navigation error:', error);
+      // Navigate to search results page
+      this.router.navigate(['/search'], {
+        queryParams: { search: this.searchQuery }
       });
     }
   }
 
   onSearchFocus() {
-    console.log('Header - Search focused');
     this.isSearchFocused = true;
-    // Show suggestions when focused
-    this.showSuggestions = true;
+    if (this.searchQuery.trim()) {
+      this.showSuggestions = true;
+    }
   }
 
   onSearchBlur() {
-    // Delay hiding suggestions to allow clicking on them
+    // Delay hiding suggestions to allow for clicks
     setTimeout(() => {
       this.isSearchFocused = false;
-      this.hideSuggestions();
+      this.showSuggestions = false;
     }, 200);
   }
 
@@ -142,24 +121,22 @@ export class HeaderComponent implements OnInit, OnDestroy {
     console.log('Header - Search input:', this.searchQuery);
     if (this.searchQuery.trim()) {
       this.showSuggestions = true;
+      this.searchService.search(this.searchQuery);
     } else {
-      this.hideSuggestions();
+      this.showSuggestions = false;
     }
   }
 
   clearSearch() {
     this.searchQuery = '';
-    this.hideSuggestions();
+    this.showSuggestions = false;
   }
 
   selectSuggestion(suggestion: SearchSuggestion) {
-    console.log('Header - Suggestion selected:', suggestion);
     this.searchQuery = suggestion.title;
-    this.hideSuggestions();
+    this.showSuggestions = false;
     this.router.navigate([`/${suggestion.type}`], { queryParams: { q: this.searchQuery } }).then(success => {
-      console.log('Header - Suggestion navigation successful:', success);
-    }).catch(error => {
-      console.error('Header - Suggestion navigation error:', error);
+      console.log('Header - Navigation successful:', success);
     });
   }
 
@@ -168,37 +145,19 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.selectedSuggestionIndex = -1;
   }
 
-  toggleQuickFilter(filter: any) {
-    console.log('Header - Quick filter toggled:', filter);
-    filter.active = !filter.active;
-    // Navigate to filtered view
-    this.router.navigate([`/${filter.id}`]).then(success => {
-      console.log('Header - Filter navigation successful:', success);
-    }).catch(error => {
-      console.error('Header - Filter navigation error:', error);
-    });
-    this.hideSuggestions();
-  }
-
-  // Hide inline notifications dropdown on notifications route to avoid duplication
-  isNotificationsPage(): boolean {
-    return this.router.url.includes('/notifications');
-  }
-
   clearRecentSearches() {
     this.searchService.clearRecentSearches();
     this.searchService.search('');
   }
 
-  @HostListener('document:keydown', ['$event'])
-  handleKeyboardEvent(event: KeyboardEvent) {
+  onKeyDown(event: KeyboardEvent) {
     if (!this.showSuggestions) return;
 
     switch (event.key) {
       case 'ArrowDown':
         event.preventDefault();
         this.selectedSuggestionIndex = Math.min(
-          this.selectedSuggestionIndex + 1, 
+          this.selectedSuggestionIndex + 1,
           this.searchSuggestions.length - 1
         );
         break;

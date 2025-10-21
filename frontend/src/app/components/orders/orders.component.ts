@@ -1,4 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { Subject, takeUntil, finalize } from 'rxjs';
+import { OrderService } from '../../services/order.service';
+import { NotificationService } from '../../core/services/notification.service';
 
 interface Order {
   id: string;
@@ -54,12 +58,14 @@ interface DamagedProduct {
   templateUrl: './orders.component.html',
   styleUrls: ['./orders.component.scss']
 })
-export class OrdersComponent implements OnInit {
+export class OrdersComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
   selectedTab = 'past-orders';
   searchQuery = '';
   statusFilter = 'all';
   dateRange = 'all';
   expandedOrders = new Set<string>();
+  loading = false;
 
   // Order tabs configuration
   orderTabs = [
@@ -177,8 +183,31 @@ export class OrdersComponent implements OnInit {
     }
   ];
 
+  constructor(
+    private route: ActivatedRoute,
+    private orderService: OrderService,
+    private notificationService: NotificationService
+  ) {}
+
   ngOnInit(): void {
+    // Check for filter query parameter
+    this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
+      if (params['filter']) {
+        // Map filter param to tab
+        if (params['filter'] === 'past') {
+          this.selectedTab = 'past-orders';
+        } else if (params['filter'] === 'incoming') {
+          this.selectedTab = 'purchase-orders';
+        }
+      }
+    });
+
     this.loadOrders();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
 
@@ -355,8 +384,55 @@ export class OrdersComponent implements OnInit {
   }
 
   private loadOrders(): void {
-    // Load orders from API
-    this.updateTabCounts();
+    this.loading = true;
+    
+    this.orderService.getAll()
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.loading = false)
+      )
+      .subscribe({
+        next: (response) => {
+          const orders = Array.isArray(response) ? response : (response.data || []);
+          
+          // Map orders to different categories
+          this.pastOrders = orders
+            .filter((order: any) => order.status === 'delivered' || order.status === 'completed')
+            .map((order: any) => this.mapOrder(order));
+            
+          this.purchaseOrders = orders
+            .filter((order: any) => order.isPurchaseOrder)
+            .map((order: any) => this.mapOrder(order));
+            
+          this.unfulfilledOrders = orders
+            .filter((order: any) => order.status === 'delayed' || order.status === 'unfulfilled')
+            .map((order: any) => this.mapOrder(order));
+          
+          this.updateTabCounts();
+          this.filterOrders();
+        },
+        error: (error) => {
+          console.error('Error loading orders:', error);
+          this.notificationService.error('Error loading orders');
+        }
+      });
+  }
+  
+  private mapOrder(order: any): any {
+    return {
+      id: order.id,
+      orderNumber: order.orderNumber || order.id,
+      supplier: order.supplier?.name || order.supplierName || '',
+      supplierId: order.supplier?.id || order.supplierId || '',
+      date: order.createdAt || order.orderDate,
+      deliveryDate: order.deliveryDate || order.estimatedDelivery,
+      status: order.status,
+      total: order.total || order.totalAmount,
+      items: order.items || [],
+      itemsCount: order.items?.length || order.itemsCount || 0,
+      isPurchaseOrder: order.isPurchaseOrder || false,
+      notes: order.notes || ''
+    };
   }
 
   private filterOrders(): void {

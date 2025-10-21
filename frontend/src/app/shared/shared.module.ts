@@ -5,18 +5,16 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 // Services
 import { I18nService } from '../core/services/i18n.service';
 
-// Pipes
-import { TranslatePipe } from './pipes/translate.pipe';
-
 // Directives
 import { ClickOutsideDirective } from './directives/click-outside.directive';
 
 // Components
 import { LanguageSelectorComponent } from './components/language-selector/language-selector.component';
 
+// Pipes - TranslatePipe is provided by CoreModule
+
 @NgModule({
   declarations: [
-    TranslatePipe,
     ClickOutsideDirective,
     LanguageSelectorComponent
   ],
@@ -29,7 +27,6 @@ import { LanguageSelectorComponent } from './components/language-selector/langua
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    TranslatePipe,
     ClickOutsideDirective,
     LanguageSelectorComponent
   ],

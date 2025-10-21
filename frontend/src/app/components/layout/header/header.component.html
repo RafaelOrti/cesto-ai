@@ -8,82 +8,61 @@
         <span class="brand-subtitle">Supply Chain Platform</span>
       </div>
       
-      <!-- Enhanced Search Field -->
-      <div class="search-container">
-        <mat-form-field appearance="outline" class="search-field" [class.search-focused]="isSearchFocused">
-          <mat-label>{{ 'common.search' | translate }}</mat-label>
-          <input 
-            matInput
-            type="text"
-            [(ngModel)]="searchQuery" 
-            (focus)="onSearchFocus()"
-            (blur)="onSearchBlur()"
-            (keyup.enter)="onSearch()"
-            (input)="onSearchInput()"
-            placeholder="Search products, suppliers, orders...">
-          <mat-icon matPrefix class="search-icon">search</mat-icon>
-          <button 
-            mat-icon-button 
-            matSuffix 
-            type="button" 
-            (click)="onSearch()" 
-            matTooltip="Search"
-            class="search-button"
-            [disabled]="!searchQuery.trim()">
-            <mat-icon>search</mat-icon>
-          </button>
-          <button 
-            *ngIf="searchQuery" 
-            mat-icon-button 
-            matSuffix 
-            type="button" 
-            (click)="clearSearch()" 
-            matTooltip="Clear search"
-            class="clear-button">
-            <mat-icon>close</mat-icon>
-          </button>
-        </mat-form-field>
-        
-        <!-- Search Suggestions Dropdown -->
-        <div class="search-suggestions" *ngIf="showSuggestions && searchSuggestions.length > 0">
-          <div class="suggestions-header">
-            <span class="suggestions-title">Quick Search</span>
-            <div class="quick-filters" *ngIf="!searchQuery">
-              <mat-chip-set>
-                <mat-chip 
-                  *ngFor="let filter of quickFilters" 
-                  [selected]="filter.active"
-                  (click)="toggleQuickFilter(filter)"
-                  class="filter-chip">
-                  <mat-icon *ngIf="filter.icon" class="chip-icon">{{ filter.icon }}</mat-icon>
-                  {{ filter.label }}
-                </mat-chip>
-              </mat-chip-set>
-            </div>
-          </div>
-          <div class="suggestions-list">
-            <div 
-              *ngFor="let suggestion of searchSuggestions; let i = index"
-              class="suggestion-item"
-              [class.selected]="i === selectedSuggestionIndex"
-              (click)="selectSuggestion(suggestion)"
-              (mouseenter)="selectedSuggestionIndex = i">
-              <mat-icon class="suggestion-icon">{{ suggestion.icon }}</mat-icon>
-              <div class="suggestion-content">
-                <span class="suggestion-title">{{ suggestion.title }}</span>
-                <span class="suggestion-subtitle">{{ suggestion.subtitle }}</span>
-                <span class="suggestion-category" *ngIf="suggestion.category">{{ suggestion.category }}</span>
-              </div>
-              <mat-icon class="suggestion-arrow">arrow_forward_ios</mat-icon>
-            </div>
-          </div>
-          <div class="suggestions-footer">
-            <div class="footer-actions">
-              <span class="suggestions-hint">Press Enter to search</span>
-              <button mat-button class="clear-recent-btn" (click)="clearRecentSearches()" *ngIf="!searchQuery">
+      <!-- Search Section -->
+      <div class="search-section">
+        <div class="search-container">
+          <mat-form-field appearance="outline" class="search-field">
+            <mat-label>{{ 'search.placeholder' | translate }}</mat-label>
+            <input 
+              matInput 
+              type="text" 
+              [(ngModel)]="searchQuery"
+              (input)="onSearchInput()"
+              (focus)="onSearchFocus()"
+              (blur)="onSearchBlur()"
+              (keydown)="onKeyDown($event)"
+              placeholder="{{ 'search.placeholder' | translate }}"
+              autocomplete="off">
+            <mat-icon matPrefix class="search-icon">search</mat-icon>
+            <button 
+              *ngIf="searchQuery" 
+              matSuffix 
+              mat-icon-button 
+              (click)="clearSearch()"
+              class="clear-button"
+              [attr.aria-label]="'search.clear' | translate">
+              <mat-icon>close</mat-icon>
+            </button>
+          </mat-form-field>
+          
+          <!-- Search Suggestions Dropdown -->
+          <div 
+            *ngIf="showSuggestions && searchSuggestions.length > 0" 
+            class="search-suggestions">
+            <div class="suggestions-header">
+              <span class="suggestions-title">{{ 'search.suggestions' | translate }}</span>
+              <button 
+                mat-icon-button 
+                (click)="clearRecentSearches()"
+                class="clear-recent-button"
+                [attr.aria-label]="'search.clearRecent' | translate">
                 <mat-icon>clear_all</mat-icon>
-                Clear Recent
               </button>
+            </div>
+            <div class="suggestions-list">
+              <div 
+                *ngFor="let suggestion of searchSuggestions; let i = index"
+                class="suggestion-item"
+                [class.selected]="i === selectedSuggestionIndex"
+                (click)="selectSuggestion(suggestion)"
+                (mouseenter)="selectedSuggestionIndex = i">
+                <mat-icon class="suggestion-icon">{{ suggestion.icon }}</mat-icon>
+                <div class="suggestion-content">
+                  <div class="suggestion-title">{{ suggestion.title }}</div>
+                  <div class="suggestion-subtitle">{{ suggestion.subtitle }}</div>
+                </div>
+                <div class="suggestion-type">{{ suggestion.type | translate }}</div>
+              </div>
             </div>
           </div>
         </div>

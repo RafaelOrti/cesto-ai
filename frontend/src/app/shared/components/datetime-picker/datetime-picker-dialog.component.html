@@ -1,0 +1,70 @@
+<div class="datetime-picker-dialog">
+  <div class="dialog-header">
+    <h2 mat-dialog-title>{{ data.label }}</h2>
+    <button mat-icon-button (click)="onCancel()" class="close-button">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div mat-dialog-content class="dialog-content">
+    <form [formGroup]="dateTimeForm" class="datetime-form">
+      <!-- Date Picker -->
+      <mat-form-field appearance="outline" class="date-field">
+        <mat-label>Fecha</mat-label>
+        <input 
+          matInput 
+          [matDatepicker]="datePicker"
+          formControlName="date"
+          (dateChange)="onDateChange($event.value)"
+          [min]="data.minDate"
+          [max]="data.maxDate"
+          placeholder="Seleccionar fecha">
+        <mat-datepicker-toggle matIconSuffix [for]="datePicker"></mat-datepicker-toggle>
+        <mat-datepicker #datePicker></mat-datepicker>
+      </mat-form-field>
+
+      <!-- Time Picker -->
+      <mat-form-field *ngIf="data.showTime" appearance="outline" class="time-field">
+        <mat-label>Hora</mat-label>
+        <mat-select 
+          formControlName="time"
+          (selectionChange)="onTimeChange($event.value)"
+          placeholder="Seleccionar hora">
+          <mat-option *ngFor="let time of timeOptions" [value]="time">
+            {{ time }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </form>
+
+    <!-- Selected DateTime Display -->
+    <div *ngIf="selectedDate" class="selected-datetime">
+      <mat-icon>event</mat-icon>
+      <span>{{ formatSelectedDateTime() }}</span>
+    </div>
+  </div>
+
+  <div mat-dialog-actions class="dialog-actions">
+    <button mat-button (click)="onClear()" class="clear-button">
+      <mat-icon>clear</mat-icon>
+      Limpiar
+    </button>
+    
+    <div class="spacer"></div>
+    
+    <button mat-button (click)="onCancel()" class="cancel-button">
+      Cancelar
+    </button>
+    
+    <button 
+      mat-raised-button 
+      color="primary" 
+      (click)="onConfirm()"
+      [disabled]="!isFormValid"
+      class="confirm-button">
+      <mat-icon>check</mat-icon>
+      Confirmar
+    </button>
+  </div>
+</div>
+

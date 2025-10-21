@@ -4,7 +4,7 @@ import { Subscription } from 'rxjs';
 
 @Pipe({
   name: 'translate',
-  pure: false // Make it impure so it updates when language changes
+  pure: false
 })
 export class TranslatePipe implements PipeTransform, OnDestroy {
   private subscription: Subscription = new Subscription();
@@ -19,4 +19,3 @@ export class TranslatePipe implements PipeTransform, OnDestroy {
     this.subscription.unsubscribe();
   }
 }
-

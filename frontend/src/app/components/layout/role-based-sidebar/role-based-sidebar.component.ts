@@ -51,14 +51,14 @@ export class RoleBasedSidebarComponent implements OnInit, OnDestroy {
           id: 'client-suppliers-my',
           label: 'navigation.mySuppliers',
           icon: 'list',
-          route: '/client/suppliers/my-suppliers',
+          route: '/client/suppliers',
           roles: ['client', 'admin']
         },
         {
           id: 'client-suppliers-search',
           label: 'navigation.searchSuppliers',
           icon: 'search',
-          route: '/client/suppliers/explore',
+          route: '/client/suppliers/search',
           roles: ['client', 'admin']
         }
       ]
@@ -141,7 +141,7 @@ export class RoleBasedSidebarComponent implements OnInit, OnDestroy {
       id: 'client-transactions',
       label: 'navigation.transactions',
       icon: 'receipt',
-      route: '/client/transactions',
+      route: '/client/transactions/invoices',
       roles: ['client', 'admin'],
       children: [
         {
@@ -154,7 +154,7 @@ export class RoleBasedSidebarComponent implements OnInit, OnDestroy {
         {
           id: 'client-transactions-purchase-orders',
           label: 'navigation.purchaseOrders',
-          icon: 'shopping_cart_checkout',
+          icon: 'description',
           route: '/client/transactions/purchase-orders',
           roles: ['client', 'admin']
         }

@@ -115,6 +115,14 @@ export class ProductsService {
     );
   }
 
+  getAll(): Observable<PaginatedResponse<Product>> {
+    return this.getProducts({}, { field: 'name', direction: 'asc' }, 1, 100);
+  }
+
+  getOnSale(): Observable<PaginatedResponse<Product>> {
+    return this.getProducts({ onSale: true }, { field: 'name', direction: 'asc' }, 1, 100);
+  }
+
   getProductsOnSale(limit?: number, category?: string): Observable<Product[]> {
     return this.getProducts().pipe(
       map(products => {

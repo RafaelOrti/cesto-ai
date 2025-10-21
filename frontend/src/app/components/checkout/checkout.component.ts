@@ -362,4 +362,9 @@ export class CheckoutComponent implements OnInit {
   canProceedToNextStep(): boolean {
     return this.isStepCompleted(this.currentStep);
   }
+
+  getSelectedDeliveryOptionName(): string {
+    const option = this.deliveryOptions.find(opt => opt.id === this.selectedDeliveryOption);
+    return option ? option.name : '';
+  }
 }

@@ -15,13 +15,11 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatBadgeModule } from '@angular/material/badge';
 
 // Shared module for TranslatePipe
-import { SharedModule } from '../../shared/shared.module';
+import { CoreModule } from '../../core/core.module';
 
 import { SuppliersComponent } from './suppliers.component';
 import { SearchSuppliersComponent } from './search-suppliers/search-suppliers.component';
 import { SupplierProfileComponent } from './supplier-profile/supplier-profile.component';
-import { MySuppliersComponent } from '../clients/my-suppliers/my-suppliers.component';
-import { TranslatePipe } from '../../core/pipes/translate.pipe';
 
 const routes = [
   {
@@ -39,9 +37,7 @@ const routes = [
   declarations: [
     SuppliersComponent,
     SearchSuppliersComponent,
-    SupplierProfileComponent,
-    MySuppliersComponent,
-    TranslatePipe
+    SupplierProfileComponent
   ],
   imports: [
     CommonModule,
@@ -49,7 +45,7 @@ const routes = [
     ReactiveFormsModule,
     RouterModule.forChild(routes),
     // Shared module for TranslatePipe
-    SharedModule,
+    CoreModule,
     // Angular Material
     MatButtonModule,
     MatCardModule,

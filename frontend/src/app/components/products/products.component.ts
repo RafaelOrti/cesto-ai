@@ -1,7 +1,10 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
+import { Subject, debounceTime, distinctUntilChanged, takeUntil, finalize } from 'rxjs';
 import { FormControl, FormGroup } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { Product, ProductCategory } from '../../../shared/types/common.types';
+import { ProductsService } from '../../services/products.service';
+import { NotificationService } from '../../core/services/notification.service';
 
 interface Category {
   id: string;
@@ -305,13 +308,24 @@ export class ProductsComponent implements OnInit, OnDestroy {
     }
   ];
 
-  constructor() {
+  constructor(
+    private route: ActivatedRoute,
+    private productsService: ProductsService,
+    private notificationService: NotificationService
+  ) {
     this.searchForm = new FormGroup({
       search: new FormControl('')
     });
   }
 
   ngOnInit(): void {
+    // Check for tab query parameter
+    this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
+      if (params['tab']) {
+        this.selectedTab = params['tab'];
+      }
+    });
+
     this.loadProducts();
     this.setupSearch();
     this.initializeProductArrays();
@@ -354,13 +368,63 @@ export class ProductsComponent implements OnInit, OnDestroy {
 
   private loadProducts(): void {
     this.loading = true;
-    // Mock data - replace with actual service
-    setTimeout(() => {
-      this.products = [...this.popularProductsData];
-      this.filteredProducts = [...this.products];
-      this.updatePagination();
-      this.loading = false;
-    }, 1000);
+    
+    const endpoint = this.selectedTab === 'on-sale' ? 
+      this.productsService.getOnSale() :
+      this.productsService.getAll();
+    
+    endpoint
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.loading = false)
+      )
+      .subscribe({
+        next: (response) => {
+          this.products = this.mapProducts(Array.isArray(response) ? response : (response.data || []));
+          this.filteredProducts = [...this.products];
+          this.updatePagination();
+        },
+        error: (error) => {
+          console.error('Error loading products:', error);
+          this.notificationService.error('Error loading products');
+          // Fallback to mock data
+          this.products = [...this.popularProductsData];
+          this.filteredProducts = [...this.products];
+          this.updatePagination();
+        }
+      });
+  }
+  
+  private mapProducts(data: any[]): ProductItem[] {
+    return data.map(product => ({
+      id: product.id,
+      name: product.name,
+      image: product.images?.[0] || product.image || '',
+      imageUrl: product.images?.[0] || product.imageUrl || '',
+      supplier: product.supplier?.name || product.supplierName || '',
+      supplierId: product.supplier?.id || product.supplierId || '',
+      volume: product.volume || product.unit || '',
+      quantity: product.quantity || '',
+      pricePerPiece: product.price || 0,
+      totalPrice: product.price || 0,
+      price: product.price || 0,
+      originalPrice: product.originalPrice,
+      discount: product.discount,
+      bestBefore: product.bestBefore,
+      isCampaign: product.isOnSale || product.isCampaign || false,
+      isOnSale: product.isOnSale || false,
+      category: product.category || '',
+      description: product.description || '',
+      shortDescription: product.shortDescription || '',
+      unit: product.unit || '',
+      moq: product.moq || 1,
+      isFeatured: product.isFeatured || false,
+      stockQuantity: product.stock || 0,
+      leadTimeDays: product.leadTimeDays || 0,
+      rating: product.rating || 0,
+      reviewCount: product.reviewCount || 0,
+      lastOrderDate: product.lastOrderDate
+    }));
   }
 
   onSearch(): void {

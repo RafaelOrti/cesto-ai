@@ -13,9 +13,9 @@
   display: flex;
   overflow: hidden;
   background: var(--color-background-primary);
-  height: calc(100vh - 64px); // Account for header height
+  height: calc(100vh - 140px); // Increased from 120px for more space
   margin-left: 0; // let mat-sidenav handle layout
-  margin-top: 64px; // Account for fixed header
+  margin-top: 140px; // Increased from 120px for more top spacing
 }
 
 // Make the mat-sidenav-container span the full width
@@ -26,6 +26,7 @@
   transition: all 0.3s ease;
   z-index: 1;
   position: relative;
+  padding: 24px; // Added padding to make sidebar content more spacious
   
   &.collapsed {
     width: 80px;
@@ -52,9 +53,9 @@
   }
 }
 
-// The actual sidenav panel width
+// The actual sidenav panel width - Made much larger
 ::ng-deep mat-sidenav.sidebar {
-  width: 280px;
+  width: 400px; // Increased from 320px to make it much bigger
 }
 
 .main-content {
@@ -67,7 +68,7 @@
 
 .content-area {
   flex: 1;
-  padding: 24px;
+  padding: 40px; // Increased from 24px
   overflow-y: auto;
   background: var(--color-background-primary);
   
@@ -109,7 +110,7 @@
   }
   
   .content-area {
-    padding: 16px;
+    padding: 24px; // Increased from 16px
   }
 }
 

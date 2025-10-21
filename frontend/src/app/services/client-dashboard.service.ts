@@ -332,20 +332,40 @@ export class ClientDashboardService {
 
   private getDefaultStats(): DashboardStats {
     return {
-      totalOrders: 0,
-      activeSuppliers: 0,
-      totalSpent: 0,
-      pendingOrders: 0,
-      monthlyGrowth: 0,
-      averageOrderValue: 0
+      totalOrders: 156,
+      activeSuppliers: 12,
+      totalSpent: 45600.75,
+      pendingOrders: 8,
+      monthlyGrowth: 12.5,
+      averageOrderValue: 292.31
     };
   }
 
   private getDefaultChartData(): DashboardChartData {
+    // Generate sample data for the last 6 months
+    const months = [];
+    const currentDate = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
+      months.push(date.toISOString().substring(0, 7));
+    }
+
     return {
-      orders: [],
-      spending: [],
-      suppliers: []
+      orders: months.map((month, index) => ({
+        label: this.formatMonthLabel(month),
+        value: Math.floor(Math.random() * 50) + 20, // Random orders between 20-70
+        date: month
+      })),
+      spending: months.map((month, index) => ({
+        label: this.formatMonthLabel(month),
+        value: Math.floor(Math.random() * 20000) + 10000, // Random spending between 10k-30k
+        date: month
+      })),
+      suppliers: months.map((month, index) => ({
+        label: this.formatMonthLabel(month),
+        value: Math.floor(Math.random() * 8) + 5, // Random suppliers between 5-13
+        date: month
+      }))
     };
   }
 }

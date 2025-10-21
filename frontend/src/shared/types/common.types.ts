@@ -54,6 +54,16 @@ export enum ItemPriority {
   URGENT = 'urgent'
 }
 
+export interface AIRecommendation {
+  id: string;
+  type: 'suggested_item' | 'price_alert' | 'restock_prediction' | 'seasonal_insight';
+  title: string;
+  description: string;
+  confidence: number;
+  priority: 'low' | 'medium' | 'high';
+  createdAt: string;
+}
+
 export interface AIRecommendations {
   suggestedItems: SuggestedItem[];
   priceAlerts: PriceAlert[];

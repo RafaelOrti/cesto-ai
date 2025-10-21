@@ -1,8 +1,10 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
-import { takeUntil, debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { takeUntil, debounceTime, distinctUntilChanged, finalize } from 'rxjs/operators';
 import { I18nService } from '../../core/services/i18n.service';
+import { SupplierService } from '../../services/supplier.service';
+import { NotificationService } from '../../core/services/notification.service';
 
 export interface SupplierCategory {
   id: string;
@@ -120,7 +122,9 @@ export class SuppliersComponent implements OnInit, OnDestroy {
 
   constructor(
     private router: Router,
-    public i18n: I18nService
+    public i18n: I18nService,
+    private supplierService: SupplierService,
+    private notificationService: NotificationService
   ) {
     this.setupSearchDebounce();
   }
@@ -149,12 +153,66 @@ export class SuppliersComponent implements OnInit, OnDestroy {
 
   private loadSuppliers(): void {
     this.loading = true;
-    // Mock data - replace with actual service call
-    setTimeout(() => {
-      this.suppliers = this.getMockSuppliers();
-      this.filteredSuppliers = [...this.suppliers];
-      this.loading = false;
-    }, 800);
+    
+    const params = {
+      search: this.mainSearchTerm || this.secondarySearchTerm,
+      freeDelivery: this.filters.freeDelivery || this.filters.freeShippingCost,
+      coDelivery: this.filters.coDelivery || this.filters.combinedDelivery,
+      onSale: this.filters.onSale,
+      hasNewProducts: this.filters.newProducts,
+      hasCampaigns: this.filters.activeCampaigns,
+    };
+    
+    this.supplierService.getMySuppliers()
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.loading = false)
+      )
+      .subscribe({
+        next: (response) => {
+          this.suppliers = this.mapSuppliers(Array.isArray(response) ? response : (response as any).data || []);
+          this.filteredSuppliers = [...this.suppliers];
+        },
+        error: (error) => {
+          console.error('Error loading suppliers:', error);
+          this.notificationService.error('Error loading suppliers');
+          // Fallback to mock data on error
+          this.suppliers = this.getMockSuppliers();
+          this.filteredSuppliers = [...this.suppliers];
+        }
+      });
+  }
+  
+  private mapSuppliers(data: any[]): MySupplier[] {
+    return data.map(supplier => ({
+      id: supplier.id,
+      companyName: supplier.companyName || supplier.name,
+      supplierName: supplier.name || supplier.supplierName,
+      description: supplier.description || '',
+      logo: supplier.logo,
+      imageUrl: supplier.logo || supplier.imageUrl,
+      categories: supplier.categories || [],
+      activeCampaigns: supplier.campaigns || [],
+      newProducts: supplier.newProducts || [],
+      deliveryInfo: {
+        combinedDelivery: supplier.coDelivery || false,
+        freeShipping: supplier.freeShipping || false
+      },
+      status: supplier.status || 'active',
+      lastOrderDate: supplier.lastOrderDate || supplier.lastDelivery,
+      futureDelivery: supplier.futureDelivery || supplier.nextDelivery,
+      totalOrders: supplier.totalOrders || 0,
+      rating: supplier.rating || 0,
+      onSale: supplier.hasCampaign || supplier.onSale || false,
+      freeDelivery: supplier.freeShipping || false,
+      coDelivery: supplier.coDelivery || false,
+      recentlyAdded: supplier.recentlyAdded || false,
+      popular: supplier.popular || false,
+      inquirySent: supplier.inquirySent || false,
+      hasCampaign: supplier.hasCampaign || (supplier.campaigns && supplier.campaigns.length > 0),
+      hasNewProducts: supplier.hasNewProducts || (supplier.newProducts && supplier.newProducts.length > 0),
+      isFavorite: supplier.isFavorite || false
+    }));
   }
 
   private loadCategories(): void {
@@ -310,9 +368,30 @@ export class SuppliersComponent implements OnInit, OnDestroy {
   }
 
   toggleFavorite(supplier: MySupplier): void {
+    const previousState = supplier.isFavorite;
     supplier.isFavorite = !supplier.isFavorite;
-    // TODO: Call API to update favorite status
-    console.log('Toggle favorite for:', supplier.supplierName, supplier.isFavorite);
+    
+    const action = supplier.isFavorite ? 
+      this.supplierService.addToFavorites(supplier.id) :
+      this.supplierService.removeFromFavorites(supplier.id);
+    
+    action
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.notificationService.success(
+            supplier.isFavorite ? 
+              'Supplier added to favorites' : 
+              'Supplier removed from favorites'
+          );
+        },
+        error: (error) => {
+          // Revert on error
+          supplier.isFavorite = previousState;
+          this.notificationService.error('Error updating favorite status');
+          console.error('Toggle favorite error:', error);
+        }
+      });
   }
 
   viewSupplier(supplierId: string): void {

@@ -6,8 +6,7 @@ import { LoginComponent } from './components/login/login.component';
 import { LayoutComponent } from './components/layout/layout.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { ClientInsightsComponent } from './components/clients/client-insights/client-insights.component';
-import { ExploreSuppliersComponent } from './components/clients/explore-suppliers/explore-suppliers.component';
-import { MySuppliersComponent } from './components/clients/my-suppliers/my-suppliers.component';
+import { SearchSuppliersComponent } from './components/suppliers/search-suppliers/search-suppliers.component';
 import { ProductsComponent } from './components/products/products.component';
 import { OrdersComponent } from './components/orders/orders.component';
 import { ShoppingListComponent } from './components/shopping-list/shopping-list.component';
@@ -60,27 +59,22 @@ const routes: Routes = [
       },
       {
         path: 'dashboard',
-        component: ClientInsightsComponent,
+        component: ClientDashboardComponent,
       },
       {
         path: 'suppliers',
         children: [
           {
-            path: 'insights',
-            component: ClientInsightsComponent,
-          },
-          {
-            path: 'explore',
-            component: ExploreSuppliersComponent,
-          },
-          {
-            path: 'my-suppliers',
-            component: MySuppliersComponent,
-          },
-          {
             path: '',
-            redirectTo: 'insights',
-            pathMatch: 'full'
+            component: SuppliersComponent,
+          },
+          {
+            path: 'search',
+            component: SearchSuppliersComponent,
+          },
+          {
+            path: ':id',
+            loadChildren: () => import('./components/suppliers/suppliers.module').then(m => m.SuppliersModule)
           }
         ]
       },
@@ -214,21 +208,16 @@ const routes: Routes = [
             path: 'suppliers',
             children: [
               {
-                path: 'insights',
-                component: ClientInsightsComponent,
-              },
-              {
-                path: 'explore',
-                component: ExploreSuppliersComponent,
-              },
-              {
-                path: 'my-suppliers',
-                component: MySuppliersComponent,
-              },
-              {
                 path: '',
-                redirectTo: 'insights',
-                pathMatch: 'full'
+                component: SuppliersComponent,
+              },
+              {
+                path: 'search',
+                component: SearchSuppliersComponent,
+              },
+              {
+                path: ':id',
+                loadChildren: () => import('./components/suppliers/suppliers.module').then(m => m.SuppliersModule)
               }
             ]
           },
@@ -332,21 +321,16 @@ const routes: Routes = [
         path: 'suppliers',
         children: [
           {
-            path: 'insights',
-            component: ClientInsightsComponent,
-          },
-          {
-            path: 'explore',
-            component: ExploreSuppliersComponent,
-          },
-          {
-            path: 'my-suppliers',
-            component: MySuppliersComponent,
-          },
-          {
             path: '',
-            redirectTo: 'insights',
-            pathMatch: 'full'
+            component: SuppliersComponent,
+          },
+          {
+            path: 'search',
+            component: SearchSuppliersComponent,
+          },
+          {
+            path: ':id',
+            loadChildren: () => import('./components/suppliers/suppliers.module').then(m => m.SuppliersModule)
           }
         ]
       },

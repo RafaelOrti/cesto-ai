@@ -10,6 +10,7 @@ import { AnalyticsService } from '../../core/services/analytics.service';
 import { SupplierService } from '../../services/supplier.service';
 import { OrderService } from '../../services/order.service';
 import { ClientDashboardService, DashboardStats, DashboardChartData, RecentActivity, DashboardNotification } from '../../services/client-dashboard.service';
+import { DashboardService } from '../../services/dashboard.service';
 import { I18nService } from '../../core/services/i18n.service';
 import { NotificationService } from '../../core/services/notification.service';
 import * as XLSX from 'xlsx';
@@ -315,6 +316,7 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
     private supplierService: SupplierService,
     private orderService: OrderService,
     private clientDashboardService: ClientDashboardService,
+    private dashboardService: DashboardService,
     public i18n: I18nService,
     private notificationService: NotificationService
   ) {}
@@ -394,6 +396,48 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
     this.ordersChartData = chartData.orders;
     this.spendingChartData = chartData.spending;
     this.suppliersChartData = chartData.suppliers;
+    
+    // Update Chart.js data based on selected metric
+    this.updateChartData();
+  }
+
+  private updateChartData(): void {
+    let selectedData: ChartDataPoint[] = [];
+    
+    switch (this.metricSelected) {
+      case 'sales':
+        selectedData = this.spendingChartData;
+        break;
+      case 'orders':
+        selectedData = this.ordersChartData;
+        break;
+      case 'deliveries':
+        selectedData = this.ordersChartData; // Use orders as proxy for deliveries
+        break;
+      case 'deliveryDate':
+        selectedData = this.ordersChartData; // Use orders as proxy for delivery dates
+        break;
+      default:
+        selectedData = this.ordersChartData;
+    }
+
+    this.chartData = {
+      labels: selectedData.map(d => d.label),
+      datasets: [
+        { 
+          label: this.metricSelected, 
+          data: selectedData.map(d => d.value), 
+          borderColor: '#2E7D32', 
+          backgroundColor: 'rgba(46,125,50,0.2)', 
+          pointBorderColor: '#2E7D32', 
+          pointBackgroundColor: '#fff', 
+          pointRadius: 6,
+          pointHoverRadius: 8,
+          tension: 0.4,
+          fill: true
+        }
+      ]
+    };
   }
 
   private loadRecentActivityFromService(activity: RecentActivity[]): void {
@@ -407,6 +451,7 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
   private loadDefaultData(): void {
     this.loadStats();
     this.loadChartData();
+    this.updateChartData();
     this.recentActivity = [];
     this.notifications = [];
   }
@@ -731,6 +776,7 @@ export class ClientDashboardComponent implements OnInit, OnDestroy {
   
   onMetricChange(metric: 'sales' | 'orders' | 'deliveries' | 'deliveryDate'): void {
     this.metricSelected = metric;
+    this.updateChartData();
     console.log('[BUYER-INSIGHTS] Metric changed to:', metric);
   }
 

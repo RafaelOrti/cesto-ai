@@ -12,6 +12,11 @@ import { ProductsModule } from './products/products.module';
 import { OrdersModule } from './orders/orders.module';
 import { ShoppingListsModule } from './shopping-lists/shopping-lists.module';
 import { InventoryModule } from './inventory/inventory.module';
+import { DashboardModule } from './dashboard/dashboard.module';
+import { AnalysisModule } from './analysis/analysis.module';
+import { TeamModule } from './team/team.module';
+import { TransactionsModule } from './transactions/transactions.module';
+import { NotificationsModule } from './notifications/notifications.module';
 import { SharedModule } from './shared/shared.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -49,6 +54,11 @@ import appConfig from './config/app.config';
     OrdersModule,
     ShoppingListsModule,
     InventoryModule,
+    DashboardModule,
+    AnalysisModule,
+    TeamModule,
+    TransactionsModule,
+    NotificationsModule,
   ],
   controllers: [AppController, HealthController],
   providers: [AppService],

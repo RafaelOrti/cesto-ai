@@ -119,6 +119,7 @@ html, body {
   background: var(--content-surface);
   color: var(--content-text);
   line-height: 1.6;
+  font-size: 18px; // Increased base font size
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -271,44 +272,44 @@ html, body {
 // Mobile-First Responsive Design
 // Base styles are mobile-first, then enhanced for larger screens
 
-// Mobile styles (default)
+// Mobile styles (default) - Made larger
 .container {
   max-width: 100%;
   margin: 0 auto;
-  padding: 0 12px;
+  padding: 0 20px; // Increased from 12px
 }
 
-// Touch-friendly button sizes
+// Touch-friendly button sizes - Made larger
 .btn {
-  min-height: 44px; // Minimum touch target size
-  padding: 12px 16px;
-  font-size: 14px;
+  min-height: 52px; // Increased from 44px
+  padding: 16px 24px; // Increased from 12px 16px
+  font-size: 16px; // Increased from 14px
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 12px; // Increased from 8px
 }
 
-// Mobile typography
-h1 { font-size: 24px; line-height: 1.2; }
-h2 { font-size: 20px; line-height: 1.3; }
-h3 { font-size: 18px; line-height: 1.3; }
-h4 { font-size: 16px; line-height: 1.4; }
-h5 { font-size: 14px; line-height: 1.4; }
-h6 { font-size: 13px; line-height: 1.4; }
+// Mobile typography - Made larger
+h1 { font-size: 32px; line-height: 1.2; } // Increased from 24px
+h2 { font-size: 28px; line-height: 1.3; } // Increased from 20px
+h3 { font-size: 24px; line-height: 1.3; } // Increased from 18px
+h4 { font-size: 20px; line-height: 1.4; } // Increased from 16px
+h5 { font-size: 18px; line-height: 1.4; } // Increased from 14px
+h6 { font-size: 16px; line-height: 1.4; } // Increased from 13px
 
-// Mobile form improvements
+// Mobile form improvements - Made larger
 input, select, textarea {
-  min-height: 44px;
-  font-size: 16px; // Prevents zoom on iOS
-  padding: 12px 16px;
+  min-height: 52px; // Increased from 44px
+  font-size: 18px; // Increased from 16px
+  padding: 16px 20px; // Increased from 12px 16px
 }
 
-// Mobile card adjustments
+// Mobile card adjustments - Made larger
 .card {
-  padding: 16px;
-  margin-bottom: 16px;
-  border-radius: 8px;
+  padding: 24px; // Increased from 16px
+  margin-bottom: 24px; // Increased from 16px
+  border-radius: 12px; // Increased from 8px
 }
 
 // Enhanced Products component styles
@@ -643,61 +644,61 @@ input, select, textarea {
 .p-mobile-2 { padding: 16px; }
 .p-mobile-3 { padding: 24px; }
 
-// Tablet styles
+// Tablet styles - Made larger
 @media (min-width: 768px) {
   .container {
-    padding: 0 16px;
+    padding: 0 24px; // Increased from 16px
   }
 
   .btn {
-    padding: 10px 20px;
-    font-size: 14px;
-    min-height: 40px;
+    padding: 14px 28px; // Increased from 10px 20px
+    font-size: 16px; // Increased from 14px
+    min-height: 48px; // Increased from 40px
   }
 
   .card {
-    padding: 20px;
-    margin-bottom: 20px;
+    padding: 28px; // Increased from 20px
+    margin-bottom: 28px; // Increased from 20px
   }
 
-  h1 { font-size: 28px; }
-  h2 { font-size: 24px; }
-  h3 { font-size: 20px; }
-  h4 { font-size: 18px; }
-  h5 { font-size: 16px; }
-  h6 { font-size: 14px; }
+  h1 { font-size: 36px; } // Increased from 28px
+  h2 { font-size: 32px; } // Increased from 24px
+  h3 { font-size: 28px; } // Increased from 20px
+  h4 { font-size: 24px; } // Increased from 18px
+  h5 { font-size: 20px; } // Increased from 16px
+  h6 { font-size: 18px; } // Increased from 14px
 }
 
-// Desktop styles
+// Desktop styles - Made larger
 @media (min-width: 1024px) {
   .container {
-    max-width: 1200px;
-    padding: 0 20px;
+    max-width: 1400px; // Increased from 1200px
+    padding: 0 32px; // Increased from 20px
   }
 
   .btn {
-    padding: 8px 16px;
-    font-size: 14px;
-    min-height: 36px;
+    padding: 12px 24px; // Increased from 8px 16px
+    font-size: 16px; // Increased from 14px
+    min-height: 44px; // Increased from 36px
   }
 
   .card {
-    padding: 24px;
-    margin-bottom: 24px;
+    padding: 32px; // Increased from 24px
+    margin-bottom: 32px; // Increased from 24px
   }
 
-  h1 { font-size: 32px; }
-  h2 { font-size: 28px; }
-  h3 { font-size: 24px; }
-  h4 { font-size: 20px; }
-  h5 { font-size: 18px; }
-  h6 { font-size: 16px; }
+  h1 { font-size: 40px; } // Increased from 32px
+  h2 { font-size: 36px; } // Increased from 28px
+  h3 { font-size: 32px; } // Increased from 24px
+  h4 { font-size: 28px; } // Increased from 20px
+  h5 { font-size: 24px; } // Increased from 18px
+  h6 { font-size: 20px; } // Increased from 16px
 }
 
-// Large desktop styles
+// Large desktop styles - Made larger
 @media (min-width: 1280px) {
   .container {
-    max-width: 1400px;
+    max-width: 1600px; // Increased from 1400px
   }
 }
 
@@ -764,8 +765,8 @@ input, select, textarea {
   overflow: auto;
   background: var(--content-surface);
   margin-left: 280px; // Account for sidebar width
-  margin-top: 64px; // Account for header height
-  min-height: calc(100vh - 64px);
+  margin-top: 120px; // Account for header height
+  min-height: calc(100vh - 120px);
   position: relative;
   width: calc(100% - 280px); // Ensure full width minus sidebar
   

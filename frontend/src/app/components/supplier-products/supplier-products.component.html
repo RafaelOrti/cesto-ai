@@ -259,7 +259,7 @@
   <div class="pagination-section" *ngIf="!isLoading && filteredProducts.length > 0">
     <div class="pagination-info">
       Mostrando {{ (currentPage - 1) * itemsPerPage + 1 }} - 
-      {{ Math.min(currentPage * itemsPerPage, totalItems) }} de {{ totalItems }} productos
+      {{ min(currentPage * itemsPerPage, totalItems) }} de {{ totalItems }} productos
     </div>
     
     <div class="pagination-controls">

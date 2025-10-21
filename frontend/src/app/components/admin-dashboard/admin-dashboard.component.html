@@ -364,7 +364,7 @@
           </div>
           <div class="pagination">
             <div class="pagination-info">
-              Showing {{ (currentPage - 1) * pageSize + 1 }} to {{ Math.min(currentPage * pageSize, totalUsers) }} of {{ totalUsers }} users
+              Showing {{ (currentPage - 1) * pageSize + 1 }} to {{ min(currentPage * pageSize, totalUsers) }} of {{ totalUsers }} users
             </div>
             <div class="pagination-controls">
               <button class="pagination-button" [disabled]="currentPage === 1" (click)="previousPage()">

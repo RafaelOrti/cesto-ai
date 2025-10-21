@@ -1,9 +1,11 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Subject } from 'rxjs';
+import { Subject, takeUntil, finalize } from 'rxjs';
 import { ShoppingList, ShoppingListItem, ShoppingListType, ItemPriority, AIRecommendations } from '../../../shared/types/common.types';
 import { BaseComponent } from '../../core/components/base-component';
 import { I18nService } from '../../core/services/i18n.service';
+import { ShoppingListService } from '../../services/shopping-list.service';
+import { NotificationService } from '../../core/services/notification.service';
 
 @Component({
   selector: 'app-shopping-list',
@@ -63,7 +65,12 @@ export class ShoppingListComponent extends BaseComponent implements OnInit, OnDe
     { id: 'low', name: 'Low Priority' }
   ];
 
-  constructor(fb: FormBuilder, public i18n: I18nService) {
+  constructor(
+    fb: FormBuilder, 
+    public i18n: I18nService,
+    private shoppingListService: ShoppingListService,
+    private notificationService: NotificationService
+  ) {
     super(fb);
     this.initializeForms();
   }
@@ -326,35 +333,52 @@ export class ShoppingListComponent extends BaseComponent implements OnInit, OnDe
   }
 
   private loadShoppingLists(): void {
-    // Mock data - replace with actual API call
-    this.shoppingLists = [
-      {
-        id: '1',
-        name: 'Weekly Groceries',
-        description: 'Weekly grocery shopping list',
-        type: ShoppingListType.REGULAR,
-        status: 'active',
-        isActive: true,
-        isShared: false,
-        sharedWith: [],
-        lastUsedDate: '2024-01-01',
-        usageCount: 0,
-        totalItems: this.shoppingListItems.length,
-        purchasedItems: 0,
-        pendingItems: this.shoppingListItems.length,
-        estimatedTotal: 1920.00,
-        actualTotal: 0,
-        createdAt: '2024-01-01',
-        updatedAt: '2024-01-15',
-        items: this.shoppingListItems,
-        aiRecommendations: {
-          suggestedItems: [],
-          priceAlerts: [],
-          restockPredictions: [],
-          seasonalInsights: []
+    this.isLoading = true;
+    
+    this.shoppingListService.getAll()
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.isLoading = false)
+      )
+      .subscribe({
+        next: (response) => {
+          this.shoppingLists = Array.isArray(response) ? response : (response as any).data || [];
+          if (this.shoppingLists.length > 0) {
+            this.currentList = this.shoppingLists[0];
+          }
+        },
+        error: (error) => {
+          console.error('Error loading shopping lists:', error);
+          this.notificationService.error('Error loading shopping lists');
+          // Fallback to mock data
+          this.shoppingLists = [{
+            id: '1',
+            name: 'Weekly Groceries',
+            description: 'Weekly grocery shopping list',
+            type: ShoppingListType.REGULAR,
+            status: 'active',
+            isActive: true,
+            isShared: false,
+            sharedWith: [],
+            lastUsedDate: '2024-01-01',
+            usageCount: 0,
+            totalItems: this.shoppingListItems.length,
+            purchasedItems: 0,
+            pendingItems: this.shoppingListItems.length,
+            estimatedTotal: 1920.00,
+            actualTotal: 0,
+            createdAt: '2024-01-01',
+            updatedAt: '2024-01-15',
+            items: this.shoppingListItems,
+            aiRecommendations: {
+              suggestedItems: [],
+              priceAlerts: [],
+              restockPredictions: [],
+              seasonalInsights: []
+            }
+          }];
         }
-      }
-    ];
+      });
   }
 
   private loadShoppingList(): void {
@@ -364,42 +388,39 @@ export class ShoppingListComponent extends BaseComponent implements OnInit, OnDe
   }
 
   private loadMLPredictions(): void {
-    // Mock AI recommendations
-    this.aiRecommendations = {
-      suggestedItems: [
-        {
-          name: 'Organic Milk',
-          reason: 'Based on your consumption patterns',
-          confidence: 0.85
+    if (!this.currentList?.id) return;
+    
+    this.shoppingListService.getAIRecommendations()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          // Convert AIRecommendation[] to AIRecommendations format
+          this.aiRecommendations = {
+            suggestedItems: response.map(r => ({
+              name: r.productName,
+              reason: r.reason,
+              confidence: r.confidence
+            })),
+            priceAlerts: [], // No price alerts in this response format
+            restockPredictions: response.map(r => ({
+              item: r.productName,
+              predictedDate: r.estimatedStockoutDate || new Date().toISOString(),
+              confidence: r.confidence
+            })),
+            seasonalInsights: [] // No seasonal insights in this response format
+          };
         },
-        {
-          name: 'Fresh Bread',
-          reason: 'Frequently ordered item',
-          confidence: 0.92
+        error: (error) => {
+          console.error('Error loading ML predictions:', error);
+          // Fallback to default recommendations
+          this.aiRecommendations = {
+            suggestedItems: [],
+            priceAlerts: [],
+            restockPredictions: [],
+            seasonalInsights: []
+          };
         }
-      ],
-      priceAlerts: [
-        {
-          item: 'Chicken Breast',
-          oldPrice: 15.99,
-          newPrice: 12.99,
-          savings: 3.00
-        }
-      ],
-      restockPredictions: [
-        {
-          item: 'Rice',
-          predictedDate: '2024-01-25',
-          confidence: 0.78
-        }
-      ],
-      seasonalInsights: [
-        {
-          insight: 'Winter vegetables are in season',
-          recommendation: 'Consider adding seasonal produce'
-        }
-      ]
-    };
+      });
   }
 
   // Utility methods

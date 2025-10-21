@@ -1,4 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Subject, takeUntil, finalize } from 'rxjs';
+import { TeamService } from '../../services/team.service';
+import { NotificationService } from '../../core/services/notification.service';
 
 interface TeamMember {
   id: string;
@@ -49,13 +52,16 @@ interface TeamActivity {
   templateUrl: './team.component.html',
   styleUrls: ['./team.component.scss']
 })
-export class TeamComponent implements OnInit {
+export class TeamComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+  
   selectedTab = 'members';
   showInviteModal = false;
   showPlanModal = false;
   searchQuery = '';
   selectedRole = 'all';
   selectedStatus = 'all';
+  isLoading = false;
 
   // Team members
   teamMembers: TeamMember[] = [
@@ -258,6 +264,9 @@ export class TeamComponent implements OnInit {
     return this.teamInvitations.filter(invitation => invitation.status === 'pending').length;
   }
 
+  pendingInvitations: TeamInvitation[] = [];
+  recentActivity: any[] = [];
+
   getActiveMembersCount(): number {
     return this.activeMembersCount;
   }
@@ -270,8 +279,18 @@ export class TeamComponent implements OnInit {
     return this.teamPlans.find(plan => plan.current) || this.teamPlans[0];
   }
 
+  constructor(
+    private teamService: TeamService,
+    private notificationService: NotificationService
+  ) {}
+
   ngOnInit(): void {
     this.loadTeamData();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   onTabSelect(tab: string): void {
@@ -440,6 +459,58 @@ export class TeamComponent implements OnInit {
   }
 
   private loadTeamData(): void {
-    // Load team data from API
+    this.isLoading = true;
+    
+    // Load team members
+    this.teamService.getMembers({})
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.isLoading = false)
+      )
+      .subscribe({
+        next: (response) => {
+          this.teamMembers = (Array.isArray(response) ? response : (response as any).data || []).map((member: any) => ({
+            id: member.id,
+            name: member.name,
+            email: member.email,
+            role: member.role,
+            avatar: member.avatar,
+            status: member.status,
+            lastActive: member.lastActive,
+            permissions: member.permissions || [],
+            joinedDate: member.joinedDate || member.createdAt,
+            department: member.department,
+            phone: member.phone
+          }));
+        },
+        error: (error) => {
+          console.error('Error loading team members:', error);
+          this.notificationService.error('Error loading team members');
+        }
+      });
+    
+    // Load pending invitations
+    this.teamService.getInvitations()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          this.pendingInvitations = (Array.isArray(response) ? response : (response as any).data || []).filter((inv: any) => inv.status === 'pending');
+        },
+        error: (error) => {
+          console.error('Error loading invitations:', error);
+        }
+      });
+    
+    // Load recent activities
+    this.teamService.getActivity({})
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          this.recentActivity = Array.isArray(response) ? response : (response as any).data || [];
+        },
+        error: (error) => {
+          console.error('Error loading activities:', error);
+        }
+      });
   }
 }

@@ -183,6 +183,25 @@ const fallbackTranslations: any = {
       termsAndConditions: 'I agree to the Terms and Conditions',
       privacyPolicy: 'Privacy Policy'
     },
+    buyerInsights: {
+      title: 'Buyer Insights',
+      subtitle: 'Analytics and performance data for your business',
+      aiAnalysis: 'AI Analysis',
+      downloadReport: 'Download Report',
+      dateRange: 'Date Range',
+      store: 'Store',
+      salesEuro: 'Sales (€)',
+      orders: 'Orders',
+      avgOrderEuro: 'Avg Order (€)',
+      frequency: 'Frequency',
+      amountOfStores: 'Amount of Stores',
+      noData: 'No data available',
+      generate: 'Generate',
+      addComparison: 'Add Comparison',
+      sales: 'Sales',
+      deliveries: 'Deliveries',
+      deliveryDate: 'Delivery Date'
+    },
     clientInsights: {
       title: 'Client Insights',
       subtitle: 'Analytics and performance data for your clients',
@@ -433,6 +452,22 @@ const fallbackTranslations: any = {
       cesto: 'CESTO',
       aiPlatform: 'AI Platform',
       stockfiller: 'Stockfiller.com'
+    },
+    search: {
+      placeholder: 'Search products, suppliers, orders...',
+      suggestions: 'Suggestions',
+      clear: 'Clear search',
+      clearRecent: 'Clear recent searches',
+      noResults: 'No results found',
+      searchResults: 'Search Results',
+      recentSearches: 'Recent Searches',
+      popularSearches: 'Popular Searches',
+      products: 'Products',
+      suppliers: 'Suppliers',
+      orders: 'Orders',
+      shoppingLists: 'Shopping Lists',
+      analytics: 'Analytics',
+      inventory: 'Inventory'
     }
   },
   'es': {
@@ -612,6 +647,25 @@ const fallbackTranslations: any = {
       dontHaveAccount: '¿No tienes una cuenta?',
       termsAndConditions: 'Acepto los Términos y Condiciones',
       privacyPolicy: 'Política de Privacidad'
+    },
+    buyerInsights: {
+      title: 'Insights del Comprador',
+      subtitle: 'Datos de análisis y rendimiento para tu negocio',
+      aiAnalysis: 'Análisis de IA',
+      downloadReport: 'Descargar Reporte',
+      dateRange: 'Rango de Fechas',
+      store: 'Tienda',
+      salesEuro: 'Ventas (€)',
+      orders: 'Pedidos',
+      avgOrderEuro: 'Pedido Promedio (€)',
+      frequency: 'Frecuencia',
+      amountOfStores: 'Cantidad de Tiendas',
+      noData: 'No hay datos disponibles',
+      generate: 'Generar',
+      addComparison: 'Agregar Comparación',
+      sales: 'Ventas',
+      deliveries: 'Entregas',
+      deliveryDate: 'Fecha de Entrega'
     },
     clientInsights: {
       title: 'Información del Cliente',
@@ -864,6 +918,22 @@ const fallbackTranslations: any = {
       cesto: 'CESTO',
       aiPlatform: 'Plataforma IA',
       stockfiller: 'Stockfiller.com'
+    },
+    search: {
+      placeholder: 'Buscar productos, proveedores, pedidos...',
+      suggestions: 'Sugerencias',
+      clear: 'Limpiar búsqueda',
+      clearRecent: 'Limpiar búsquedas recientes',
+      noResults: 'No se encontraron resultados',
+      searchResults: 'Resultados de Búsqueda',
+      recentSearches: 'Búsquedas Recientes',
+      popularSearches: 'Búsquedas Populares',
+      products: 'Productos',
+      suppliers: 'Proveedores',
+      orders: 'Pedidos',
+      shoppingLists: 'Listas de Compras',
+      analytics: 'Análisis',
+      inventory: 'Inventario'
     }
   },
   'sv': {
@@ -1017,6 +1087,25 @@ const fallbackTranslations: any = {
       termsAndConditions: 'Jag accepterar Användarvillkoren',
       privacyPolicy: 'Integritetspolicy'
     },
+    buyerInsights: {
+      title: 'Köparinsikter',
+      subtitle: 'Analys och prestandadata för ditt företag',
+      aiAnalysis: 'AI-analys',
+      downloadReport: 'Ladda ner rapport',
+      dateRange: 'Datumintervall',
+      store: 'Butik',
+      salesEuro: 'Försäljning (€)',
+      orders: 'Beställningar',
+      avgOrderEuro: 'Genomsnittlig beställning (€)',
+      frequency: 'Frekvens',
+      amountOfStores: 'Antal butiker',
+      noData: 'Ingen data tillgänglig',
+      generate: 'Generera',
+      addComparison: 'Lägg till jämförelse',
+      sales: 'Försäljning',
+      deliveries: 'Leveranser',
+      deliveryDate: 'Leveransdatum'
+    },
     clientInsights: {
       title: 'Kundinsikter',
       subtitle: 'Analys och prestandadata för dina kunder',
@@ -1097,6 +1186,22 @@ const fallbackTranslations: any = {
       cesto: 'CESTO',
       aiPlatform: 'AI-plattform',
       stockfiller: 'Stockfiller.com'
+    },
+    search: {
+      placeholder: 'Sök produkter, leverantörer, beställningar...',
+      suggestions: 'Förslag',
+      clear: 'Rensa sökning',
+      clearRecent: 'Rensa senaste sökningar',
+      noResults: 'Inga resultat hittades',
+      searchResults: 'Sökresultat',
+      recentSearches: 'Senaste Sökningar',
+      popularSearches: 'Populära Sökningar',
+      products: 'Produkter',
+      suppliers: 'Leverantörer',
+      orders: 'Beställningar',
+      shoppingLists: 'Inköpslistor',
+      analytics: 'Analys',
+      inventory: 'Lager'
     }
   }
 };
@@ -1151,11 +1256,11 @@ export class I18nService {
    * Load translations from JSON file
    */
   private loadTranslations(languageCode: string): void {
-    this.http.get(`/assets/i18n/languages.json`)
+    this.http.get(`/assets/i18n/${languageCode}.json`)
       .pipe(
-        map((data: any) => data[languageCode] || fallbackTranslations[languageCode] || fallbackTranslations['en']),
+        map((data: any) => data || fallbackTranslations[languageCode] || fallbackTranslations['en']),
         catchError(() => {
-          console.warn('Failed to load translations from JSON file, using fallback');
+          console.warn(`Failed to load translations for ${languageCode}, using fallback`);
           return of(fallbackTranslations[languageCode] || fallbackTranslations['en']);
         })
       )

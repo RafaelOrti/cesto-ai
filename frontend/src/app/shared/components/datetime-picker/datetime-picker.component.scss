@@ -1,0 +1,53 @@
+.datetime-picker-field {
+  width: 100%;
+  
+  .mat-mdc-form-field {
+    width: 100%;
+  }
+  
+  .mat-mdc-input-element {
+    cursor: pointer;
+    
+    &:disabled {
+      cursor: not-allowed;
+    }
+  }
+  
+  .clear-button {
+    margin-right: 8px;
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+    
+    &:hover {
+      opacity: 1;
+    }
+  }
+  
+  .mat-mdc-icon-button {
+    color: var(--color-primary-main);
+    
+    &:hover {
+      background-color: var(--color-primary-main);
+      color: white;
+    }
+    
+    &:disabled {
+      color: var(--color-text-disabled);
+      
+      &:hover {
+        background-color: transparent;
+        color: var(--color-text-disabled);
+      }
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .datetime-picker-field {
+    .mat-mdc-form-field {
+      font-size: 16px; // Prevent zoom on iOS
+    }
+  }
+}
+

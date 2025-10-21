@@ -10,11 +10,13 @@ import {
   UseGuards,
   Request,
 } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { OrdersService, CreateOrderDto, UpdateOrderStatusDto, UpdateOrderItemDto } from './orders.service';
 import { OrderStatus } from './enums/order-status.enum';
 import { ApprovalStatus } from '../suppliers/entities/supplier-approval.entity';
 
 @Controller('orders')
+@UseGuards(JwtAuthGuard)
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
@@ -24,7 +26,7 @@ export class OrdersController {
    */
   @Post()
   async createOrder(@Request() req, @Body() createOrderDto: CreateOrderDto) {
-    const buyerId = req.user.id;
+    const buyerId = req.user.userId;
     return this.ordersService.createOrder(buyerId, createOrderDto);
   }
 
@@ -37,7 +39,7 @@ export class OrdersController {
     @Request() req,
     @Query('status') status?: OrderStatus,
   ) {
-    const buyerId = req.user.id;
+    const buyerId = req.user.userId;
     return this.ordersService.getBuyerOrders(buyerId, status);
   }
 
@@ -51,7 +53,12 @@ export class OrdersController {
     @Query('dateFrom') dateFrom?: string,
     @Query('dateTo') dateTo?: string,
   ) {
-    const buyerId = req.user.id;
+    console.log('DEBUG: req.user =', req.user);
+    console.log('DEBUG: req.user type =', typeof req.user);
+    if (!req.user) {
+      throw new Error('User not authenticated');
+    }
+    const buyerId = req.user.userId;
     return this.ordersService.getBuyerAnalytics(buyerId, dateFrom, dateTo);
   }
 
@@ -64,7 +71,7 @@ export class OrdersController {
     @Request() req,
     @Query('status') status?: OrderStatus,
   ) {
-    const supplierId = req.user.id;
+    const supplierId = req.user.userId;
     return this.ordersService.getSupplierOrders(supplierId, status);
   }
 
@@ -74,7 +81,7 @@ export class OrdersController {
    */
   @Get(':id')
   async getOrderById(@Request() req, @Param('id') id: string) {
-    const userId = req.user.id;
+    const userId = req.user.userId;
     return this.ordersService.getOrderById(id, userId);
   }
 
@@ -88,7 +95,7 @@ export class OrdersController {
     @Param('id') id: string,
     @Body() updateDto: UpdateOrderStatusDto,
   ) {
-    const supplierId = req.user.id;
+    const supplierId = req.user.userId;
     return this.ordersService.updateOrderStatus(id, supplierId, updateDto);
   }
 
@@ -103,7 +110,7 @@ export class OrdersController {
     @Param('itemId') itemId: string,
     @Body() updateDto: UpdateOrderItemDto,
   ) {
-    const supplierId = req.user.id;
+    const supplierId = req.user.userId;
     return this.ordersService.updateOrderItem(id, itemId, supplierId, updateDto);
   }
 
@@ -113,7 +120,7 @@ export class OrdersController {
    */
   @Get('approved-suppliers')
   async getApprovedSuppliers(@Request() req) {
-    const buyerId = req.user.id;
+    const buyerId = req.user.userId;
     return this.ordersService.getApprovedSuppliers(buyerId);
   }
 
@@ -126,7 +133,7 @@ export class OrdersController {
     @Request() req,
     @Body() body: { supplierId: string },
   ) {
-    const buyerId = req.user.id;
+    const buyerId = req.user.userId;
     return this.ordersService.requestSupplierApproval(buyerId, body.supplierId);
   }
 
@@ -144,7 +151,7 @@ export class OrdersController {
       rejectionReason?: string;
     },
   ) {
-    const supplierId = req.user.id;
+    const supplierId = req.user.userId;
     return this.ordersService.updateSupplierApproval(
       approvalId,
       supplierId,

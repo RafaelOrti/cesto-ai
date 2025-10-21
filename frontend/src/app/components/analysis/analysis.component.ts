@@ -1,4 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Subject, takeUntil, finalize } from 'rxjs';
+import { AnalysisService } from '../../services/analysis.service';
+import { NotificationService } from '../../core/services/notification.service';
 
 interface ChartData {
   labels: string[];
@@ -60,12 +63,15 @@ interface AIRecommendation {
   templateUrl: './analysis.component.html',
   styleUrls: ['./analysis.component.scss']
 })
-export class AnalysisComponent implements OnInit {
+export class AnalysisComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+  
   selectedTimeRange = '30d';
   selectedMetric = 'all';
   selectedCategory = 'all';
   showForecasting = true;
   showComparison = true;
+  isLoading = false;
 
   // Performance metrics
   performanceMetrics: PerformanceMetric[] = [
@@ -285,8 +291,18 @@ export class AnalysisComponent implements OnInit {
     { id: 'snacks', name: 'Snacks' }
   ];
 
+  constructor(
+    private analysisService: AnalysisService,
+    private notificationService: NotificationService
+  ) {}
+
   ngOnInit(): void {
     this.loadAnalysisData();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   onTimeRangeChange(range: string): void {
@@ -473,12 +489,51 @@ export class AnalysisComponent implements OnInit {
   }
 
   private loadAnalysisData(): void {
-    // Load analysis data from API based on selected time range
-    console.log('Loading analysis data for:', this.selectedTimeRange);
+    this.isLoading = true;
+    
+    const params = {
+      timeRange: this.selectedTimeRange,
+      metric: this.selectedMetric,
+      category: this.selectedCategory
+    };
+    
+    this.analysisService.getPerformanceMetrics(params)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.isLoading = false)
+      )
+      .subscribe({
+        next: (response) => {
+          if (response.metrics) {
+            this.performanceMetrics = response.metrics.map((m: any) => ({
+              id: m.id,
+              title: m.title,
+              value: m.value,
+              previousValue: m.previousValue,
+              change: m.change,
+              changePercentage: m.changePercentage,
+              trend: m.trend,
+              unit: m.unit,
+              icon: m.icon
+            }));
+          }
+          
+          if (response.forecasting) {
+            this.forecastingData = response.forecasting;
+          }
+          
+          if (response.comparison) {
+            this.comparisonData = response.comparison;
+          }
+        },
+        error: (error) => {
+          console.error('Error loading analysis data:', error);
+          this.notificationService.error('Error loading analysis data');
+        }
+      });
   }
 
   private filterData(): void {
-    // Filter data based on selected metric and category
-    console.log('Filtering data:', this.selectedMetric, this.selectedCategory);
+    this.loadAnalysisData();
   }
 }

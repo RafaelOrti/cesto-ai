@@ -321,4 +321,8 @@ export class ProductDetailComponent implements OnInit {
   getPartialStar(rating: number): number {
     return rating % 1;
   }
+
+  round(value: number): number {
+    return Math.round(value);
+  }
 }

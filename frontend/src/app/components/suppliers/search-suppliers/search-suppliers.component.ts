@@ -1,8 +1,10 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
-import { takeUntil, debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { takeUntil, debounceTime, distinctUntilChanged, finalize } from 'rxjs/operators';
 import { I18nService } from '../../../core/services/i18n.service';
+import { SupplierService } from '../../../services/supplier.service';
+import { NotificationService } from '../../../core/services/notification.service';
 
 export interface Supplier {
   id: string;
@@ -103,7 +105,9 @@ export class SearchSuppliersComponent implements OnInit, OnDestroy {
 
   constructor(
     private router: Router,
-    public i18n: I18nService
+    public i18n: I18nService,
+    private supplierService: SupplierService,
+    private notificationService: NotificationService
   ) {
     this.setupSearchDebounce();
   }
@@ -166,20 +170,71 @@ export class SearchSuppliersComponent implements OnInit, OnDestroy {
 
   async loadSuppliers(): Promise<void> {
     this.isLoading = true;
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      this.suppliers = this.generateMockSuppliers();
-      this.totalSuppliers = this.suppliers.length;
-      this.totalPages = Math.ceil(this.totalSuppliers / this.itemsPerPage);
-      
-      this.applyFilters();
-    } catch (error) {
-      console.error('Error loading suppliers:', error);
-    } finally {
-      this.isLoading = false;
-    }
+    
+    const query = this.searchQuery;
+    const pagination = {
+      page: this.currentPage,
+      limit: this.itemsPerPage
+    };
+    const filters = {
+      categories: this.selectedCategories,
+      sortBy: this.sortBy,
+      coDelivery: this.filters.coDelivery,
+      freeShipping: this.filters.freeShipping,
+      onSale: this.filters.onSale,
+      hasCampaigns: this.filters.activeCampaigns,
+      hasNewProducts: this.filters.newProducts
+    };
+    
+    this.supplierService.searchSuppliers(query, pagination, filters)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.isLoading = false)
+      )
+      .subscribe({
+        next: (response) => {
+          this.suppliers = this.mapSuppliers(Array.isArray(response) ? response : (response.data || []));
+          this.totalSuppliers = response.total || this.suppliers.length;
+          this.totalPages = Math.ceil(this.totalSuppliers / this.itemsPerPage);
+          this.filteredSuppliers = [...this.suppliers];
+        },
+        error: (error) => {
+          console.error('Error loading suppliers:', error);
+          this.notificationService.error('Error searching suppliers');
+          // Fallback to mock data on error
+          this.suppliers = this.generateMockSuppliers();
+          this.filteredSuppliers = [...this.suppliers];
+        }
+      });
+  }
+  
+  private mapSuppliers(data: any[]): Supplier[] {
+    return data.map(supplier => ({
+      id: supplier.id,
+      name: supplier.name || supplier.supplierName,
+      description: supplier.description || '',
+      logo: supplier.logo,
+      tags: supplier.tags || [],
+      category: supplier.category || supplier.categories?.[0]?.name || '',
+      rating: supplier.rating || 0,
+      productsCount: supplier.productsCount || 0,
+      isFavorite: supplier.isFavorite || false,
+      lastDelivery: supplier.lastDelivery ? new Date(supplier.lastDelivery) : new Date(),
+      futureDelivery: supplier.futureDelivery ? new Date(supplier.futureDelivery) : new Date(),
+      activeCampaign: supplier.activeCampaign,
+      newProductsCount: supplier.newProductsCount || 0,
+      contactInfo: supplier.contactInfo || {
+        email: '',
+        phone: '',
+        address: ''
+      },
+      deliveryTerms: supplier.deliveryTerms || {
+        minimumOrder: 0,
+        shippingCost: 0,
+        freeShippingThreshold: 0
+      },
+      joinedDate: supplier.joinedDate ? new Date(supplier.joinedDate) : new Date()
+    }));
   }
 
   applyFilters(): void {

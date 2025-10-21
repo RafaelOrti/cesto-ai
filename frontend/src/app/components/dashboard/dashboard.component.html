@@ -20,13 +20,27 @@
           <input matInput placeholder="Stores, supplier, delivery date..." />
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="filter-range">
-          <mat-label>Fecha</mat-label>
-          <input matInput placeholder="1 Feb 2022 - 31 Jan 2023" />
-          <button mat-icon-button matSuffix aria-label="calendar">
-            <mat-icon>calendar_today</mat-icon>
-          </button>
-        </mat-form-field>
+        <!-- Date Range Picker for Materials -->
+        <div class="date-range-container">
+          <app-datetime-picker
+            label="Fecha de Inicio"
+            placeholder="Seleccionar fecha y hora de inicio"
+            [(ngModel)]="materialsStartDate"
+            (dateTimeChange)="onMaterialsStartDateChange($event)"
+            [showTime]="true"
+            class="date-picker-field">
+          </app-datetime-picker>
+          
+          <app-datetime-picker
+            label="Fecha de Fin"
+            placeholder="Seleccionar fecha y hora de fin"
+            [(ngModel)]="materialsEndDate"
+            (dateTimeChange)="onMaterialsEndDateChange($event)"
+            [showTime]="true"
+            [minDate]="materialsStartDate"
+            class="date-picker-field">
+          </app-datetime-picker>
+        </div>
 
         <button mat-stroked-button color="primary" (click)="addComparison()">
           <mat-icon>add</mat-icon>

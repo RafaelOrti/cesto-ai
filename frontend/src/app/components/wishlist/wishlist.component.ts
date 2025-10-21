@@ -421,6 +421,10 @@ export class WishlistComponent implements OnInit {
     }).format(amount);
   }
 
+  round(value: number): number {
+    return Math.round(value);
+  }
+
   getDiscountPercentage(item: WishlistItem): number {
     if (!item.pricing.originalPrice) return 0;
     return Math.round(((item.pricing.originalPrice - item.pricing.currentPrice) / item.pricing.originalPrice) * 100);
@@ -481,5 +485,9 @@ export class WishlistComponent implements OnInit {
     const currentIndex = priorities.indexOf(currentPriority);
     const nextIndex = (currentIndex + 1) % priorities.length;
     return priorities[nextIndex] as 'low' | 'medium' | 'high';
+  }
+
+  getAIRecommendedCount(): number {
+    return this.filteredItems.filter(item => item.aiRecommended).length;
   }
 }

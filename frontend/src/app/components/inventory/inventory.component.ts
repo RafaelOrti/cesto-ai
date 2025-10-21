@@ -1,4 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Subject, takeUntil, finalize } from 'rxjs';
+import { InventoryService } from '../../services/inventory.service';
+import { NotificationService } from '../../core/services/notification.service';
 
 interface InventoryItem {
   id: string;
@@ -48,13 +51,16 @@ interface AIInsight {
   templateUrl: './inventory.component.html',
   styleUrls: ['./inventory.component.scss']
 })
-export class InventoryComponent implements OnInit {
+export class InventoryComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+  
   searchQuery = '';
   selectedCategory = 'all';
   selectedSupplier = 'all';
   selectedAlertLevel = 'all';
   showAIInsights = true;
   showOnlyAlerts = false;
+  isLoading = false;
 
   // Sample inventory data
   inventoryItems: InventoryItem[] = [
@@ -297,9 +303,19 @@ export class InventoryComponent implements OnInit {
     return this.inventoryItems.filter(item => item.currentStock < item.minStock).length;
   }
 
+  constructor(
+    private inventoryService: InventoryService,
+    private notificationService: NotificationService
+  ) {}
+
   ngOnInit(): void {
     this.loadInventory();
     this.loadAIInsights();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   onSearch(): void {
@@ -445,10 +461,69 @@ export class InventoryComponent implements OnInit {
   }
 
   private loadInventory(): void {
-    // Load inventory from API
+    this.isLoading = true;
+    
+    this.inventoryService.getAll()
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.isLoading = false)
+      )
+      .subscribe({
+        next: (response) => {
+          const items = Array.isArray(response) ? response : (response.data || []);
+          this.inventoryItems = items.map((item: any) => ({
+            id: item.id,
+            productName: item.productName || item.name,
+            productImage: item.productImage || item.image || '',
+            category: item.category || '',
+            supplier: item.supplier?.name || item.supplierName || '',
+            currentStock: item.stock || item.currentStock || 0,
+            minStock: item.minStock || 0,
+            maxStock: item.maxStock || 0,
+            unit: item.unit || '',
+            unitCost: item.unitCost || item.price || 0,
+            totalValue: (item.stock || item.currentStock || 0) * (item.unitCost || item.price || 0),
+            lastRestocked: item.lastRestocked || '',
+            nextRestockDate: item.nextRestockDate || '',
+            aiPrediction: item.aiPrediction || {
+              recommendedStock: 0,
+              confidence: 0,
+              reason: '',
+              urgency: 'low'
+            },
+            stockAlerts: item.stockAlerts || []
+          }));
+        },
+        error: (error) => {
+          console.error('Error loading inventory:', error);
+          this.notificationService.error('Error loading inventory');
+        }
+      });
   }
 
   private loadAIInsights(): void {
-    // Load AI insights from AI service
+    this.inventoryService.getAIInsights()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          // Apply AI insights to inventory items
+          if (response.predictions) {
+            this.inventoryItems.forEach(item => {
+              const prediction = response.predictions.find((p: any) => p.productId === item.id);
+              if (prediction) {
+                item.aiPrediction = {
+                  recommendedStock: prediction.recommendedStock,
+                  confidence: prediction.confidence,
+                  reason: prediction.reason,
+                  urgency: prediction.urgency
+                };
+              }
+            });
+          }
+        },
+        error: (error) => {
+          console.error('Error loading AI insights:', error);
+        }
+      });
   }
 }

@@ -1,4 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Subject, takeUntil, finalize } from 'rxjs';
+import { TransactionsService } from '../../services/transactions.service';
+import { NotificationService } from '../../core/services/notification.service';
 
 interface Transaction {
   id: string;
@@ -67,13 +71,18 @@ interface FinancialSummary {
   templateUrl: './transactions.component.html',
   styleUrls: ['./transactions.component.scss']
 })
-export class TransactionsComponent implements OnInit {
-  selectedTab = 'transactions';
+export class TransactionsComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+  selectedTab = 'invoices';
   searchQuery = '';
   selectedType = 'all';
   selectedStatus = 'all';
   dateRange = '30d';
   showFilters = false;
+  loading = false;
+  filterStatus = 'all';
+  filterSupplier = '';
+  purchaseOrders: any[] = [];
 
   // Financial summary
   financialSummary: FinancialSummary = {
@@ -312,8 +321,28 @@ export class TransactionsComponent implements OnInit {
     return this.invoices.filter(invoice => invoice.status === 'overdue').length;
   }
 
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router,
+    private transactionsService: TransactionsService,
+    private notificationService: NotificationService
+  ) {}
+
   ngOnInit(): void {
+    // Check current route to set the correct tab
+    const currentPath = this.router.url;
+    if (currentPath.includes('purchase-orders')) {
+      this.selectedTab = 'purchase-orders';
+    } else {
+      this.selectedTab = 'invoices';
+    }
+
     this.loadTransactions();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   onTabSelect(tab: string): void {
@@ -457,6 +486,10 @@ export class TransactionsComponent implements OnInit {
     }).format(amount);
   }
 
+  abs(value: number): number {
+    return Math.abs(value);
+  }
+
   formatDate(dateString: string): string {
     return new Date(dateString).toLocaleDateString('sv-SE');
   }
@@ -469,9 +502,74 @@ export class TransactionsComponent implements OnInit {
     return `${value >= 0 ? '+' : ''}${value.toFixed(1)}%`;
   }
 
+  private getDateRangeStart(): string {
+    const days = this.dateRange === '7d' ? 7 : 30;
+    const date = new Date();
+    date.setDate(date.getDate() - days);
+    return date.toISOString().split('T')[0];
+  }
+
+  private getDateRangeEnd(): string {
+    const date = new Date();
+    return date.toISOString().split('T')[0];
+  }
+
   private loadTransactions(): void {
-    // Load transactions from API based on selected date range
-    console.log('Loading transactions for:', this.dateRange);
+    this.loading = true;
+    
+    const params = {
+      startDate: this.getDateRangeStart(),
+      endDate: this.getDateRangeEnd(),
+      type: this.selectedTab,
+      status: this.filterStatus,
+      supplier: this.filterSupplier
+    };
+    
+    this.transactionsService.getAll(params)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.loading = false)
+      )
+      .subscribe({
+        next: (response) => {
+          const transactions = Array.isArray(response) ? response : (response.data || []);
+          
+          // Filter by tab
+          if (this.selectedTab === 'invoices') {
+            this.invoices = transactions
+              .filter((t: any) => t.type === 'invoice')
+              .map((t: any) => this.mapTransaction(t));
+          } else if (this.selectedTab === 'purchase-orders') {
+            this.purchaseOrders = transactions
+              .filter((t: any) => t.type === 'purchase-order')
+              .map((t: any) => this.mapTransaction(t));
+          } else {
+            this.transactions = transactions.map((t: any) => this.mapTransaction(t));
+          }
+        },
+        error: (error) => {
+          console.error('Error loading transactions:', error);
+          this.notificationService.error('Error loading transactions');
+        }
+      });
+  }
+  
+  private mapTransaction(transaction: any): any {
+    return {
+      id: transaction.id,
+      documentNumber: transaction.documentNumber || transaction.invoiceNumber || transaction.poNumber,
+      type: transaction.type,
+      date: transaction.date || transaction.createdAt,
+      dueDate: transaction.dueDate,
+      supplier: transaction.supplier?.name || transaction.supplierName || '',
+      supplierId: transaction.supplier?.id || transaction.supplierId || '',
+      amount: transaction.amount || transaction.total,
+      status: transaction.status,
+      description: transaction.description || '',
+      items: transaction.items || [],
+      attachments: transaction.attachments || [],
+      notes: transaction.notes || ''
+    };
   }
 
   getAmountClass(amount: number): string {
